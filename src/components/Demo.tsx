@@ -44,7 +44,7 @@ export default function Demo() {
 
   const shareCast = async () => {
     sdk.actions.composeCast({
-      text: "Farewell Warpcast, I just minted the new POAP! Get yours too and support Farcaster choooo chooo🚂! Thanks @gabo and @samuellhuber.eth",
+      text: "Farewell Warpcast, I just minted the new POAP! Get yours too and support Farcaster choooo chooo🚂! All proceeds from mint go to @purple DAO to support RetroPGF across Farcaster. Thanks @gabo and @samuellhuber.eth",
       embeds: ["https://fc-poap.dtech.vision/"],
       close: true,
     });
