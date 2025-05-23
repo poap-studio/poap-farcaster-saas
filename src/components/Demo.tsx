@@ -13,6 +13,9 @@ export default function Demo() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
+  const [walletAddress, setWalletAddress] = useState<string>("");
+  const [claimStatus, setClaimStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [claimError, setClaimError] = useState<string>("");
 
   const { address, isConnected } = useAccount();
   const { connect } = useConnect();
@@ -20,6 +23,13 @@ export default function Demo() {
   const { isSuccess } = useWaitForTransactionReceipt({
     hash: txHash,
   });
+
+  // Set default wallet address when connected
+  useEffect(() => {
+    if (address) {
+      setWalletAddress(address);
+    }
+  }, [address]);
 
   // Farcaster Mini App Integration
   useEffect(() => {
@@ -56,7 +66,6 @@ export default function Demo() {
         {
           onSuccess: (hash) => {
             setTxHash(hash);
-            shareCast();
           },
         },
       );
@@ -72,8 +81,44 @@ export default function Demo() {
     }
   };
 
+  const claimPoap = async () => {
+    if (!txHash || !walletAddress) {
+      setClaimError("Transaction hash and wallet address are required");
+      return;
+    }
+
+    try {
+      setClaimStatus("loading");
+      const response = await fetch("/api/claim-poap", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          address: walletAddress,
+          txHash,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to claim POAP");
+      }
+
+      setClaimStatus("success");
+    } catch (error) {
+      setClaimStatus("error");
+      setClaimError(error instanceof Error ? error.message : "Failed to claim POAP");
+    }
+  };
+
+  const handleShare = () => {
+    shareCast();
+  };
+
   return (
-    <div className="mt-10">
+    <div>
       <section id="poap" className="poap-section card">
         <h2 className="poap-title">
           <img
@@ -111,7 +156,7 @@ export default function Demo() {
                 Purple DAO
               </a>
             </strong>{" "}
-            before May 24, 11:59 PM UTC
+            before May 30, 11:59 PM UTC
           </p>
           <ul>
             <li>
@@ -148,7 +193,7 @@ export default function Demo() {
                 >
                   Connect Wallet
                 </button>
-              ) : (
+              ) : !isSuccess ? (
                 <button
                   type="button"
                   disabled={isLoading || isSendTxPending}
@@ -157,13 +202,44 @@ export default function Demo() {
                 >
                   {isLoading || isSendTxPending ? "Minting..." : "Mint POAP"}
                 </button>
+              ) : claimStatus === "success" ? (
+                <div className="flex flex-col gap-4">
+                  <div className="text-center text-green-600">
+                    Your POAP has been claimed successfully! Share your achievement with the Farcaster community.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    className="poap-airship-button"
+                  >
+                    Share on Farcaster
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  <input
+                    type="text"
+                    value={walletAddress}
+                    onChange={(e) => setWalletAddress(e.target.value)}
+                    placeholder="Enter wallet address"
+                    className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={claimPoap}
+                    disabled={claimStatus === "loading"}
+                    className="poap-airship-button"
+                  >
+                    {claimStatus === "loading" ? "Claiming..." : "Claim POAP"}
+                  </button>
+                  {claimStatus === "error" && (
+                    <div className="text-center text-red-600">
+                      {claimError}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
-            {isSuccess && (
-              <div className="mt-4 text-center text-green-600">
-                Transaction confirmed! Your POAP will be issued shortly.
-              </div>
-            )}
           </div>
         </div>
 
