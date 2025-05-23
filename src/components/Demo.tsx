@@ -18,7 +18,7 @@ export default function Demo() {
   const [claimError, setClaimError] = useState<string>("");
 
   const { address, isConnected } = useAccount();
-  const { connect } = useConnect();
+  const { connect, isPending: isConnecting } = useConnect();
   const { sendTransaction, isPending: isSendTxPending } = useSendTransaction();
   const { isSuccess } = useWaitForTransactionReceipt({
     hash: txHash,
@@ -189,18 +189,33 @@ export default function Demo() {
                 <button
                   type="button"
                   onClick={() => connect({ connector: config.connectors[0] })}
-                  className="poap-airship-button"
+                  disabled={isConnecting}
+                  className={`poap-airship-button ${isConnecting ? 'loading' : ''}`}
                 >
-                  Connect Wallet
+                  {isConnecting ? (
+                    <div className="flex items-center gap-2">
+                      <div className="spinner" />
+                      <span>Connecting...</span>
+                    </div>
+                  ) : (
+                    "Connect Wallet"
+                  )}
                 </button>
               ) : !isSuccess ? (
                 <button
                   type="button"
                   disabled={isLoading || isSendTxPending}
                   onClick={() => mintPoap("0.001")}
-                  className="poap-airship-button"
+                  className={`poap-airship-button ${(isLoading || isSendTxPending) ? 'loading' : ''}`}
                 >
-                  {isLoading || isSendTxPending ? "Minting..." : "Mint POAP"}
+                  {(isLoading || isSendTxPending) ? (
+                    <div className="flex items-center gap-2">
+                      <div className="spinner" />
+                      <span>Minting...</span>
+                    </div>
+                  ) : (
+                    "Mint POAP"
+                  )}
                 </button>
               ) : claimStatus === "success" ? (
                 <div className="flex flex-col gap-4">
@@ -228,9 +243,16 @@ export default function Demo() {
                     type="button"
                     onClick={claimPoap}
                     disabled={claimStatus === "loading"}
-                    className="poap-airship-button"
+                    className={`poap-airship-button ${claimStatus === "loading" ? 'loading' : ''}`}
                   >
-                    {claimStatus === "loading" ? "Claiming..." : "Claim POAP"}
+                    {claimStatus === "loading" ? (
+                      <div className="flex items-center gap-2">
+                        <div className="spinner" />
+                        <span>Claiming...</span>
+                      </div>
+                    ) : (
+                      "Claim POAP"
+                    )}
                   </button>
                   {claimStatus === "error" && (
                     <div className="text-center text-red-600">
@@ -412,6 +434,21 @@ export default function Demo() {
             display: inline-block;
             border: none;
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+          }
+
+          .poap-airship-button.loading {
+            background: linear-gradient(
+              90deg,
+              #7c3aed,
+              #6d28d9,
+              #5b21b6,
+              #6d28d9,
+              #7c3aed
+            );
+            background-size: 200% auto;
+            animation: shine 2s linear infinite;
           }
 
           .poap-airship-button:hover {
@@ -425,6 +462,40 @@ export default function Demo() {
             background: #9ca3af;
             cursor: not-allowed;
             box-shadow: none;
+          }
+
+          .poap-airship-button:disabled.loading {
+            background: linear-gradient(
+              90deg,
+              #9ca3af,
+              #6b7280,
+              #4b5563,
+              #6b7280,
+              #9ca3af
+            );
+            background-size: 200% auto;
+            animation: shine 2s linear infinite;
+          }
+
+          @keyframes spin {
+            to {
+              transform: rotate(360deg);
+            }
+          }
+
+          @keyframes shine {
+            from {
+              background-position: 200% center;
+            }
+          }
+
+          .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
           }
 
           .poap-sponsor {
