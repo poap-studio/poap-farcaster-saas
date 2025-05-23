@@ -1,0 +1,15 @@
+{
+  "accountAssociation": {
+    "header": "eyJmaWQiOjE2MDg1LCJ0eXBlIjoiY3VzdG9keSIsImtleSI6IjB4OWQxREIyOTkxY2ZiZWZDMDBiQWI0NEZFNkJmMzE5ZjcxQWM2MDBDZSJ9",
+    "payload": "eyJkb21haW4iOiJmYy1wb2FwLmR0ZWNoLnZpc2lvbiJ9",
+    "signature": "MHg1NmYyZTJiZTkwNWMwYTZjNDdkMGQ4NjYwZjY1MDExZTRkNjYwZDc3OWQzMjU2YmJkMGJkNWU5NWIwZTQzODlmNDY0M2I2Mjk5YWUxZjE4NTg1MjA0OGExNWZiNmZjNzYyYjdjYzJkNWM5ZWMzOGM1NTRiMGVjNTQ4NTg3MTgyZjFj"
+  },
+  "frame": {
+    "name": "Farcaster POAP",
+    "version": "1",
+    "iconUrl": "https://assets.poap.xyz/5adeb818-235d-4824-9ba5-ffb3e46c4279.png",
+    "homeUrl": "https://fc-poap.dtech.vision",
+    "imageUrl": "https://dtech.vision/tmp/poap.jpg",
+    "buttonTitle": "Mint POAP"
+  }
+}
