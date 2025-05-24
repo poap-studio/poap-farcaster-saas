@@ -1,4 +1,5 @@
 import { getTokenExpirationInfo, isJWTExpired } from "./jwt-utils";
+import { createClient, type RedisClientType } from 'redis';
 
 interface TokenResponse {
   access_token: string;
@@ -17,6 +18,7 @@ interface TokenStorage {
   get(key: string): Promise<TokenData | null>;
   set(key: string, value: TokenData, ttlSeconds: number): Promise<void>;
   delete(key: string): Promise<void>;
+  disconnect?(): Promise<void>;
 }
 
 // Simple in-memory storage for development/fallback
@@ -49,40 +51,33 @@ class MemoryStorage implements TokenStorage {
 
 // Redis storage implementation for production
 class RedisStorage implements TokenStorage {
-  private redis: any;
-  private connected = false;
+  private redis: RedisClientType;
 
   constructor(redisUrl?: string) {
-    try {
-      const { createClient } = require('redis');
-      this.redis = createClient({
-        url: redisUrl || process.env.REDIS_URL || 'redis://localhost:6379'
-      });
-      
-      this.redis.on('error', (err: Error) => {
-        console.error('Redis Client Error:', err);
-      });
-    } catch (error) {
-      console.error('Failed to create Redis client:', error);
-      throw new Error('Redis package not found. Install with: npm install redis');
-    }
+    const url = redisUrl || process.env.REDIS_URL || 'redis://localhost:6379';
+    
+    this.redis = createClient({
+      url,
+      socket: {
+        // Use TLS for all connections except localhost
+        tls: !url.includes('localhost'),
+      },
+    });
+    
+    this.redis.on('error', (err: Error) => {
+      console.error('Redis error:', err.message);
+    });
   }
 
-  private async ensureConnected(): Promise<void> {
-    if (!this.connected) {
-      try {
-        await this.redis.connect();
-        this.connected = true;
-      } catch (error) {
-        console.error('Failed to connect to Redis:', error);
-        throw error;
-      }
+  private async connect(): Promise<void> {
+    if (!this.redis.isReady) {
+      await this.redis.connect();
     }
   }
 
   async get(key: string): Promise<TokenData | null> {
     try {
-      await this.ensureConnected();
+      await this.connect();
       const data = await this.redis.get(key);
       return data ? JSON.parse(data) : null;
     } catch (error) {
@@ -93,20 +88,29 @@ class RedisStorage implements TokenStorage {
 
   async set(key: string, value: TokenData, ttlSeconds: number): Promise<void> {
     try {
-      await this.ensureConnected();
+      await this.connect();
       await this.redis.setEx(key, ttlSeconds, JSON.stringify(value));
     } catch (error) {
       console.error('Redis set error:', error);
-      // Don't throw, fall back to per-request refresh
     }
   }
 
   async delete(key: string): Promise<void> {
     try {
-      await this.ensureConnected();
+      await this.connect();
       await this.redis.del(key);
     } catch (error) {
       console.error('Redis delete error:', error);
+    }
+  }
+
+  async disconnect(): Promise<void> {
+    try {
+      if (this.redis?.isReady) {
+        await this.redis.disconnect();
+      }
+    } catch (error) {
+      console.error('Redis disconnect error:', error);
     }
   }
 }
