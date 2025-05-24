@@ -14,12 +14,12 @@
     "@farcaster/frame-sdk": "^0.0.35",
     "@farcaster/frame-wagmi-connector": "^0.0.23",
     "@tanstack/react-query": "^5.61.0",
-    "@vercel/kv": "^3.0.0",
     "googleapis": "^144.0.0",
     "graphql": "^16.0.0",
     "next": "15.0.3",
     "react": "19.0.0-rc-66855b96-20241106",
     "react-dom": "19.0.0-rc-66855b96-20241106",
+    "redis": "^4.7.0",
     "viem": "2.x",
     "wagmi": "^2.13.0"
   },

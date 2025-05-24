@@ -47,34 +47,66 @@ class MemoryStorage implements TokenStorage {
   }
 }
 
-// Vercel KV storage implementation
-class VercelKVStorage implements TokenStorage {
-  constructor(private kv: { get: (key: string) => Promise<any>; set: (key: string, value: any, options?: any) => Promise<void>; del: (key: string) => Promise<void> }) {}
+// Redis storage implementation for production
+class RedisStorage implements TokenStorage {
+  private redis: any;
+  private connected = false;
+
+  constructor(redisUrl?: string) {
+    try {
+      const { createClient } = require('redis');
+      this.redis = createClient({
+        url: redisUrl || process.env.REDIS_URL || 'redis://localhost:6379'
+      });
+      
+      this.redis.on('error', (err: Error) => {
+        console.error('Redis Client Error:', err);
+      });
+    } catch (error) {
+      console.error('Failed to create Redis client:', error);
+      throw new Error('Redis package not found. Install with: npm install redis');
+    }
+  }
+
+  private async ensureConnected(): Promise<void> {
+    if (!this.connected) {
+      try {
+        await this.redis.connect();
+        this.connected = true;
+      } catch (error) {
+        console.error('Failed to connect to Redis:', error);
+        throw error;
+      }
+    }
+  }
 
   async get(key: string): Promise<TokenData | null> {
     try {
-      const data = await this.kv.get(key);
-      return data || null;
+      await this.ensureConnected();
+      const data = await this.redis.get(key);
+      return data ? JSON.parse(data) : null;
     } catch (error) {
-      console.error('KV get error:', error);
+      console.error('Redis get error:', error);
       return null;
     }
   }
 
   async set(key: string, value: TokenData, ttlSeconds: number): Promise<void> {
     try {
-      await this.kv.set(key, value, { ex: ttlSeconds });
+      await this.ensureConnected();
+      await this.redis.setEx(key, ttlSeconds, JSON.stringify(value));
     } catch (error) {
-      console.error('KV set error:', error);
+      console.error('Redis set error:', error);
       // Don't throw, fall back to per-request refresh
     }
   }
 
   async delete(key: string): Promise<void> {
     try {
-      await this.kv.del(key);
+      await this.ensureConnected();
+      await this.redis.del(key);
     } catch (error) {
-      console.error('KV delete error:', error);
+      console.error('Redis delete error:', error);
     }
   }
 }
@@ -95,20 +127,22 @@ class POAPAuthManager {
   ) {
     this.storageKey = `poap_token_${clientId}`;
     
-    // Try to use Vercel KV if available, fallback to memory
+    // Use provided storage or auto-detect based on environment
     if (storage) {
       this.storage = storage;
-    } else {
+    } else if (process.env.VERCEL_ENV) {
+      // In Vercel environment, use Redis for persistence
       try {
-        // Try to import Vercel KV
-        const kv = require('@vercel/kv');
-        this.storage = new VercelKVStorage(kv);
-        console.log("Using Vercel KV for token storage");
-      } catch {
-        // Fallback to memory storage
+        this.storage = new RedisStorage();
+        console.log("Using Redis for token storage (production mode)");
+      } catch (error) {
+        console.warn("Failed to initialize Redis, falling back to memory storage:", error);
         this.storage = new MemoryStorage();
-        console.log("Using memory storage for tokens (consider adding Vercel KV for better performance)");
       }
+    } else {
+      // In development, use memory storage
+      this.storage = new MemoryStorage();
+      console.log("Using memory storage for tokens (development mode)");
     }
   }
 

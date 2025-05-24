@@ -26,7 +26,7 @@ To try your app in the Warpcast playground, you'll want to use a tunneling tool 
 
 ## 🔐 POAP Token Management
 
-This app includes an automatic token refresh system for POAP API authentication that works seamlessly in both server and serverless environments.
+This app includes an automatic token refresh system for POAP API authentication that works seamlessly in both development and production environments.
 
 ### Environment Variables
 
@@ -38,29 +38,36 @@ POAP_CLIENT_ID=your_poap_client_id
 POAP_CLIENT_SECRET=your_poap_client_secret  
 POAP_API_KEY=your_poap_api_key
 
-# Optional: Vercel KV for better performance (recommended for production)
-KV_REST_API_URL=https://...
-KV_REST_API_TOKEN=...
-KV_REST_API_READ_ONLY_TOKEN=...
+# Production: Redis URL (required when VERCEL_ENV is set)
+REDIS_URL=redis://localhost:6379
+# or for cloud Redis:
+# REDIS_URL=redis://username:password@host:port
 ```
 
 ### Key Features
 
 - **🔄 Automatic Token Refresh**: Tokens refresh automatically when expired
-- **🚀 Serverless Optimized**: Works with Vercel's stateless functions  
-- **📱 Two-Tier Caching**: Memory + persistent storage (Vercel KV)
+- **🚀 Environment Detection**: Uses `VERCEL_ENV` to toggle between memory and Redis storage
+- **📱 Two-Tier Caching**: Memory + persistent storage (Redis in production)
 - **🛡️ Error Recovery**: Automatic retry on 401/403 errors
 - **⚡ Performance**: Reuses valid tokens across function instances
 
+### Storage Strategy
+
+The system automatically selects storage based on environment:
+
+- **Development** (`VERCEL_ENV` not set): Uses in-memory storage
+- **Production** (`VERCEL_ENV` set): Uses Redis for persistence
+
 ### Setup for Production
 
-For optimal performance in production, set up Vercel KV:
+For production deployment, you'll need Redis:
 
-1. **Add Vercel KV**: `npm install @vercel/kv`
-2. **Create KV Database**: In Vercel dashboard → Storage → New KV Database
-3. **Environment Variables**: Automatically added by Vercel
+1. **Add Redis Package**: `npm install redis`
+2. **Set up Redis**: Use any Redis provider (Upstash, Redis Cloud, etc.)
+3. **Configure Environment**: Set `REDIS_URL` in your deployment
 
-The system automatically detects and uses Vercel KV if available, falling back to memory storage otherwise.
+The system automatically detects the production environment and uses Redis when `VERCEL_ENV` is set.
 
 ### Usage in API Routes
 
@@ -679,7 +686,7 @@ export default function Demo() {
 }
 ```
 
-<img src="https://raw.githubusercontent.com/farcasterxyz/frames-v2-demo/refs/heads/main/docs/img/10_close.png" width="200" alt="URL" />
+<img src="https://raw.githubusercontent.com/farcasterxyz/frames-v2-demo/refs/heads/main/docs/img/10_close.png" alt="URL" />
 
 When you tap this, the frame should close.
 
