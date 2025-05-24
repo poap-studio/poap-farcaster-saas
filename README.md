@@ -24,6 +24,76 @@ $ yarn dev
 
 To try your app in the Warpcast playground, you'll want to use a tunneling tool like [ngrok](https://ngrok.com/).
 
+## 🔐 POAP Token Management
+
+This app includes an automatic token refresh system for POAP API authentication that works seamlessly in both server and serverless environments.
+
+### Environment Variables
+
+Set up your POAP credentials:
+
+```bash
+# Required
+POAP_CLIENT_ID=your_poap_client_id
+POAP_CLIENT_SECRET=your_poap_client_secret  
+POAP_API_KEY=your_poap_api_key
+
+# Optional: Vercel KV for better performance (recommended for production)
+KV_REST_API_URL=https://...
+KV_REST_API_TOKEN=...
+KV_REST_API_READ_ONLY_TOKEN=...
+```
+
+### Key Features
+
+- **🔄 Automatic Token Refresh**: Tokens refresh automatically when expired
+- **🚀 Serverless Optimized**: Works with Vercel's stateless functions  
+- **📱 Two-Tier Caching**: Memory + persistent storage (Vercel KV)
+- **🛡️ Error Recovery**: Automatic retry on 401/403 errors
+- **⚡ Performance**: Reuses valid tokens across function instances
+
+### Setup for Production
+
+For optimal performance in production, set up Vercel KV:
+
+1. **Add Vercel KV**: `npm install @vercel/kv`
+2. **Create KV Database**: In Vercel dashboard → Storage → New KV Database
+3. **Environment Variables**: Automatically added by Vercel
+
+The system automatically detects and uses Vercel KV if available, falling back to memory storage otherwise.
+
+### Usage in API Routes
+
+```typescript
+import { getPOAPAuthManager } from "~/lib/poap-auth";
+
+export async function POST(request: Request) {
+  const authManager = getPOAPAuthManager();
+  
+  // Automatically handles token refresh and retries on auth failures
+  const response = await authManager.makeAuthenticatedRequest(
+    "https://api.poap.tech/some-endpoint",
+    {
+      method: "POST",
+      headers: { "X-API-Key": process.env.POAP_API_KEY },
+      body: JSON.stringify(data)
+    }
+  );
+}
+```
+
+### Testing
+
+```bash
+# Test token refresh
+curl -X POST http://localhost:3000/api/refresh-token
+
+# Test POAP claim
+curl -X POST http://localhost:3000/api/claim-poap \
+  -H "Content-Type: application/json" \
+  -d '{"address": "0x...", "txHash": "0x..."}'
+```
+
 ## Tutorial
 
 Here's a full walkthrough of creating a frames v2 app:

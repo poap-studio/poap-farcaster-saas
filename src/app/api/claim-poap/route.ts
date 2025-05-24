@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
+import { getPOAPAuthManager } from "~/lib/poap-auth";
 
 const POAP_API_KEY = process.env.POAP_API_KEY;
-const POAP_ACCESS_TOKEN = process.env.POAP_ACCESS_TOKEN;
 const POAP_EVENT_ID = "190074";
 const POAP_SECRET_CODE = "412350";
 
@@ -22,25 +22,24 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!POAP_API_KEY || !POAP_ACCESS_TOKEN) {
-      console.error("Missing POAP credentials:", {
-        hasApiKey: !!POAP_API_KEY,
-        hasAccessToken: !!POAP_ACCESS_TOKEN
-      });
+    if (!POAP_API_KEY) {
+      console.error("Missing POAP API key");
       throw new Error("POAP API credentials not configured");
     }
+
+    // Get the auth manager instance
+    const authManager = getPOAPAuthManager();
 
     // First get QR codes for the event
     const qrUrl = `https://api.poap.tech/event/${POAP_EVENT_ID}/qr-codes`;
     console.log("Fetching QR codes from:", qrUrl);
     
-    const qrResponse = await fetch(qrUrl, {
+    const qrResponse = await authManager.makeAuthenticatedRequest(qrUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
         "X-API-Key": POAP_API_KEY,
-        Authorization: `Bearer ${POAP_ACCESS_TOKEN}`,
       },
       body: JSON.stringify({
         secret_code: POAP_SECRET_CODE,
@@ -82,13 +81,12 @@ export async function POST(request: Request) {
       url: claimUrl
     });
 
-    const claimResponse = await fetch(claimUrl, {
+    const claimResponse = await authManager.makeAuthenticatedRequest(claimUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
         "X-API-Key": POAP_API_KEY,
-        Authorization: `Bearer ${POAP_ACCESS_TOKEN}`,
       },
       body: JSON.stringify({
         address,
