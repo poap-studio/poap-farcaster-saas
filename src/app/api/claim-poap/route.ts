@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { getPOAPAuthManager } from "~/lib/poap-auth";
 
 const POAP_API_KEY = process.env.POAP_API_KEY;
-const POAP_EVENT_ID = "190074";
-const POAP_SECRET_CODE = "412350";
+const POAP_EVENT_ID = "191758";
+const POAP_SECRET_CODE = "902096";
 
 interface QRCode {
   qr_hash: string;
