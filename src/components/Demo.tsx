@@ -128,7 +128,7 @@ export default function Demo() {
         </h2>
         <div className="poap-directions">
           <p>
-            <strong>Click "Mint POAP" to claim your Farewell Warpcast POAP!</strong>
+            <strong>Click &quot;Mint POAP&quot; to claim your Farewell Warpcast POAP!</strong>
           </p>
           <ul>
             <li>
