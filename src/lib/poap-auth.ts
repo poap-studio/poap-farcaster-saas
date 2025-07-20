@@ -1,5 +1,4 @@
 import { getTokenExpirationInfo, isJWTExpired } from "./jwt-utils";
-import { createClient, type RedisClientType } from 'redis';
 
 interface TokenResponse {
   access_token: string;
@@ -49,71 +48,6 @@ class MemoryStorage implements TokenStorage {
   }
 }
 
-// Redis storage implementation for production
-class RedisStorage implements TokenStorage {
-  private redis: RedisClientType;
-
-  constructor(redisUrl?: string) {
-    const url = redisUrl || process.env.REDIS_URL || 'redis://localhost:6379';
-    
-    this.redis = createClient({
-      url,
-      socket: {
-        // Use TLS for all connections except localhost
-        tls: !url.includes('localhost'),
-      },
-    });
-    
-    this.redis.on('error', (err: Error) => {
-      console.error('Redis error:', err.message);
-    });
-  }
-
-  private async connect(): Promise<void> {
-    if (!this.redis.isReady) {
-      await this.redis.connect();
-    }
-  }
-
-  async get(key: string): Promise<TokenData | null> {
-    try {
-      await this.connect();
-      const data = await this.redis.get(key);
-      return data ? JSON.parse(data) : null;
-    } catch (error) {
-      console.error('Redis get error:', error);
-      return null;
-    }
-  }
-
-  async set(key: string, value: TokenData, ttlSeconds: number): Promise<void> {
-    try {
-      await this.connect();
-      await this.redis.setEx(key, ttlSeconds, JSON.stringify(value));
-    } catch (error) {
-      console.error('Redis set error:', error);
-    }
-  }
-
-  async delete(key: string): Promise<void> {
-    try {
-      await this.connect();
-      await this.redis.del(key);
-    } catch (error) {
-      console.error('Redis delete error:', error);
-    }
-  }
-
-  async disconnect(): Promise<void> {
-    try {
-      if (this.redis?.isReady) {
-        await this.redis.disconnect();
-      }
-    } catch (error) {
-      console.error('Redis disconnect error:', error);
-    }
-  }
-}
 
 class POAPAuthManager {
   private storage: TokenStorage;
@@ -131,23 +65,9 @@ class POAPAuthManager {
   ) {
     this.storageKey = `poap_token_${clientId}`;
     
-    // Use provided storage or auto-detect based on environment
-    if (storage) {
-      this.storage = storage;
-    } else if (process.env.VERCEL_ENV) {
-      // In Vercel environment, use Redis for persistence
-      try {
-        this.storage = new RedisStorage();
-        console.log("Using Redis for token storage (production mode)");
-      } catch (error) {
-        console.warn("Failed to initialize Redis, falling back to memory storage:", error);
-        this.storage = new MemoryStorage();
-      }
-    } else {
-      // In development, use memory storage
-      this.storage = new MemoryStorage();
-      console.log("Using memory storage for tokens (development mode)");
-    }
+    // Always use memory storage - works perfectly in Vercel's serverless environment
+    this.storage = storage || new MemoryStorage();
+    console.log("Using memory storage for tokens");
   }
 
   private async refreshToken(): Promise<TokenData> {

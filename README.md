@@ -38,36 +38,28 @@ POAP_CLIENT_ID=your_poap_client_id
 POAP_CLIENT_SECRET=your_poap_client_secret  
 POAP_API_KEY=your_poap_api_key
 
-# Production: Redis URL (required when VERCEL_ENV is set)
-REDIS_URL=redis://localhost:6379
-# or for cloud Redis:
-# REDIS_URL=redis://username:password@host:port
+# Note: Redis is no longer required - the app uses in-memory storage
 ```
 
 ### Key Features
 
 - **🔄 Automatic Token Refresh**: Tokens refresh automatically when expired
-- **🚀 Environment Detection**: Uses `VERCEL_ENV` to toggle between memory and Redis storage
-- **📱 Two-Tier Caching**: Memory + persistent storage (Redis in production)
+- **💾 In-Memory Storage**: Uses efficient in-memory caching for tokens
 - **🛡️ Error Recovery**: Automatic retry on 401/403 errors
-- **⚡ Performance**: Reuses valid tokens across function instances
+- **⚡ Performance**: Optimized for serverless environments
+- **🚀 Zero Dependencies**: No external database required
 
 ### Storage Strategy
 
-The system automatically selects storage based on environment:
-
-- **Development** (`VERCEL_ENV` not set): Uses in-memory storage
-- **Production** (`VERCEL_ENV` set): Uses Redis for persistence
+The app uses in-memory storage for token management, which works perfectly in Vercel's serverless environment. Each function invocation manages its own token cache, automatically refreshing when needed.
 
 ### Setup for Production
 
-For production deployment, you'll need Redis:
+The app is ready for production deployment on Vercel with no additional database setup required:
 
-1. **Add Redis Package**: `npm install redis`
-2. **Set up Redis**: Use any Redis provider (Upstash, Redis Cloud, etc.)
-3. **Configure Environment**: Set `REDIS_URL` in your deployment
-
-The system automatically detects the production environment and uses Redis when `VERCEL_ENV` is set.
+1. **Deploy to Vercel**: Connect your repository and deploy
+2. **Set Environment Variables**: Add your POAP credentials in Vercel's dashboard
+3. **That's it!**: No database configuration needed
 
 ### Usage in API Routes
 
