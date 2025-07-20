@@ -1,11 +1,8 @@
 import { useEffect, useState } from "react";
 import sdk from "@farcaster/frame-sdk";
-import { parseEther } from "viem";
 import {
   useAccount,
   useConnect,
-  useSendTransaction,
-  useWaitForTransactionReceipt,
   useChainId,
   useSwitchChain,
 } from "wagmi";
@@ -14,18 +11,12 @@ import { config } from "./providers/WagmiProvider";
 
 export default function Demo() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
   const [walletAddress, setWalletAddress] = useState<string>("");
   const [claimStatus, setClaimStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [claimError, setClaimError] = useState<string>("");
 
   const { address, isConnected } = useAccount();
   const { connect, isPending: isConnecting } = useConnect();
-  const { sendTransaction, isPending: isSendTxPending } = useSendTransaction();
-  const { isSuccess } = useWaitForTransactionReceipt({
-    hash: txHash,
-  });
   const chainId = useChainId();
   const { switchChainAsync } = useSwitchChain();
 
@@ -69,45 +60,18 @@ export default function Demo() {
     });
   };
 
-  const mintPoap = async (amount: string) => {
-    if (!address) {
-      console.error("Wallet not connected");
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      sendTransaction(
-        {
-          to: "0xd1A84b374fd0B9466C1e99DDCE15dc6179C8376a",
-          value: parseEther(amount.toString()),
-        },
-        {
-          onSuccess: (hash) => {
-            setTxHash(hash);
-          },
-        },
-      );
-    } catch (error) {
-      console.error("Transaction failed:", error);
-      window.alert(
-        error instanceof Error
-          ? error.message
-          : "Transaction failed. Please try again.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const claimPoap = async () => {
-    if (!txHash || !walletAddress) {
-      setClaimError("Transaction hash and wallet address are required");
+  const mintPoap = async () => {
+    if (!walletAddress) {
+      setClaimError("Wallet address is required");
       return;
     }
 
     try {
       setClaimStatus("loading");
+      // Generate a mock transaction hash for the POAP claim
+      // This is just for compatibility with existing API expectations
+      const mockTxHash = `0x${Date.now().toString(16)}${Math.random().toString(16).substring(2)}`;
+      
       const response = await fetch("/api/claim-poap", {
         method: "POST",
         headers: {
@@ -115,7 +79,7 @@ export default function Demo() {
         },
         body: JSON.stringify({
           address: walletAddress,
-          txHash,
+          txHash: mockTxHash,
         }),
       });
 
@@ -131,6 +95,7 @@ export default function Demo() {
       setClaimError(error instanceof Error ? error.message : "Failed to claim POAP");
     }
   };
+
 
   const handleShare = () => {
     shareCast();
@@ -163,24 +128,14 @@ export default function Demo() {
         </h2>
         <div className="poap-directions">
           <p>
-            To mint the Farewell Warpcast POAP,{" "}
-            <strong>
-              send 0.001 ETH to{" "}
-              <a
-                href="https://nouns.build/dao/base/0x8de71d80ee2c4700bc9d4f8031a2504ca93f7088/789"
-                target="_blank"
-                rel="noreferrer"
-                className="ethstaker-link"
-              >
-                Purple DAO
-              </a>
-            </strong>{" "}
-            before May 30, 11:59 PM UTC
+            <strong>Click "Mint POAP" to claim your Farewell Warpcast POAP!</strong>
           </p>
           <ul>
             <li>
-              To get the Farewell Warpcast POAP you have to send using this mini
-              app as we&apos;ll issue you the POAP.
+              Connect your wallet and mint your commemorative POAP token.
+            </li>
+            <li>
+              This POAP celebrates the Farcaster community and our journey together.
             </li>
           </ul>
         </div>
@@ -202,7 +157,7 @@ export default function Demo() {
                 />
               </a>
             </div>
-            <div className="poap-cost">Support Purple DAO</div>
+            <div className="poap-cost">Free Commemorative POAP</div>
             <div className="poap-details">
               {!isConnected ? (
                 <button
@@ -218,22 +173,6 @@ export default function Demo() {
                     </div>
                   ) : (
                     "Connect Wallet"
-                  )}
-                </button>
-              ) : !isSuccess ? (
-                <button
-                  type="button"
-                  disabled={isLoading || isSendTxPending}
-                  onClick={() => mintPoap("0.001")}
-                  className={`poap-airship-button ${(isLoading || isSendTxPending) ? 'loading' : ''}`}
-                >
-                  {(isLoading || isSendTxPending) ? (
-                    <div className="flex items-center gap-2">
-                      <div className="spinner" />
-                      <span>Minting...</span>
-                    </div>
-                  ) : (
-                    "Mint POAP"
                   )}
                 </button>
               ) : claimStatus === "success" ? (
@@ -255,22 +194,22 @@ export default function Demo() {
                     type="text"
                     value={walletAddress}
                     onChange={(e) => setWalletAddress(e.target.value)}
-                    placeholder="Enter wallet address"
+                    placeholder="Enter wallet address (optional)"
                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                   <button
                     type="button"
-                    onClick={claimPoap}
+                    onClick={mintPoap}
                     disabled={claimStatus === "loading"}
                     className={`poap-airship-button ${claimStatus === "loading" ? 'loading' : ''}`}
                   >
                     {claimStatus === "loading" ? (
                       <div className="flex items-center gap-2">
                         <div className="spinner" />
-                        <span>Claiming...</span>
+                        <span>Minting...</span>
                       </div>
                     ) : (
-                      "Claim POAP"
+                      "Mint POAP"
                     )}
                   </button>
                   {claimStatus === "error" && (
