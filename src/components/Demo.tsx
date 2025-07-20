@@ -92,7 +92,7 @@ export default function Demo() {
       setClaimStatus("success");
     } catch (error) {
       setClaimStatus("error");
-      setClaimError(error instanceof Error ? error.message : "Failed to claim POAP");
+      setClaimError(error instanceof Error ? error.message : 'Failed to claim POAP');
     }
   };
 
