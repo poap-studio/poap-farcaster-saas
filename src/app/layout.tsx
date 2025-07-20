@@ -4,15 +4,22 @@ import "~/app/globals.css";
 import { Providers } from "~/app/providers";
 
 
+const FRAME_URL = process.env.NEXT_PUBLIC_FRAME_URL 
+  || (process.env.NODE_ENV === 'development' 
+    ? 'http://localhost:3000'
+    : process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}`
+      : '');
+
 const frame = {
   version: "next",
-  imageUrl: "https://dtech.vision/tmp/poap.jpg",
+  imageUrl: "https://assets.poap.xyz/5adeb818-235d-4824-9ba5-ffb3e46c4279.png",
   button: {
     title: "Mint Farewell Warpcast POAP",
     action: {
       type: "launch_frame",
       name: "Farewell Warpcast POAP",
-      url: "https://fc-poap.dtech.vision",
+      url: FRAME_URL,
       splashImageUrl: "https://assets.poap.xyz/5adeb818-235d-4824-9ba5-ffb3e46c4279.png",
       splashBackgroundColor: "#f7f7f7",
     },
@@ -27,7 +34,7 @@ export const metadata: Metadata = {
     title: "Farewell Warpcast POAP",
     description: "Farewell Warpcast POAP",
     images: [{
-      url: "https://dtech.vision/tmp/poap.jpg",
+      url: "https://assets.poap.xyz/5adeb818-235d-4824-9ba5-ffb3e46c4279.png",
       alt: "Farewell Warpcast POAP"
     }]
   },

@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { getPOAPAuthManager } from "~/lib/poap-auth";
 
 const POAP_API_KEY = process.env.POAP_API_KEY;
-const POAP_EVENT_ID = "191758";
-const POAP_SECRET_CODE = "902096";
+const POAP_EVENT_ID = process.env.POAP_EVENT_ID;
+const POAP_SECRET_CODE = process.env.POAP_SECRET_CODE;
 
 interface QRCode {
   qr_hash: string;
@@ -22,9 +22,13 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!POAP_API_KEY) {
-      console.error("Missing POAP API key");
-      throw new Error("POAP API credentials not configured");
+    if (!POAP_API_KEY || !POAP_EVENT_ID || !POAP_SECRET_CODE) {
+      console.error("Missing POAP configuration:", {
+        hasApiKey: !!POAP_API_KEY,
+        hasEventId: !!POAP_EVENT_ID,
+        hasSecretCode: !!POAP_SECRET_CODE
+      });
+      throw new Error("POAP configuration incomplete");
     }
 
     // Get the auth manager instance

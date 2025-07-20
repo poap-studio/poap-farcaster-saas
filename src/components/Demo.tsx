@@ -9,6 +9,15 @@ import {
 import { base } from "viem/chains";
 import { config } from "./providers/WagmiProvider";
 
+const FRAME_URL = typeof window !== 'undefined' 
+  ? window.location.origin
+  : process.env.NEXT_PUBLIC_FRAME_URL 
+    || (process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:3000'
+      : process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}`
+        : '');
+
 export default function Demo() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string>("");
@@ -55,7 +64,7 @@ export default function Demo() {
   const shareCast = async () => {
     sdk.actions.composeCast({
       text: "Farewell Warpcast, I just minted the new POAP! Get yours too and support Farcaster choooo chooo🚂! All proceeds from mint go to @purple DAO to support RetroPGF across Farcaster. Thanks @gabo @sandiforward.eth and 👨‍💻 @samuellhuber.eth",
-      embeds: ["https://fc-poap.dtech.vision/"],
+      embeds: [FRAME_URL],
       close: true,
     });
   };
@@ -118,12 +127,6 @@ export default function Demo() {
             alt="POAP Text"
             width={120}
             height={30}
-          />
-          <img
-            src="https://dtech.vision/favicon.svg"
-            alt="dTech Logo"
-            width={60}
-            height={60}
           />
         </h2>
         <div className="poap-directions">
