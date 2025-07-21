@@ -15,6 +15,20 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Disable caching for development and dynamic content
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, max-age=0, must-revalidate',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
