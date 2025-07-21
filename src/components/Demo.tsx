@@ -9,7 +9,7 @@ import {
 } from "wagmi";
 import { base } from "viem/chains";
 import { config } from "./providers/WagmiProvider";
-import { checkIfUserFollows, getRequiredFollowUsername } from "~/lib/neynar";
+import { checkIfUserFollows, getRequiredFollowUsername, testNeynarAPI } from "~/lib/neynar";
 import FollowGate from "./FollowGate";
 import Image from "next/image";
 
@@ -69,6 +69,11 @@ export default function Demo() {
       load();
     }
   }, [isSDKLoaded]);
+
+  // Test Neynar API on component mount
+  useEffect(() => {
+    testNeynarAPI();
+  }, []);
 
   // Check if user follows required account
   useEffect(() => {
