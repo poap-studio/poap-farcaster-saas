@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import sdk from "@farcaster/frame-sdk";
+import sdk, { type FrameContext } from "@farcaster/frame-sdk";
 import {
   useAccount,
   useConnect,
@@ -8,6 +8,8 @@ import {
 } from "wagmi";
 import { base } from "viem/chains";
 import { config } from "./providers/WagmiProvider";
+import { checkIfUserFollows, getRequiredFollowUsername } from "~/lib/neynar";
+import FollowGate from "./FollowGate";
 
 const FRAME_URL = typeof window !== 'undefined' 
   ? window.location.origin
@@ -23,6 +25,9 @@ export default function Demo() {
   const [walletAddress, setWalletAddress] = useState<string>("");
   const [claimStatus, setClaimStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [claimError, setClaimError] = useState<string>("");
+  const [context, setContext] = useState<FrameContext | null>(null);
+  const [isFollowing, setIsFollowing] = useState<boolean | null>(null);
+  const [checkingFollow, setCheckingFollow] = useState(true);
 
   const { address, isConnected } = useAccount();
   const { connect, isPending: isConnecting } = useConnect();
@@ -53,6 +58,8 @@ export default function Demo() {
   // Farcaster Mini App Integration
   useEffect(() => {
     const load = async () => {
+      const frameContext = await sdk.context;
+      setContext(frameContext);
       await sdk.actions.ready();
     };
     if (sdk && !isSDKLoaded) {
@@ -60,6 +67,30 @@ export default function Demo() {
       load();
     }
   }, [isSDKLoaded]);
+
+  // Check if user follows required account
+  useEffect(() => {
+    const checkFollowStatus = async () => {
+      if (!context?.user) {
+        setCheckingFollow(false);
+        return;
+      }
+
+      try {
+        const follows = await checkIfUserFollows(context.user.fid);
+        setIsFollowing(follows);
+      } catch (error) {
+        console.error("Error checking follow status:", error);
+        setIsFollowing(false);
+      } finally {
+        setCheckingFollow(false);
+      }
+    };
+
+    if (context) {
+      checkFollowStatus();
+    }
+  }, [context]);
 
   const shareCast = async () => {
     sdk.actions.composeCast({
@@ -109,6 +140,54 @@ export default function Demo() {
   const handleShare = () => {
     shareCast();
   };
+
+  const handleFollowComplete = () => {
+    // Recheck follow status
+    window.location.reload();
+  };
+
+  // Show loading while checking follow status
+  if (checkingFollow) {
+    return (
+      <div className="loading-container">
+        <div className="spinner-large" />
+        <p>Checking follow status...</p>
+        <style jsx>{`
+          .loading-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+          }
+          .spinner-large {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(124, 58, 237, 0.2);
+            border-radius: 50%;
+            border-top-color: #7c3aed;
+            animation: spin 0.8s linear infinite;
+          }
+          @keyframes spin {
+            to {
+              transform: rotate(360deg);
+            }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // Show follow gate if user is not following
+  if (isFollowing === false) {
+    return (
+      <FollowGate 
+        username={getRequiredFollowUsername()} 
+        onFollowComplete={handleFollowComplete}
+      />
+    );
+  }
 
   return (
     <div>

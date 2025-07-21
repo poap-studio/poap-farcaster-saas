@@ -30,13 +30,24 @@ This app includes an automatic token refresh system for POAP API authentication 
 
 ### Environment Variables
 
-Set up your POAP credentials:
+Set up your environment variables:
 
 ```bash
-# Required
+# POAP API Configuration (Required)
 POAP_CLIENT_ID=your_poap_client_id
 POAP_CLIENT_SECRET=your_poap_client_secret  
 POAP_API_KEY=your_poap_api_key
+POAP_EVENT_ID=191758
+POAP_SECRET_CODE=902096
+
+# Frame Configuration (Optional)
+NEXT_PUBLIC_FRAME_URL=https://your-domain.vercel.app
+
+# Neynar API Configuration (Required for follow gate)
+NEXT_PUBLIC_NEYNAR_API_KEY=your_neynar_api_key
+
+# Follow Gate Configuration
+NEXT_PUBLIC_REQUIRED_FOLLOW_USERNAME=gotoalberto
 
 # Note: Redis is no longer required - the app uses in-memory storage
 ```
@@ -48,6 +59,8 @@ POAP_API_KEY=your_poap_api_key
 - **🛡️ Error Recovery**: Automatic retry on 401/403 errors
 - **⚡ Performance**: Optimized for serverless environments
 - **🚀 Zero Dependencies**: No external database required
+- **👥 Follow Gate**: Requires users to follow a specific account before minting
+- **🔍 Neynar Integration**: Verifies follow status using Neynar API
 
 ### Storage Strategy
 
