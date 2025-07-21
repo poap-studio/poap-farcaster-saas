@@ -1,5 +1,6 @@
 const NEYNAR_API_KEY = process.env.NEXT_PUBLIC_NEYNAR_API_KEY || "";
 const REQUIRED_FOLLOW_USERNAME = process.env.NEXT_PUBLIC_REQUIRED_FOLLOW_USERNAME || "gotoalberto";
+const REQUIRED_RECAST_HASH = process.env.NEXT_PUBLIC_REQUIRED_RECAST_HASH || "";
 
 interface NeynarFollowResponse {
   user: {
@@ -162,6 +163,60 @@ export async function getUserEthAddress(userFid: number): Promise<string | null>
   }
 }
 
+export async function checkIfUserRecasted(userFid: number, castHash?: string): Promise<boolean> {
+  console.log(`[Recast Check] Checking recast for FID: ${userFid}, hash: ${castHash}`);
+  
+  const hashToCheck = castHash || REQUIRED_RECAST_HASH;
+  
+  if (!hashToCheck) {
+    console.error("[Recast Check] No cast hash provided");
+    return false;
+  }
+  
+  if (!NEYNAR_API_KEY) {
+    console.error("[Recast Check] NEYNAR_API_KEY is not set");
+    return false;
+  }
+
+  if (!userFid) {
+    console.error("[Recast Check] userFid is required");
+    return false;
+  }
+
+  try {
+    const url = `https://api.neynar.com/v2/farcaster/cast?identifier=${hashToCheck}&type=hash&viewer_fid=${userFid}`;
+    console.log(`[Recast Check] Making request to: ${url}`);
+    
+    const response = await fetch(url, {
+      headers: {
+        "api_key": NEYNAR_API_KEY,
+        "accept": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[Recast Check] Neynar API error: ${response.status} ${response.statusText}`, errorText);
+      return false;
+    }
+
+    const data = await response.json();
+    console.log("[Recast Check] API response:", JSON.stringify(data, null, 2));
+    
+    const hasRecasted = data.cast?.viewer_context?.recasted || false;
+    console.log(`[Recast Check] Recast status result: ${hasRecasted}`);
+    
+    return hasRecasted;
+  } catch (error) {
+    console.error("[Recast Check] Error checking recast status:", error);
+    return false;
+  }
+}
+
 export function getRequiredFollowUsername(): string {
   return REQUIRED_FOLLOW_USERNAME;
+}
+
+export function getRequiredRecastHash(): string {
+  return REQUIRED_RECAST_HASH;
 }

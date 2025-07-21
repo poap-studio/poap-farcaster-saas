@@ -9,7 +9,7 @@ import {
 } from "wagmi";
 import { base } from "viem/chains";
 import { config } from "./providers/WagmiProvider";
-import { checkIfUserFollows, getRequiredFollowUsername, verifyNeynarAPI, getUserEthAddress } from "~/lib/neynar";
+import { checkIfUserFollows, getRequiredFollowUsername, verifyNeynarAPI, getUserEthAddress, checkIfUserRecasted, getRequiredRecastHash } from "~/lib/neynar";
 import FollowGate from "./FollowGate";
 import Image from "next/image";
 
@@ -29,7 +29,9 @@ export default function POAPMinter() {
   const [claimError, setClaimError] = useState<string>("");
   const [context, setContext] = useState<Context.FrameContext | null>(null);
   const [isFollowing, setIsFollowing] = useState<boolean | null>(null);
+  const [hasRecasted, setHasRecasted] = useState<boolean | null>(null);
   const [checkingFollow, setCheckingFollow] = useState(true);
+  const [checkingRecast, setCheckingRecast] = useState(true);
 
   const { address, isConnected } = useAccount();
   const { connect, isPending: isConnecting } = useConnect();
@@ -102,34 +104,46 @@ export default function POAPMinter() {
     }
   }, [context, walletAddress]);
 
-  // Check if user follows required account
+  // Check if user follows required account and has recasted
   useEffect(() => {
-    const checkFollowStatus = async () => {
-      console.log("[POAPMinter] Starting follow check, context:", context);
+    const checkRequirements = async () => {
+      console.log("[POAPMinter] Starting requirements check, context:", context);
       
       if (!context?.user) {
-        console.log("[POAPMinter] No context or user found, skipping follow check");
+        console.log("[POAPMinter] No context or user found, skipping requirements check");
         setCheckingFollow(false);
+        setCheckingRecast(false);
         setIsFollowing(null);
+        setHasRecasted(null);
         return;
       }
 
-      console.log(`[POAPMinter] User FID: ${context.user.fid}, checking follow status...`);
+      console.log(`[POAPMinter] User FID: ${context.user.fid}, checking requirements...`);
       
       try {
-        const follows = await checkIfUserFollows(context.user.fid);
+        // Check both follow and recast status in parallel
+        const [follows, recasted] = await Promise.all([
+          checkIfUserFollows(context.user.fid),
+          checkIfUserRecasted(context.user.fid)
+        ]);
+        
         console.log(`[POAPMinter] Follow check result: ${follows}`);
+        console.log(`[POAPMinter] Recast check result: ${recasted}`);
+        
         setIsFollowing(follows);
+        setHasRecasted(recasted);
       } catch (error) {
-        console.error("[POAPMinter] Error checking follow status:", error);
+        console.error("[POAPMinter] Error checking requirements:", error);
         setIsFollowing(false);
+        setHasRecasted(false);
       } finally {
         setCheckingFollow(false);
+        setCheckingRecast(false);
       }
     };
 
     if (context) {
-      checkFollowStatus();
+      checkRequirements();
     }
   }, [context]);
 
@@ -183,37 +197,45 @@ export default function POAPMinter() {
   };
 
   const handleFollowComplete = async () => {
-    // Recheck follow status and load ETH address if needed
+    // Recheck both follow and recast status, and load ETH address if needed
     if (context?.user) {
       setCheckingFollow(true);
+      setCheckingRecast(true);
       try {
-        const follows = await checkIfUserFollows(context.user.fid);
-        console.log(`[POAPMinter] Manual recheck result: ${follows}`);
+        const [follows, recasted] = await Promise.all([
+          checkIfUserFollows(context.user.fid),
+          checkIfUserRecasted(context.user.fid)
+        ]);
+        
+        console.log(`[POAPMinter] Manual recheck - Follow: ${follows}, Recast: ${recasted}`);
         setIsFollowing(follows);
+        setHasRecasted(recasted);
         
         // Also load verified address if not already loaded
         if (walletAddress === "") {
           const ethAddress = await getUserEthAddress(context.user.fid);
           if (ethAddress) {
-            console.log(`[POAPMinter] Auto-filling verified address after follow: ${ethAddress}`);
+            console.log(`[POAPMinter] Auto-filling verified address after requirements check: ${ethAddress}`);
             setWalletAddress(ethAddress);
           }
         }
       } catch (error) {
         console.error("[POAPMinter] Error in manual recheck:", error);
         setIsFollowing(false);
+        setHasRecasted(false);
       } finally {
         setCheckingFollow(false);
+        setCheckingRecast(false);
       }
     }
   };
 
-  // Show loading while checking follow status
-  if (checkingFollow) {
+  // Show loading while checking requirements
+  if (checkingFollow || checkingRecast) {
     return (
       <div className="loading-container">
         <div className="spinner-large" />
-        <p>Checking follow status...</p>
+        <p>Checking requirements...</p>
         <style jsx>{`
           .loading-container {
             min-height: 100vh;
@@ -241,11 +263,14 @@ export default function POAPMinter() {
     );
   }
 
-  // Show follow gate if user is not following
-  if (isFollowing === false) {
+  // Show requirements gate if user hasn't fulfilled requirements
+  if (isFollowing === false || hasRecasted === false) {
     return (
       <FollowGate 
-        username={getRequiredFollowUsername()} 
+        username={getRequiredFollowUsername()}
+        castHash={getRequiredRecastHash()}
+        isFollowing={isFollowing}
+        hasRecasted={hasRecasted}
         onFollowComplete={handleFollowComplete}
       />
     );

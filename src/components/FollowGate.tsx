@@ -3,27 +3,46 @@ import sdk from "@farcaster/frame-sdk";
 
 interface FollowGateProps {
   username: string;
+  castHash?: string;
+  isFollowing?: boolean | null;
+  hasRecasted?: boolean | null;
   onFollowComplete?: () => void;
 }
 
-export default function FollowGate({ username, onFollowComplete }: FollowGateProps) {
-  const [isFollowing, setIsFollowing] = useState(false);
+export default function FollowGate({ username, castHash, isFollowing, hasRecasted, onFollowComplete }: FollowGateProps) {
+  const [isOpeningProfile, setIsOpeningProfile] = useState(false);
+  const [isOpeningCast, setIsOpeningCast] = useState(false);
 
   const handleFollowClick = async () => {
-    setIsFollowing(true);
+    setIsOpeningProfile(true);
     try {
       // Open the user profile in Farcaster
       await sdk.actions.openUrl(`https://warpcast.com/${username}`);
       
       // After a delay, check if they followed (they need to come back to the app)
       setTimeout(() => {
-        if (onFollowComplete) {
-          onFollowComplete();
-        }
+        setIsOpeningProfile(false);
       }, 1000);
     } catch (error) {
       console.error("Error opening profile:", error);
-      setIsFollowing(false);
+      setIsOpeningProfile(false);
+    }
+  };
+
+  const handleRecastClick = async () => {
+    if (!castHash) return;
+    
+    setIsOpeningCast(true);
+    try {
+      // Open the cast in Farcaster
+      await sdk.actions.openUrl(`https://warpcast.com/~/cast/${castHash}`);
+      
+      setTimeout(() => {
+        setIsOpeningCast(false);
+      }, 1000);
+    } catch (error) {
+      console.error("Error opening cast:", error);
+      setIsOpeningCast(false);
     }
   };
 
@@ -31,51 +50,91 @@ export default function FollowGate({ username, onFollowComplete }: FollowGatePro
     <div className="follow-gate-container">
       <section className="follow-gate-section card">
         <div className="follow-content">
-          <h2 className="follow-title">Follow Required</h2>
+          <h2 className="follow-title">Requirements to Mint</h2>
           
-          <div className="follow-icon">
+          <div className="requirements-icon">
             <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M19 21V19C19 17.9391 18.5786 16.9217 17.8284 16.1716C17.0783 15.4214 16.0609 15 15 15H9C7.93913 15 6.92172 15.4214 6.17157 16.1716C5.42143 16.9217 5 17.9391 5 19V21" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M22 21V19C21.9993 18.1137 21.7044 17.2528 21.1614 16.5523C20.6184 15.8519 19.8581 15.3516 19 15.13" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M9 12L11 14L15 10" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
 
           <p className="follow-description">
-            To mint this POAP, you must follow <strong>@{username}</strong> on Farcaster.
+            To mint this POAP, you must complete both requirements:
           </p>
+
+          <div className="requirements-list">
+            <div className={`requirement-item ${isFollowing ? 'completed' : 'pending'}`}>
+              <div className="requirement-status">
+                {isFollowing ? '✅' : '❌'}
+              </div>
+              <div className="requirement-text">
+                <strong>Follow @{username}</strong> on Farcaster
+              </div>
+            </div>
+            
+            <div className={`requirement-item ${hasRecasted ? 'completed' : 'pending'}`}>
+              <div className="requirement-status">
+                {hasRecasted ? '✅' : '❌'}
+              </div>
+              <div className="requirement-text">
+                <strong>Recast the original cast</strong> where this app was shared
+              </div>
+            </div>
+          </div>
 
           <p className="follow-instructions">
-            Click the button below to visit their profile and follow them. Once you&apos;ve followed, come back to this app and refresh the page.
+            Complete both actions using the buttons below, then check again.
           </p>
 
-          <button
-            type="button"
-            onClick={handleFollowClick}
-            disabled={isFollowing}
-            className={`follow-button ${isFollowing ? 'loading' : ''}`}
-          >
-            {isFollowing ? (
-              <div className="flex items-center gap-2">
-                <div className="spinner" />
-                <span>Opening Profile...</span>
-              </div>
-            ) : (
-              `Follow @${username}`
+          <div className="action-buttons">
+            {!isFollowing && (
+              <button
+                type="button"
+                onClick={handleFollowClick}
+                disabled={isOpeningProfile}
+                className={`requirement-button follow-button ${isOpeningProfile ? 'loading' : ''}`}
+              >
+                {isOpeningProfile ? (
+                  <div className="flex items-center gap-2">
+                    <div className="spinner" />
+                    <span>Opening Profile...</span>
+                  </div>
+                ) : (
+                  `Follow @${username}`
+                )}
+              </button>
             )}
-          </button>
+
+            {castHash && !hasRecasted && (
+              <button
+                type="button"
+                onClick={handleRecastClick}
+                disabled={isOpeningCast}
+                className={`requirement-button recast-button ${isOpeningCast ? 'loading' : ''}`}
+              >
+                {isOpeningCast ? (
+                  <div className="flex items-center gap-2">
+                    <div className="spinner" />
+                    <span>Opening Cast...</span>
+                  </div>
+                ) : (
+                  'Recast the Cast'
+                )}
+              </button>
+            )}
+          </div>
 
           <button
             type="button"
             onClick={onFollowComplete}
-            className="check-follow-button"
+            className="check-requirements-button"
           >
-            I&apos;ve followed - Check again
+            I&apos;ve completed the requirements - Check again
           </button>
           
           <p className="follow-note">
-            After following, click the button above to check your follow status.
+            After completing both requirements, click the check button above.
           </p>
         </div>
       </section>
@@ -113,7 +172,7 @@ export default function FollowGate({ username, onFollowComplete }: FollowGatePro
           margin: 0;
         }
 
-        .follow-icon {
+        .requirements-icon {
           display: flex;
           align-items: center;
           justify-content: center;
@@ -122,6 +181,53 @@ export default function FollowGate({ username, onFollowComplete }: FollowGatePro
           background: #f3f4f6;
           border-radius: 50%;
           margin: 0.5rem 0;
+        }
+
+        .requirements-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          width: 100%;
+          margin: 1rem 0;
+        }
+
+        .requirement-item {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 1rem;
+          background: #f9fafb;
+          border-radius: 12px;
+          border: 2px solid transparent;
+        }
+
+        .requirement-item.completed {
+          background: #f0fdf4;
+          border-color: #22c55e;
+        }
+
+        .requirement-item.pending {
+          background: #fef2f2;
+          border-color: #ef4444;
+        }
+
+        .requirement-status {
+          font-size: 1.25rem;
+          min-width: 24px;
+        }
+
+        .requirement-text {
+          flex: 1;
+          text-align: left;
+          font-size: 0.9rem;
+          color: #374151;
+        }
+
+        .action-buttons {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          width: 100%;
         }
 
         .follow-description {
@@ -143,9 +249,7 @@ export default function FollowGate({ username, onFollowComplete }: FollowGatePro
           line-height: 1.5;
         }
 
-        .follow-button {
-          background: #7c3aed;
-          color: white;
+        .requirement-button {
           padding: 0.875rem 2rem;
           border-radius: 50px;
           font-weight: 600;
@@ -154,6 +258,11 @@ export default function FollowGate({ username, onFollowComplete }: FollowGatePro
           cursor: pointer;
           transition: all 0.2s ease;
           min-width: 200px;
+          color: white;
+        }
+
+        .follow-button {
+          background: #7c3aed;
         }
 
         .follow-button:hover:not(:disabled) {
@@ -162,12 +271,33 @@ export default function FollowGate({ username, onFollowComplete }: FollowGatePro
           box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
         }
 
-        .follow-button:disabled {
+        .recast-button {
+          background: #f59e0b;
+        }
+
+        .recast-button:hover:not(:disabled) {
+          background: #d97706;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .requirement-button:disabled {
           opacity: 0.7;
           cursor: not-allowed;
         }
 
-        .check-follow-button {
+        .requirement-button.loading {
+          background: linear-gradient(
+            90deg,
+            currentColor,
+            transparent,
+            currentColor
+          );
+          background-size: 200% auto;
+          animation: shine 2s linear infinite;
+        }
+
+        .check-requirements-button {
           background: #10b981;
           color: white;
           padding: 0.75rem 1.5rem;
@@ -178,25 +308,13 @@ export default function FollowGate({ username, onFollowComplete }: FollowGatePro
           cursor: pointer;
           transition: all 0.2s ease;
           min-width: 180px;
+          margin-top: 0.5rem;
         }
 
-        .check-follow-button:hover {
+        .check-requirements-button:hover {
           background: #059669;
           transform: translateY(-1px);
           box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-
-        .follow-button.loading {
-          background: linear-gradient(
-            90deg,
-            #7c3aed,
-            #6d28d9,
-            #5b21b6,
-            #6d28d9,
-            #7c3aed
-          );
-          background-size: 200% auto;
-          animation: shine 2s linear infinite;
         }
 
         .follow-note {
