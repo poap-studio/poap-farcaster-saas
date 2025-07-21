@@ -75,38 +75,32 @@ export default function POAPMinter() {
     verifyNeynarAPI();
   }, []);
 
-  // Load user's ETH address - prioritize connected wallet, fallback to Warpcast wallet
+  // Load user's verified ETH address from Neynar
   useEffect(() => {
-    const loadUserEthAddress = async () => {
-      // First priority: connected wallet address
-      if (address && isConnected) {
-        console.log(`[POAPMinter] Using connected wallet address: ${address}`);
-        setWalletAddress(address);
+    const loadUserVerifiedAddress = async () => {
+      if (!context?.user?.fid) {
         return;
       }
 
-      // Second priority: Warpcast wallet from user context
-      if (context?.user?.fid) {
-        console.log("[POAPMinter] No connected wallet, loading Warpcast wallet address...");
-        
-        try {
-          const ethAddress = await getUserEthAddress(context.user.fid);
-          if (ethAddress) {
-            console.log(`[POAPMinter] Auto-filling with Warpcast wallet: ${ethAddress}`);
-            setWalletAddress(ethAddress);
-          } else {
-            console.log("[POAPMinter] No Warpcast wallet found for user");
-          }
-        } catch (error) {
-          console.error("[POAPMinter] Error loading Warpcast wallet:", error);
+      console.log("[POAPMinter] Loading user's verified address from Neynar...");
+      
+      try {
+        const ethAddress = await getUserEthAddress(context.user.fid);
+        if (ethAddress) {
+          console.log(`[POAPMinter] Auto-filling with verified address: ${ethAddress}`);
+          setWalletAddress(ethAddress);
+        } else {
+          console.log("[POAPMinter] No verified address found for user");
         }
+      } catch (error) {
+        console.error("[POAPMinter] Error loading verified address:", error);
       }
     };
 
-    if (walletAddress === "") {
-      loadUserEthAddress();
+    if (context && walletAddress === "") {
+      loadUserVerifiedAddress();
     }
-  }, [context, address, isConnected, walletAddress]);
+  }, [context, walletAddress]);
 
   // Check if user follows required account
   useEffect(() => {
@@ -197,19 +191,12 @@ export default function POAPMinter() {
         console.log(`[POAPMinter] Manual recheck result: ${follows}`);
         setIsFollowing(follows);
         
-        // Also load ETH address if not already loaded
+        // Also load verified address if not already loaded
         if (walletAddress === "") {
-          // Prioritize connected wallet
-          if (address && isConnected) {
-            console.log(`[POAPMinter] Using connected wallet after follow: ${address}`);
-            setWalletAddress(address);
-          } else {
-            // Fallback to Warpcast wallet
-            const ethAddress = await getUserEthAddress(context.user.fid);
-            if (ethAddress) {
-              console.log(`[POAPMinter] Auto-filling Warpcast wallet after follow: ${ethAddress}`);
-              setWalletAddress(ethAddress);
-            }
+          const ethAddress = await getUserEthAddress(context.user.fid);
+          if (ethAddress) {
+            console.log(`[POAPMinter] Auto-filling verified address after follow: ${ethAddress}`);
+            setWalletAddress(ethAddress);
           }
         }
       } catch (error) {
@@ -351,13 +338,7 @@ export default function POAPMinter() {
                     type="text"
                     value={walletAddress}
                     onChange={(e) => setWalletAddress(e.target.value)}
-                    placeholder={
-                      walletAddress
-                        ? isConnected
-                          ? "Using connected wallet address"
-                          : "Using Warpcast wallet address"
-                        : "Enter wallet address"
-                    }
+                    placeholder={walletAddress ? "Verified address from your Farcaster profile" : "Enter wallet address"}
                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                   <button
