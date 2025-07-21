@@ -1,14 +1,5 @@
-import { FrameContext } from "@farcaster/frame-sdk";
-
 const NEYNAR_API_KEY = process.env.NEXT_PUBLIC_NEYNAR_API_KEY || "";
 const REQUIRED_FOLLOW_USERNAME = process.env.NEXT_PUBLIC_REQUIRED_FOLLOW_USERNAME || "gotoalberto";
-
-interface NeynarUser {
-  fid: number;
-  username: string;
-  follower_count: number;
-  following_count: number;
-}
 
 interface NeynarFollowResponse {
   result: {

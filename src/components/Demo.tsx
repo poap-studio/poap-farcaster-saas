@@ -193,6 +193,7 @@ export default function Demo() {
     <div>
       <section id="poap" className="poap-section card">
         <h2 className="poap-title">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="poap-logo"
             src="https://ethereumupgrades.com/assets/img/poap-logo.webp"
@@ -200,6 +201,7 @@ export default function Demo() {
             width={40}
             height={40}
           />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="poap-text"
             src="https://ethereumupgrades.com/assets/img/poap.png"
@@ -229,6 +231,7 @@ export default function Demo() {
                 target="_blank"
                 rel="noreferrer"
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="https://assets.poap.xyz/5adeb818-235d-4824-9ba5-ffb3e46c4279.png?size=large"
                   alt="POAP Artwork"
