@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import sdk, { type FrameContext } from "@farcaster/frame-sdk";
+import sdk from "@farcaster/frame-sdk";
+import type { Context } from "@farcaster/frame-core";
 import {
   useAccount,
   useConnect,
@@ -10,6 +11,7 @@ import { base } from "viem/chains";
 import { config } from "./providers/WagmiProvider";
 import { checkIfUserFollows, getRequiredFollowUsername } from "~/lib/neynar";
 import FollowGate from "./FollowGate";
+import Image from "next/image";
 
 const FRAME_URL = typeof window !== 'undefined' 
   ? window.location.origin
@@ -25,7 +27,7 @@ export default function Demo() {
   const [walletAddress, setWalletAddress] = useState<string>("");
   const [claimStatus, setClaimStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [claimError, setClaimError] = useState<string>("");
-  const [context, setContext] = useState<FrameContext | null>(null);
+  const [context, setContext] = useState<Context.FrameContext | null>(null);
   const [isFollowing, setIsFollowing] = useState<boolean | null>(null);
   const [checkingFollow, setCheckingFollow] = useState(true);
 
@@ -193,16 +195,14 @@ export default function Demo() {
     <div>
       <section id="poap" className="poap-section card">
         <h2 className="poap-title">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             className="poap-logo"
             src="https://ethereumupgrades.com/assets/img/poap-logo.webp"
             alt="POAP Logo"
             width={40}
             height={40}
           />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             className="poap-text"
             src="https://ethereumupgrades.com/assets/img/poap.png"
             alt="POAP Text"
@@ -231,14 +231,13 @@ export default function Demo() {
                 target="_blank"
                 rel="noreferrer"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src="https://assets.poap.xyz/5adeb818-235d-4824-9ba5-ffb3e46c4279.png?size=large"
                   alt="POAP Artwork"
                   title="POAP Artwork"
                   className="poap-img"
-                  width={100}
-                  height={100}
+                  width={300}
+                  height={300}
                 />
               </a>
             </div>
