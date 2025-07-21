@@ -75,32 +75,38 @@ export default function POAPMinter() {
     verifyNeynarAPI();
   }, []);
 
-  // Load user's ETH address from Neynar
+  // Load user's ETH address - prioritize connected wallet, fallback to Warpcast wallet
   useEffect(() => {
     const loadUserEthAddress = async () => {
-      if (!context?.user?.fid) {
+      // First priority: connected wallet address
+      if (address && isConnected) {
+        console.log(`[POAPMinter] Using connected wallet address: ${address}`);
+        setWalletAddress(address);
         return;
       }
 
-      console.log("[POAPMinter] Loading user ETH address...");
-      
-      try {
-        const ethAddress = await getUserEthAddress(context.user.fid);
-        if (ethAddress) {
-          console.log(`[POAPMinter] Auto-filling wallet address: ${ethAddress}`);
-          setWalletAddress(ethAddress);
-        } else {
-          console.log("[POAPMinter] No ETH address found for user");
+      // Second priority: Warpcast wallet from user context
+      if (context?.user?.fid) {
+        console.log("[POAPMinter] No connected wallet, loading Warpcast wallet address...");
+        
+        try {
+          const ethAddress = await getUserEthAddress(context.user.fid);
+          if (ethAddress) {
+            console.log(`[POAPMinter] Auto-filling with Warpcast wallet: ${ethAddress}`);
+            setWalletAddress(ethAddress);
+          } else {
+            console.log("[POAPMinter] No Warpcast wallet found for user");
+          }
+        } catch (error) {
+          console.error("[POAPMinter] Error loading Warpcast wallet:", error);
         }
-      } catch (error) {
-        console.error("[POAPMinter] Error loading user ETH address:", error);
       }
     };
 
-    if (context && walletAddress === "") {
+    if (walletAddress === "") {
       loadUserEthAddress();
     }
-  }, [context, walletAddress]);
+  }, [context, address, isConnected, walletAddress]);
 
   // Check if user follows required account
   useEffect(() => {
@@ -193,10 +199,17 @@ export default function POAPMinter() {
         
         // Also load ETH address if not already loaded
         if (walletAddress === "") {
-          const ethAddress = await getUserEthAddress(context.user.fid);
-          if (ethAddress) {
-            console.log(`[POAPMinter] Auto-filling wallet address after follow: ${ethAddress}`);
-            setWalletAddress(ethAddress);
+          // Prioritize connected wallet
+          if (address && isConnected) {
+            console.log(`[POAPMinter] Using connected wallet after follow: ${address}`);
+            setWalletAddress(address);
+          } else {
+            // Fallback to Warpcast wallet
+            const ethAddress = await getUserEthAddress(context.user.fid);
+            if (ethAddress) {
+              console.log(`[POAPMinter] Auto-filling Warpcast wallet after follow: ${ethAddress}`);
+              setWalletAddress(ethAddress);
+            }
           }
         }
       } catch (error) {
@@ -338,7 +351,13 @@ export default function POAPMinter() {
                     type="text"
                     value={walletAddress}
                     onChange={(e) => setWalletAddress(e.target.value)}
-                    placeholder={walletAddress ? "Address loaded from your profile" : "Enter wallet address"}
+                    placeholder={
+                      walletAddress
+                        ? isConnected
+                          ? "Using connected wallet address"
+                          : "Using Warpcast wallet address"
+                        : "Enter wallet address"
+                    }
                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                   <button
