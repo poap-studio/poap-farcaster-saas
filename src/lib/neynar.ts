@@ -11,6 +11,7 @@ interface NeynarFollowResponse {
   };
 }
 
+
 export async function checkIfUserFollows(
   viewerFid: number,
   targetUsername: string = REQUIRED_FOLLOW_USERNAME
@@ -105,6 +106,59 @@ export async function verifyNeynarAPI(targetUsername: string = REQUIRED_FOLLOW_U
     
   } catch (error) {
     console.error("[Neynar API] Connection error:", error);
+  }
+}
+
+export async function getUserEthAddress(userFid: number): Promise<string | null> {
+  console.log(`[User Address] Getting ETH address for FID: ${userFid}`);
+  
+  if (!NEYNAR_API_KEY) {
+    console.error("[User Address] NEYNAR_API_KEY is not set");
+    return null;
+  }
+
+  if (!userFid) {
+    console.error("[User Address] userFid is required");
+    return null;
+  }
+
+  try {
+    const url = `https://api.neynar.com/v2/farcaster/user/bulk?fids=${userFid}`;
+    console.log(`[User Address] Making request to: ${url}`);
+    
+    const response = await fetch(url, {
+      headers: {
+        "api_key": NEYNAR_API_KEY,
+        "accept": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[User Address] Neynar API error: ${response.status} ${response.statusText}`, errorText);
+      return null;
+    }
+
+    const data = await response.json();
+    console.log("[User Address] API response:", JSON.stringify(data, null, 2));
+    
+    const user = data.users?.[0];
+    if (!user) {
+      console.error("[User Address] No user data found");
+      return null;
+    }
+
+    // Try to get the primary ETH address first, then fall back to the first available address
+    const primaryAddress = user.verified_addresses?.primary?.eth_address;
+    const firstAddress = user.verified_addresses?.eth_addresses?.[0];
+    
+    const ethAddress = primaryAddress || firstAddress;
+    console.log(`[User Address] Found ETH address: ${ethAddress}`);
+    
+    return ethAddress || null;
+  } catch (error) {
+    console.error("[User Address] Error getting user ETH address:", error);
+    return null;
   }
 }
 

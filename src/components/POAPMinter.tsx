@@ -9,7 +9,7 @@ import {
 } from "wagmi";
 import { base } from "viem/chains";
 import { config } from "./providers/WagmiProvider";
-import { checkIfUserFollows, getRequiredFollowUsername, verifyNeynarAPI } from "~/lib/neynar";
+import { checkIfUserFollows, getRequiredFollowUsername, verifyNeynarAPI, getUserEthAddress } from "~/lib/neynar";
 import FollowGate from "./FollowGate";
 import Image from "next/image";
 
@@ -74,6 +74,33 @@ export default function POAPMinter() {
   useEffect(() => {
     verifyNeynarAPI();
   }, []);
+
+  // Load user's ETH address from Neynar
+  useEffect(() => {
+    const loadUserEthAddress = async () => {
+      if (!context?.user?.fid) {
+        return;
+      }
+
+      console.log("[POAPMinter] Loading user ETH address...");
+      
+      try {
+        const ethAddress = await getUserEthAddress(context.user.fid);
+        if (ethAddress) {
+          console.log(`[POAPMinter] Auto-filling wallet address: ${ethAddress}`);
+          setWalletAddress(ethAddress);
+        } else {
+          console.log("[POAPMinter] No ETH address found for user");
+        }
+      } catch (error) {
+        console.error("[POAPMinter] Error loading user ETH address:", error);
+      }
+    };
+
+    if (context && walletAddress === "") {
+      loadUserEthAddress();
+    }
+  }, [context, walletAddress]);
 
   // Check if user follows required account
   useEffect(() => {
@@ -156,13 +183,22 @@ export default function POAPMinter() {
   };
 
   const handleFollowComplete = async () => {
-    // Recheck follow status instead of reloading
+    // Recheck follow status and load ETH address if needed
     if (context?.user) {
       setCheckingFollow(true);
       try {
         const follows = await checkIfUserFollows(context.user.fid);
         console.log(`[POAPMinter] Manual recheck result: ${follows}`);
         setIsFollowing(follows);
+        
+        // Also load ETH address if not already loaded
+        if (walletAddress === "") {
+          const ethAddress = await getUserEthAddress(context.user.fid);
+          if (ethAddress) {
+            console.log(`[POAPMinter] Auto-filling wallet address after follow: ${ethAddress}`);
+            setWalletAddress(ethAddress);
+          }
+        }
       } catch (error) {
         console.error("[POAPMinter] Error in manual recheck:", error);
         setIsFollowing(false);
@@ -302,7 +338,7 @@ export default function POAPMinter() {
                     type="text"
                     value={walletAddress}
                     onChange={(e) => setWalletAddress(e.target.value)}
-                    placeholder="Enter wallet address (optional)"
+                    placeholder={walletAddress ? "Address loaded from your profile" : "Enter wallet address"}
                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                   <button
