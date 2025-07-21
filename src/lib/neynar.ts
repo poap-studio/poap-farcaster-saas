@@ -2,12 +2,10 @@ const NEYNAR_API_KEY = process.env.NEXT_PUBLIC_NEYNAR_API_KEY || "";
 const REQUIRED_FOLLOW_USERNAME = process.env.NEXT_PUBLIC_REQUIRED_FOLLOW_USERNAME || "gotoalberto";
 
 interface NeynarFollowResponse {
-  result: {
-    user: {
-      fid: number;
-      username: string;
-    };
-    viewer_context: {
+  user: {
+    fid: number;
+    username: string;
+    viewer_context?: {
       following: boolean;
     };
   };
@@ -63,7 +61,7 @@ export async function checkIfUserFollows(
     const data: NeynarFollowResponse = await response.json();
     console.log("[Follow Check] API response:", JSON.stringify(data, null, 2));
     
-    const isFollowing = data.result?.viewer_context?.following || false;
+    const isFollowing = data.user?.viewer_context?.following || false;
     console.log(`[Follow Check] Follow status result: ${isFollowing}`);
     
     return isFollowing;
