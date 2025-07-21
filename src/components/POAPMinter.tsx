@@ -9,7 +9,7 @@ import {
 } from "wagmi";
 import { base } from "viem/chains";
 import { config } from "./providers/WagmiProvider";
-import { checkIfUserFollows, getRequiredFollowUsername, testNeynarAPI } from "~/lib/neynar";
+import { checkIfUserFollows, getRequiredFollowUsername, verifyNeynarAPI } from "~/lib/neynar";
 import FollowGate from "./FollowGate";
 import Image from "next/image";
 
@@ -22,7 +22,7 @@ const FRAME_URL = typeof window !== 'undefined'
         ? `https://${process.env.VERCEL_URL}`
         : '');
 
-export default function Demo() {
+export default function POAPMinter() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string>("");
   const [claimStatus, setClaimStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -70,31 +70,31 @@ export default function Demo() {
     }
   }, [isSDKLoaded]);
 
-  // Test Neynar API on component mount
+  // Verify Neynar API connectivity on component mount
   useEffect(() => {
-    testNeynarAPI();
+    verifyNeynarAPI();
   }, []);
 
   // Check if user follows required account
   useEffect(() => {
     const checkFollowStatus = async () => {
-      console.log("[Demo] Starting follow check, context:", context);
+      console.log("[POAPMinter] Starting follow check, context:", context);
       
       if (!context?.user) {
-        console.log("[Demo] No context or user found, skipping follow check");
+        console.log("[POAPMinter] No context or user found, skipping follow check");
         setCheckingFollow(false);
         setIsFollowing(null);
         return;
       }
 
-      console.log(`[Demo] User FID: ${context.user.fid}, checking follow status...`);
+      console.log(`[POAPMinter] User FID: ${context.user.fid}, checking follow status...`);
       
       try {
         const follows = await checkIfUserFollows(context.user.fid);
-        console.log(`[Demo] Follow check result: ${follows}`);
+        console.log(`[POAPMinter] Follow check result: ${follows}`);
         setIsFollowing(follows);
       } catch (error) {
-        console.error("[Demo] Error checking follow status:", error);
+        console.error("[POAPMinter] Error checking follow status:", error);
         setIsFollowing(false);
       } finally {
         setCheckingFollow(false);
@@ -161,10 +161,10 @@ export default function Demo() {
       setCheckingFollow(true);
       try {
         const follows = await checkIfUserFollows(context.user.fid);
-        console.log(`[Demo] Manual recheck result: ${follows}`);
+        console.log(`[POAPMinter] Manual recheck result: ${follows}`);
         setIsFollowing(follows);
       } catch (error) {
-        console.error("[Demo] Error in manual recheck:", error);
+        console.error("[POAPMinter] Error in manual recheck:", error);
         setIsFollowing(false);
       } finally {
         setCheckingFollow(false);

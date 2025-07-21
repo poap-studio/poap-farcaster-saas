@@ -17,9 +17,9 @@ export async function checkIfUserFollows(
 ): Promise<boolean> {
   console.log(`[Follow Check] Starting check for viewer FID: ${viewerFid}, target username: ${targetUsername}`);
   
-  // Temporary debug mode - always return true for testing
+  // Development mode override - bypass follow check for development
   if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEBUG_FOLLOW === 'true') {
-    console.log("[Follow Check] DEBUG MODE: Returning true (simulating follow)");
+    console.log("[Follow Check] DEV MODE: Bypassing follow check (simulating follow)");
     return true;
   }
   
@@ -71,20 +71,19 @@ export async function checkIfUserFollows(
   }
 }
 
-// Test function to check API availability and structure
-export async function testNeynarAPI(targetUsername: string = REQUIRED_FOLLOW_USERNAME): Promise<void> {
-  console.log("[Neynar Test] Testing API with username:", targetUsername);
-  console.log("[Neynar Test] API Key:", NEYNAR_API_KEY ? "Present" : "Missing");
+// Diagnostic function to verify API connectivity and response structure
+export async function verifyNeynarAPI(targetUsername: string = REQUIRED_FOLLOW_USERNAME): Promise<void> {
+  console.log("[Neynar API] Verifying API connectivity for username:", targetUsername);
+  console.log("[Neynar API] API Key status:", NEYNAR_API_KEY ? "Present" : "Missing");
   
   if (!NEYNAR_API_KEY) {
-    console.error("[Neynar Test] API key is missing");
+    console.error("[Neynar API] API key is missing");
     return;
   }
 
   try {
-    // First, test getting user info without viewer_fid
     const baseUrl = `https://api.neynar.com/v2/farcaster/user/by_username?username=${targetUsername}`;
-    console.log("[Neynar Test] Testing base API call:", baseUrl);
+    console.log("[Neynar API] Making diagnostic API call:", baseUrl);
     
     const response = await fetch(baseUrl, {
       headers: {
@@ -93,19 +92,19 @@ export async function testNeynarAPI(targetUsername: string = REQUIRED_FOLLOW_USE
       }
     });
 
-    console.log("[Neynar Test] Response status:", response.status);
+    console.log("[Neynar API] Response status:", response.status);
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("[Neynar Test] API Error:", response.status, response.statusText, errorText);
+      console.error("[Neynar API] API Error:", response.status, response.statusText, errorText);
       return;
     }
 
     const data = await response.json();
-    console.log("[Neynar Test] API Response structure:", JSON.stringify(data, null, 2));
+    console.log("[Neynar API] Response structure:", JSON.stringify(data, null, 2));
     
   } catch (error) {
-    console.error("[Neynar Test] Error:", error);
+    console.error("[Neynar API] Connection error:", error);
   }
 }
 
