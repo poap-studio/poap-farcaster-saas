@@ -66,8 +66,16 @@ export default function FollowGate({ username, onFollowComplete }: FollowGatePro
             )}
           </button>
 
+          <button
+            type="button"
+            onClick={onFollowComplete}
+            className="check-follow-button"
+          >
+            I&apos;ve followed - Check again
+          </button>
+          
           <p className="follow-note">
-            After following, please refresh this page to continue.
+            After following, click the button above to check your follow status.
           </p>
         </div>
       </section>
@@ -157,6 +165,25 @@ export default function FollowGate({ username, onFollowComplete }: FollowGatePro
         .follow-button:disabled {
           opacity: 0.7;
           cursor: not-allowed;
+        }
+
+        .check-follow-button {
+          background: #10b981;
+          color: white;
+          padding: 0.75rem 1.5rem;
+          border-radius: 50px;
+          font-weight: 600;
+          font-size: 0.9rem;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          min-width: 180px;
+        }
+
+        .check-follow-button:hover {
+          background: #059669;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
 
         .follow-button.loading {

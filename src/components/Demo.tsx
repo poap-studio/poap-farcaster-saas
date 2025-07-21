@@ -73,16 +73,23 @@ export default function Demo() {
   // Check if user follows required account
   useEffect(() => {
     const checkFollowStatus = async () => {
+      console.log("[Demo] Starting follow check, context:", context);
+      
       if (!context?.user) {
+        console.log("[Demo] No context or user found, skipping follow check");
         setCheckingFollow(false);
+        setIsFollowing(null);
         return;
       }
 
+      console.log(`[Demo] User FID: ${context.user.fid}, checking follow status...`);
+      
       try {
         const follows = await checkIfUserFollows(context.user.fid);
+        console.log(`[Demo] Follow check result: ${follows}`);
         setIsFollowing(follows);
       } catch (error) {
-        console.error("Error checking follow status:", error);
+        console.error("[Demo] Error checking follow status:", error);
         setIsFollowing(false);
       } finally {
         setCheckingFollow(false);
@@ -143,9 +150,21 @@ export default function Demo() {
     shareCast();
   };
 
-  const handleFollowComplete = () => {
-    // Recheck follow status
-    window.location.reload();
+  const handleFollowComplete = async () => {
+    // Recheck follow status instead of reloading
+    if (context?.user) {
+      setCheckingFollow(true);
+      try {
+        const follows = await checkIfUserFollows(context.user.fid);
+        console.log(`[Demo] Manual recheck result: ${follows}`);
+        setIsFollowing(follows);
+      } catch (error) {
+        console.error("[Demo] Error in manual recheck:", error);
+        setIsFollowing(false);
+      } finally {
+        setCheckingFollow(false);
+      }
+    }
   };
 
   // Show loading while checking follow status
