@@ -169,9 +169,11 @@ export async function checkIfUserRecasted(userFid: number, castHash?: string): P
   const hashToCheck = castHash || REQUIRED_RECAST_HASH;
   
   if (!hashToCheck) {
-    console.error("[Recast Check] No cast hash provided");
+    console.error("[Recast Check] No cast hash provided. Either pass a hash or set NEXT_PUBLIC_REQUIRED_RECAST_HASH");
     return false;
   }
+  
+  console.log(`[Recast Check] Using cast hash: ${hashToCheck}`);
   
   if (!NEYNAR_API_KEY) {
     console.error("[Recast Check] NEYNAR_API_KEY is not set");

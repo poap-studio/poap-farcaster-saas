@@ -122,9 +122,15 @@ export default function POAPMinter() {
       
       try {
         // Check both follow and recast status in parallel
+        // Use the cast hash from the frame context if available
+        const castHash = context.location?.type === 'cast_embed' 
+          ? context.location.cast.hash 
+          : undefined;
+        console.log(`[POAPMinter] Using cast hash from context: ${castHash}`);
+        
         const [follows, recasted] = await Promise.all([
           checkIfUserFollows(context.user.fid),
-          checkIfUserRecasted(context.user.fid)
+          checkIfUserRecasted(context.user.fid, castHash)
         ]);
         
         console.log(`[POAPMinter] Follow check result: ${follows}`);
@@ -202,9 +208,14 @@ export default function POAPMinter() {
       setCheckingFollow(true);
       setCheckingRecast(true);
       try {
+        // Use the cast hash from the frame context if available
+        const castHash = context.location?.type === 'cast_embed' 
+          ? context.location.cast.hash 
+          : undefined;
+        
         const [follows, recasted] = await Promise.all([
           checkIfUserFollows(context.user.fid),
-          checkIfUserRecasted(context.user.fid)
+          checkIfUserRecasted(context.user.fid, castHash)
         ]);
         
         console.log(`[POAPMinter] Manual recheck - Follow: ${follows}, Recast: ${recasted}`);
@@ -268,7 +279,7 @@ export default function POAPMinter() {
     return (
       <FollowGate 
         username={getRequiredFollowUsername()}
-        castHash={getRequiredRecastHash()}
+        castHash={(context?.location?.type === 'cast_embed' ? context.location.cast.hash : undefined) || getRequiredRecastHash()}
         isFollowing={isFollowing}
         hasRecasted={hasRecasted}
         onFollowComplete={handleFollowComplete}
