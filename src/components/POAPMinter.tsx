@@ -33,6 +33,8 @@ export default function POAPMinter() {
   const [checkingFollow, setCheckingFollow] = useState(true);
   const [checkingRecast, setCheckingRecast] = useState(true);
   const [castAuthor, setCastAuthor] = useState<string | null>(null);
+  const [hasAlreadyClaimed, setHasAlreadyClaimed] = useState<boolean | null>(null);
+  const [checkingClaim, setCheckingClaim] = useState(true);
 
   const { address, isConnected } = useAccount();
   const { connect, isPending: isConnecting } = useConnect();
@@ -105,7 +107,7 @@ export default function POAPMinter() {
     }
   }, [context, walletAddress]);
 
-  // Check if user follows required account and has recasted
+  // Check if user follows required account, has recasted, and hasn't already claimed
   useEffect(() => {
     const checkRequirements = async () => {
       console.log("[POAPMinter] Starting requirements check, context:", context);
@@ -114,23 +116,30 @@ export default function POAPMinter() {
         console.log("[POAPMinter] No context or user found, skipping requirements check");
         setCheckingFollow(false);
         setCheckingRecast(false);
+        setCheckingClaim(false);
         setIsFollowing(null);
         setHasRecasted(null);
+        setHasAlreadyClaimed(null);
         return;
       }
 
       console.log(`[POAPMinter] User FID: ${context.user.fid}, checking requirements...`);
       
       try {
-        // Check both follow and recast status in parallel
+        // Check follow, recast, and claim status in parallel
         // Use the cast hash from the frame context if available
         const castHash = context.location?.type === 'cast_embed' 
           ? context.location.cast.hash 
           : undefined;
         
-        const [follows, recastResult] = await Promise.all([
+        const [follows, recastResult, claimResponse] = await Promise.all([
           checkIfUserFollows(context.user.fid),
-          checkIfUserRecasted(context.user.fid, castHash)
+          checkIfUserRecasted(context.user.fid, castHash),
+          fetch("/api/check-claim", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fid: context.user.fid })
+          })
         ]);
         
         // Extract the author username if available
@@ -138,18 +147,31 @@ export default function POAPMinter() {
           setCastAuthor(recastResult.author);
         }
         
+        // Process claim check response
+        let hasClaimedThisEvent = false;
+        if (claimResponse.ok) {
+          const claimData = await claimResponse.json();
+          hasClaimedThisEvent = claimData.hasClaimedCurrentEvent;
+        } else {
+          console.error("[POAPMinter] Error checking claim status:", await claimResponse.text());
+        }
+        
         console.log(`[POAPMinter] Follow check result: ${follows}`);
         console.log(`[POAPMinter] Recast check result: ${typeof recastResult === 'boolean' ? recastResult : recastResult.recasted}`);
+        console.log(`[POAPMinter] Already claimed check result: ${hasClaimedThisEvent}`);
         
         setIsFollowing(follows);
         setHasRecasted(typeof recastResult === 'boolean' ? recastResult : recastResult.recasted);
+        setHasAlreadyClaimed(hasClaimedThisEvent);
       } catch (error) {
         console.error("[POAPMinter] Error checking requirements:", error);
         setIsFollowing(false);
         setHasRecasted(false);
+        setHasAlreadyClaimed(false);
       } finally {
         setCheckingFollow(false);
         setCheckingRecast(false);
+        setCheckingClaim(false);
       }
     };
 
@@ -172,6 +194,11 @@ export default function POAPMinter() {
       return;
     }
 
+    if (!context?.user?.fid) {
+      setClaimError("Farcaster user information is required");
+      return;
+    }
+
     try {
       setClaimStatus("loading");
       // Generate a mock transaction hash for the POAP claim
@@ -186,6 +213,7 @@ export default function POAPMinter() {
         body: JSON.stringify({
           address: walletAddress,
           txHash: mockTxHash,
+          fid: context.user.fid,
         }),
       });
 
@@ -208,25 +236,40 @@ export default function POAPMinter() {
   };
 
   const handleFollowComplete = async () => {
-    // Recheck both follow and recast status, and load ETH address if needed
+    // Recheck follow, recast, and claim status, and load ETH address if needed
     if (context?.user) {
       setCheckingFollow(true);
       setCheckingRecast(true);
+      setCheckingClaim(true);
       try {
         // Use the cast hash from the frame context if available
         const castHash = context.location?.type === 'cast_embed' 
           ? context.location.cast.hash 
           : undefined;
         
-        const [follows, recastResult] = await Promise.all([
+        const [follows, recastResult, claimResponse] = await Promise.all([
           checkIfUserFollows(context.user.fid),
-          checkIfUserRecasted(context.user.fid, castHash)
+          checkIfUserRecasted(context.user.fid, castHash),
+          fetch("/api/check-claim", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fid: context.user.fid })
+          })
         ]);
         
         const recasted = typeof recastResult === 'boolean' ? recastResult : recastResult.recasted;
-        console.log(`[POAPMinter] Manual recheck - Follow: ${follows}, Recast: ${recasted}`);
+        
+        // Process claim check response
+        let hasClaimedThisEvent = false;
+        if (claimResponse.ok) {
+          const claimData = await claimResponse.json();
+          hasClaimedThisEvent = claimData.hasClaimedCurrentEvent;
+        }
+        
+        console.log(`[POAPMinter] Manual recheck - Follow: ${follows}, Recast: ${recasted}, Claimed: ${hasClaimedThisEvent}`);
         setIsFollowing(follows);
         setHasRecasted(recasted);
+        setHasAlreadyClaimed(hasClaimedThisEvent);
         
         // Update cast author if available
         if (recastResult && typeof recastResult === 'object' && 'author' in recastResult) {
@@ -245,15 +288,17 @@ export default function POAPMinter() {
         console.error("[POAPMinter] Error in manual recheck:", error);
         setIsFollowing(false);
         setHasRecasted(false);
+        setHasAlreadyClaimed(false);
       } finally {
         setCheckingFollow(false);
         setCheckingRecast(false);
+        setCheckingClaim(false);
       }
     }
   };
 
   // Show loading while checking requirements
-  if (checkingFollow || checkingRecast) {
+  if (checkingFollow || checkingRecast || checkingClaim) {
     return (
       <div className="loading-container">
         <div className="spinner-large" />
@@ -279,6 +324,69 @@ export default function POAPMinter() {
             to {
               transform: rotate(360deg);
             }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // Show message if user has already claimed this POAP event
+  if (hasAlreadyClaimed === true) {
+    return (
+      <div className="already-claimed-container">
+        <div className="already-claimed-card">
+          <div className="already-claimed-content">
+            <div className="success-icon">✅</div>
+            <h2>POAP Already Claimed!</h2>
+            <p>You have already claimed this POAP event. Each user can only claim one POAP per event.</p>
+            <p>If you change to a different POAP event, you&apos;ll be able to claim that one.</p>
+          </div>
+        </div>
+        
+        <style jsx>{`
+          .already-claimed-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background: rgba(255,254,246,1);
+          }
+          
+          .already-claimed-card {
+            max-width: 400px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 2px solid #10b981;
+          }
+          
+          .already-claimed-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+          }
+          
+          .success-icon {
+            font-size: 4rem;
+            margin-bottom: 0.5rem;
+          }
+          
+          .already-claimed-card h2 {
+            color: #10b981;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+          }
+          
+          .already-claimed-card p {
+            color: #6b7280;
+            line-height: 1.6;
+            margin: 0;
           }
         `}</style>
       </div>

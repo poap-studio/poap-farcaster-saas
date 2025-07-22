@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPOAPAuthManager } from "~/lib/poap-auth";
+import { hasUserClaimedPoap, recordPoapClaim } from "~/lib/redis";
 
 const POAP_API_KEY = process.env.POAP_API_KEY;
 const POAP_EVENT_ID = process.env.POAP_EVENT_ID;
@@ -13,11 +14,18 @@ interface QRCode {
 
 export async function POST(request: Request) {
   try {
-    const { address, txHash } = await request.json();
+    const { address, txHash, fid } = await request.json();
 
     if (!address || !txHash) {
       return NextResponse.json(
         { error: "Address and transaction hash are required" },
+        { status: 400 }
+      );
+    }
+
+    if (!fid || typeof fid !== 'number') {
+      return NextResponse.json(
+        { error: "Valid Farcaster user ID (fid) is required" },
         { status: 400 }
       );
     }
@@ -29,6 +37,18 @@ export async function POST(request: Request) {
         hasSecretCode: !!POAP_SECRET_CODE
       });
       throw new Error("POAP configuration incomplete");
+    }
+
+    // Check if user has already claimed this POAP event
+    console.log(`[POAP Claim] Checking if FID ${fid} has already claimed event ${POAP_EVENT_ID}`);
+    const hasAlreadyClaimed = await hasUserClaimedPoap(fid, POAP_EVENT_ID);
+    
+    if (hasAlreadyClaimed) {
+      console.log(`[POAP Claim] User ${fid} has already claimed event ${POAP_EVENT_ID}`);
+      return NextResponse.json(
+        { error: "You have already claimed this POAP event" },
+        { status: 409 }
+      );
     }
 
     // Get the auth manager instance
@@ -113,6 +133,12 @@ export async function POST(request: Request) {
 
     const claimData = await claimResponse.json();
     console.log("POAP claimed successfully:", claimData);
+
+    // Record the claim in Redis
+    const recordSuccess = await recordPoapClaim(fid, POAP_EVENT_ID, txHash);
+    if (!recordSuccess) {
+      console.warn(`[POAP Claim] Failed to record claim in Redis for FID ${fid}, but POAP was claimed successfully`);
+    }
 
     return NextResponse.json({
       success: true,

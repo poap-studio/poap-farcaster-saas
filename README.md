@@ -5,13 +5,14 @@ A production-ready Farcaster Frame v2 application for minting POAP tokens with f
 ## Features
 
 - **Dual Requirements Gate**: Users must both follow a specified Farcaster account AND recast the original cast before minting
+- **Duplicate Prevention**: Redis-powered tracking system prevents users from claiming the same POAP event multiple times
 - **Auto-Detection**: Automatically detects the cast hash from Frame context for recast verification
 - **Verified Address Auto-Fill**: Automatically fills wallet address with user's verified Ethereum address from their Farcaster profile
 - **POAP Minting**: Seamless POAP token claiming process with production-ready API integration
 - **Wallet Integration**: Connect and interact with users' wallets using Wagmi v2
 - **Frame v2 SDK**: Built with the latest Farcaster Frame v2 SDK and optimized for mini-apps
-- **Real-time Verification**: Live checking of follow and recast status with manual refresh capability
-- **Production Ready**: Fully optimized for deployment on Vercel with proper caching controls
+- **Real-time Verification**: Live checking of follow, recast, and claim status with manual refresh capability
+- **Production Ready**: Fully optimized for deployment on Vercel with proper caching controls and Redis database
 
 ## Environment Variables
 
@@ -35,6 +36,9 @@ NEXT_PUBLIC_REQUIRED_FOLLOW_USERNAME=username         # Farcaster username that 
 
 # Frame Configuration
 NEXT_PUBLIC_FRAME_URL=https://your-domain.vercel.app  # Your deployed frame URL (auto-detected if not set)
+
+# Redis Database Configuration (for preventing duplicate claims)
+REDIS_URL=redis://default:password@host:port          # Redis connection URL for tracking POAP claims
 ```
 
 ### Optional Variables
@@ -60,6 +64,7 @@ NODE_ENV=development                                   # Environment mode (devel
 | `NEXT_PUBLIC_NEYNAR_API_KEY` | ✅ | API key from Neynar for Farcaster data access and follow verification |
 | `NEXT_PUBLIC_REQUIRED_FOLLOW_USERNAME` | ✅ | Farcaster username (without @) that users must follow |
 | `NEXT_PUBLIC_FRAME_URL` | ⚠️ | Your deployed frame URL. Auto-detects from Vercel if not provided |
+| `REDIS_URL` | ✅ | Redis connection URL for tracking POAP claims and preventing duplicates |
 | `NEXT_PUBLIC_REQUIRED_RECAST_HASH` | ❌ | Specific cast hash to require recast. Auto-detects from frame context if not set |
 | `NEXT_PUBLIC_DEBUG_FOLLOW` | ❌ | Set to `true` to bypass follow requirements in development |
 
@@ -67,6 +72,7 @@ NODE_ENV=development                                   # Environment mode (devel
 
 - **POAP API**: Visit [POAP Studio](https://poap.studio) or [POAP Developer Portal](https://poap.tech/developers) to create an event and get API credentials
 - **Neynar API**: Sign up at [Neynar](https://neynar.com) to get your API key for Farcaster data access
+- **Redis Database**: Use [Redis Cloud](https://redis.com/try-free/) or [Upstash](https://upstash.com/) for a managed Redis instance. The app uses Redis to track which users have claimed POAPs to prevent duplicate claims per event.
 
 ## Getting Started
 
