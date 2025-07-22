@@ -126,6 +126,8 @@ export default function POAPMinter() {
         const castHash = context.location?.type === 'cast_embed' 
           ? context.location.cast.hash 
           : undefined;
+        console.log(`[POAPMinter] Frame location type: ${context.location?.type}`);
+        console.log(`[POAPMinter] Full location context:`, context.location);
         console.log(`[POAPMinter] Using cast hash from context: ${castHash}`);
         
         const [follows, recasted] = await Promise.all([

@@ -32,10 +32,15 @@ export default function FollowGate({ username, castHash, isFollowing, hasRecaste
   const handleRecastClick = async () => {
     if (!castHash) return;
     
+    console.log('[FollowGate] Opening cast with hash:', castHash);
+    const castUrl = `https://warpcast.com/~/cast/${castHash}`;
+    console.log('[FollowGate] Cast URL:', castUrl);
+    
     setIsOpeningCast(true);
     try {
       // Open the cast in Farcaster
-      await sdk.actions.openUrl(`https://warpcast.com/~/cast/${castHash}`);
+      // Use the direct cast URL format with the full hash
+      await sdk.actions.openUrl(castUrl);
       
       setTimeout(() => {
         setIsOpeningCast(false);
