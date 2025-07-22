@@ -33,23 +33,15 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
   const handleRecastClick = async () => {
     if (!castHash) return;
     
-    console.log('[FollowGate] Opening cast with hash:', castHash);
-    console.log('[FollowGate] Cast author received:', castAuthor);
-    console.log('[FollowGate] Cast author type:', typeof castAuthor);
-    
     // Extract the short hash (first 10 characters after 0x)
     const shortHash = castHash.startsWith('0x') 
       ? castHash.substring(0, 10) 
       : `0x${castHash.substring(0, 8)}`;
     
-    console.log('[FollowGate] Short hash extracted:', shortHash);
-    
     // Use the author username from the cast if available
     const castUrl = castAuthor 
       ? `https://warpcast.com/${castAuthor}/${shortHash}`
       : `https://warpcast.com/~/cast/${castHash}`;
-    console.log('[FollowGate] Final cast URL being opened:', castUrl);
-    console.log('[FollowGate] Author used:', castAuthor);
     
     setIsOpeningCast(true);
     try {

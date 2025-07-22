@@ -127,9 +127,6 @@ export default function POAPMinter() {
         const castHash = context.location?.type === 'cast_embed' 
           ? context.location.cast.hash 
           : undefined;
-        console.log(`[POAPMinter] Frame location type: ${context.location?.type}`);
-        console.log(`[POAPMinter] Full location context:`, context.location);
-        console.log(`[POAPMinter] Using cast hash from context: ${castHash}`);
         
         const [follows, recastResult] = await Promise.all([
           checkIfUserFollows(context.user.fid),
@@ -138,10 +135,7 @@ export default function POAPMinter() {
         
         // Extract the author username if available
         if (recastResult && typeof recastResult === 'object' && 'author' in recastResult) {
-          console.log('[POAPMinter] Setting cast author from initial check:', recastResult.author);
           setCastAuthor(recastResult.author);
-        } else {
-          console.log('[POAPMinter] No cast author found in initial check, recastResult:', typeof recastResult, recastResult);
         }
         
         console.log(`[POAPMinter] Follow check result: ${follows}`);
@@ -236,10 +230,7 @@ export default function POAPMinter() {
         
         // Update cast author if available
         if (recastResult && typeof recastResult === 'object' && 'author' in recastResult) {
-          console.log('[POAPMinter] Setting cast author from manual recheck:', recastResult.author);
           setCastAuthor(recastResult.author);
-        } else {
-          console.log('[POAPMinter] No cast author found in manual recheck, recastResult:', typeof recastResult, recastResult);
         }
         
         // Also load verified address if not already loaded
