@@ -4,36 +4,69 @@ A production-ready Farcaster Frame v2 application for minting POAP tokens with f
 
 ## Features
 
-- **Follow Gate Integration**: Users must follow a specified Farcaster account before minting
-- **POAP Minting**: Seamless POAP token claiming process
-- **Wallet Integration**: Connect and interact with users' wallets
-- **Frame v2 SDK**: Built with the latest Farcaster Frame v2 SDK
-- **Production Ready**: Optimized for deployment on Vercel
+- **Dual Requirements Gate**: Users must both follow a specified Farcaster account AND recast the original cast before minting
+- **Auto-Detection**: Automatically detects the cast hash from Frame context for recast verification
+- **Verified Address Auto-Fill**: Automatically fills wallet address with user's verified Ethereum address from their Farcaster profile
+- **POAP Minting**: Seamless POAP token claiming process with production-ready API integration
+- **Wallet Integration**: Connect and interact with users' wallets using Wagmi v2
+- **Frame v2 SDK**: Built with the latest Farcaster Frame v2 SDK and optimized for mini-apps
+- **Real-time Verification**: Live checking of follow and recast status with manual refresh capability
+- **Production Ready**: Fully optimized for deployment on Vercel with proper caching controls
 
 ## Environment Variables
 
 Set up the following environment variables in your `.env.local` file or deployment platform:
 
+### Required Variables
+
 ```bash
 # POAP API Configuration
-POAP_CLIENT_ID=your_poap_client_id
-POAP_CLIENT_SECRET=your_poap_client_secret
-POAP_API_KEY=your_poap_api_key
-POAP_EVENT_ID=your_event_id
-POAP_SECRET_CODE=your_secret_code
+POAP_CLIENT_ID=your_poap_client_id                    # POAP API client ID from your POAP developer account
+POAP_CLIENT_SECRET=your_poap_client_secret            # POAP API client secret for authentication
+POAP_API_KEY=your_poap_api_key                        # POAP API key for accessing POAP services
+POAP_EVENT_ID=12345                                   # The specific POAP event ID for your event
+POAP_SECRET_CODE=your_secret_code                     # Secret code required for POAP claiming
 
-# Frame Configuration
-NEXT_PUBLIC_FRAME_URL=https://your-domain.vercel.app
-
-# Neynar API Configuration (for follow checking)
-NEXT_PUBLIC_NEYNAR_API_KEY=your_neynar_api_key
+# Neynar API Configuration
+NEXT_PUBLIC_NEYNAR_API_KEY=your_neynar_api_key        # Neynar API key for Farcaster follow verification and cast data
 
 # Follow Gate Configuration
-NEXT_PUBLIC_REQUIRED_FOLLOW_USERNAME=username_to_follow
+NEXT_PUBLIC_REQUIRED_FOLLOW_USERNAME=username         # Farcaster username that users must follow to mint (without @)
 
-# Development mode (optional)
-NEXT_PUBLIC_DEBUG_FOLLOW=true  # Bypass follow check in development
+# Frame Configuration
+NEXT_PUBLIC_FRAME_URL=https://your-domain.vercel.app  # Your deployed frame URL (auto-detected if not set)
 ```
+
+### Optional Variables
+
+```bash
+# Recast Requirement (optional - auto-detects from frame context if not set)
+NEXT_PUBLIC_REQUIRED_RECAST_HASH=0xabc123...          # Specific cast hash that users must recast
+
+# Development/Debug mode (optional)
+NEXT_PUBLIC_DEBUG_FOLLOW=true                         # Bypass follow check in development mode
+NODE_ENV=development                                   # Environment mode (development/production)
+```
+
+### Variable Descriptions
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `POAP_CLIENT_ID` | ✅ | Your POAP API client ID obtained from the POAP developer portal |
+| `POAP_CLIENT_SECRET` | ✅ | Your POAP API client secret for secure authentication |
+| `POAP_API_KEY` | ✅ | API key for accessing POAP services and minting tokens |
+| `POAP_EVENT_ID` | ✅ | The unique identifier for your POAP event (numeric) |
+| `POAP_SECRET_CODE` | ✅ | Secret code that validates POAP claims for your event |
+| `NEXT_PUBLIC_NEYNAR_API_KEY` | ✅ | API key from Neynar for Farcaster data access and follow verification |
+| `NEXT_PUBLIC_REQUIRED_FOLLOW_USERNAME` | ✅ | Farcaster username (without @) that users must follow |
+| `NEXT_PUBLIC_FRAME_URL` | ⚠️ | Your deployed frame URL. Auto-detects from Vercel if not provided |
+| `NEXT_PUBLIC_REQUIRED_RECAST_HASH` | ❌ | Specific cast hash to require recast. Auto-detects from frame context if not set |
+| `NEXT_PUBLIC_DEBUG_FOLLOW` | ❌ | Set to `true` to bypass follow requirements in development |
+
+### Getting API Keys
+
+- **POAP API**: Visit [POAP Studio](https://poap.studio) or [POAP Developer Portal](https://poap.tech/developers) to create an event and get API credentials
+- **Neynar API**: Sign up at [Neynar](https://neynar.com) to get your API key for Farcaster data access
 
 ## Getting Started
 
