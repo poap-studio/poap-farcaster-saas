@@ -32,6 +32,7 @@ export default function POAPMinter() {
   const [hasRecasted, setHasRecasted] = useState<boolean | null>(null);
   const [checkingFollow, setCheckingFollow] = useState(true);
   const [checkingRecast, setCheckingRecast] = useState(true);
+  const [castAuthor, setCastAuthor] = useState<string | null>(null);
 
   const { address, isConnected } = useAccount();
   const { connect, isPending: isConnecting } = useConnect();
@@ -130,16 +131,21 @@ export default function POAPMinter() {
         console.log(`[POAPMinter] Full location context:`, context.location);
         console.log(`[POAPMinter] Using cast hash from context: ${castHash}`);
         
-        const [follows, recasted] = await Promise.all([
+        const [follows, recastResult] = await Promise.all([
           checkIfUserFollows(context.user.fid),
           checkIfUserRecasted(context.user.fid, castHash)
         ]);
         
+        // Extract the author username if available
+        if (recastResult && typeof recastResult === 'object' && 'author' in recastResult) {
+          setCastAuthor(recastResult.author);
+        }
+        
         console.log(`[POAPMinter] Follow check result: ${follows}`);
-        console.log(`[POAPMinter] Recast check result: ${recasted}`);
+        console.log(`[POAPMinter] Recast check result: ${typeof recastResult === 'boolean' ? recastResult : recastResult.recasted}`);
         
         setIsFollowing(follows);
-        setHasRecasted(recasted);
+        setHasRecasted(typeof recastResult === 'boolean' ? recastResult : recastResult.recasted);
       } catch (error) {
         console.error("[POAPMinter] Error checking requirements:", error);
         setIsFollowing(false);
@@ -215,14 +221,20 @@ export default function POAPMinter() {
           ? context.location.cast.hash 
           : undefined;
         
-        const [follows, recasted] = await Promise.all([
+        const [follows, recastResult] = await Promise.all([
           checkIfUserFollows(context.user.fid),
           checkIfUserRecasted(context.user.fid, castHash)
         ]);
         
+        const recasted = typeof recastResult === 'boolean' ? recastResult : recastResult.recasted;
         console.log(`[POAPMinter] Manual recheck - Follow: ${follows}, Recast: ${recasted}`);
         setIsFollowing(follows);
         setHasRecasted(recasted);
+        
+        // Update cast author if available
+        if (recastResult && typeof recastResult === 'object' && 'author' in recastResult) {
+          setCastAuthor(recastResult.author);
+        }
         
         // Also load verified address if not already loaded
         if (walletAddress === "") {
@@ -282,6 +294,7 @@ export default function POAPMinter() {
       <FollowGate 
         username={getRequiredFollowUsername()}
         castHash={(context?.location?.type === 'cast_embed' ? context.location.cast.hash : undefined) || getRequiredRecastHash()}
+        castAuthor={castAuthor}
         isFollowing={isFollowing}
         hasRecasted={hasRecasted}
         onFollowComplete={handleFollowComplete}

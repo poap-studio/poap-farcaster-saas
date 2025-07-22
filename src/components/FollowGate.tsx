@@ -4,12 +4,13 @@ import sdk from "@farcaster/frame-sdk";
 interface FollowGateProps {
   username: string;
   castHash?: string;
+  castAuthor?: string | null;
   isFollowing?: boolean | null;
   hasRecasted?: boolean | null;
   onFollowComplete?: () => void;
 }
 
-export default function FollowGate({ username, castHash, isFollowing, hasRecasted, onFollowComplete }: FollowGateProps) {
+export default function FollowGate({ username, castHash, castAuthor, isFollowing, hasRecasted, onFollowComplete }: FollowGateProps) {
   const [isOpeningProfile, setIsOpeningProfile] = useState(false);
   const [isOpeningCast, setIsOpeningCast] = useState(false);
 
@@ -33,13 +34,21 @@ export default function FollowGate({ username, castHash, isFollowing, hasRecaste
     if (!castHash) return;
     
     console.log('[FollowGate] Opening cast with hash:', castHash);
-    const castUrl = `https://warpcast.com/~/cast/${castHash}`;
-    console.log('[FollowGate] Cast URL:', castUrl);
+    
+    // Extract the short hash (first 10 characters after 0x)
+    const shortHash = castHash.startsWith('0x') 
+      ? castHash.substring(0, 10) 
+      : `0x${castHash.substring(0, 8)}`;
+    
+    // Use the author username from the cast if available
+    const castUrl = castAuthor 
+      ? `https://warpcast.com/${castAuthor}/${shortHash}`
+      : `https://warpcast.com/~/cast/${castHash}`;
+    console.log('[FollowGate] Cast URL:', castUrl, 'Author:', castAuthor);
     
     setIsOpeningCast(true);
     try {
       // Open the cast in Farcaster
-      // Use the direct cast URL format with the full hash
       await sdk.actions.openUrl(castUrl);
       
       setTimeout(() => {

@@ -163,7 +163,7 @@ export async function getUserEthAddress(userFid: number): Promise<string | null>
   }
 }
 
-export async function checkIfUserRecasted(userFid: number, castHash?: string): Promise<boolean> {
+export async function checkIfUserRecasted(userFid: number, castHash?: string): Promise<boolean | { recasted: boolean; author: string | null }> {
   console.log(`[Recast Check] Checking recast for FID: ${userFid}, hash: ${castHash}`);
   
   const hashToCheck = castHash || REQUIRED_RECAST_HASH;
@@ -206,9 +206,10 @@ export async function checkIfUserRecasted(userFid: number, castHash?: string): P
     console.log("[Recast Check] API response:", JSON.stringify(data, null, 2));
     
     const hasRecasted = data.cast?.viewer_context?.recasted || false;
-    console.log(`[Recast Check] Recast status result: ${hasRecasted}`);
+    const author = data.cast?.author?.username || null;
+    console.log(`[Recast Check] Recast status result: ${hasRecasted}, author: ${author}`);
     
-    return hasRecasted;
+    return { recasted: hasRecasted, author };
   } catch (error) {
     console.error("[Recast Check] Error checking recast status:", error);
     return false;
