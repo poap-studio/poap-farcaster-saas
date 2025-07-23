@@ -623,13 +623,12 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
         }
 
         .background {
-          width: 100%;
-          height: 100%;
+          width: 342px;
+          height: 363px;
           position: absolute;
           left: 0px;
           top: 0px;
           overflow: visible;
-          pointer-events: none;
         }
       `}</style>
     </div>
