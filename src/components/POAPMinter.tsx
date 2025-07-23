@@ -576,6 +576,10 @@ export default function POAPMinter() {
           width: 100%;
           max-width: 100vw;
         }
+        
+        * {
+          max-width: 100%;
+        }
 
         .poap-minter-container {
           width: 100%;
@@ -606,6 +610,7 @@ export default function POAPMinter() {
           justify-content: flex-start;
           margin-top: auto;
           margin-bottom: auto;
+          box-sizing: border-box;
         }
 
         .white-text-horizontal {
@@ -645,6 +650,7 @@ export default function POAPMinter() {
           flex-direction: column;
           gap: 32px;
           margin-bottom: 20px;
+          box-sizing: border-box;
         }
 
         .header {
@@ -885,6 +891,7 @@ export default function POAPMinter() {
           justify-content: center;
           gap: 8px;
           font-family: inherit;
+          box-sizing: border-box;
         }
 
         .mint-button:hover:not(:disabled) {
