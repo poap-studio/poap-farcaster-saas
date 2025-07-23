@@ -255,9 +255,6 @@ export default function POAPMinter() {
   };
 
 
-  const handleShare = () => {
-    shareCast();
-  };
 
   const handleFollowComplete = async () => {
     // Recheck follow, recast, and claim status, and load ETH address if needed
