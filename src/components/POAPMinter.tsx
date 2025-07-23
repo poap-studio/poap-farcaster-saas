@@ -11,6 +11,7 @@ import { base } from "viem/chains";
 import { config } from "./providers/WagmiProvider";
 import { checkIfUserFollows, getRequiredFollowUsername, verifyNeynarAPI, getUserEthAddress, checkIfUserRecasted, getRequiredRecastHash } from "~/lib/neynar";
 import FollowGate from "./FollowGate";
+import POAPSuccess from "./POAPSuccess";
 
 const FRAME_URL = typeof window !== 'undefined' 
   ? window.location.origin
@@ -358,66 +359,13 @@ export default function POAPMinter() {
     );
   }
 
-  // Show message if user has already claimed this POAP event
+  // Show success page if user has already claimed this POAP event
   if (hasAlreadyClaimed === true) {
     return (
-      <div className="already-claimed-container">
-        <div className="already-claimed-card">
-          <div className="already-claimed-content">
-            <div className="success-icon">✅</div>
-            <h2>POAP Already Claimed!</h2>
-            <p>You have already claimed this POAP event. Each user can only claim one POAP per event.</p>
-            <p>If you change to a different POAP event, you&apos;ll be able to claim that one.</p>
-          </div>
-        </div>
-        
-        <style jsx>{`
-          .already-claimed-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            background: rgba(255,254,246,1);
-          }
-          
-          .already-claimed-card {
-            max-width: 400px;
-            width: 100%;
-            background: white;
-            border-radius: 20px;
-            padding: 2.5rem;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border: 2px solid #10b981;
-          }
-          
-          .already-claimed-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-          }
-          
-          .success-icon {
-            font-size: 4rem;
-            margin-bottom: 0.5rem;
-          }
-          
-          .already-claimed-card h2 {
-            color: #10b981;
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin: 0;
-          }
-          
-          .already-claimed-card p {
-            color: #6b7280;
-            line-height: 1.6;
-            margin: 0;
-          }
-        `}</style>
-      </div>
+      <POAPSuccess 
+        isNewlyClaimed={false}
+        onShare={handleShare}
+      />
     );
   }
 
@@ -432,6 +380,16 @@ export default function POAPMinter() {
         hasRecasted={hasRecasted}
         onFollowComplete={handleFollowComplete}
         onClaimPoapClick={handleClaimPoapClick}
+      />
+    );
+  }
+
+  // Show success page if POAP was just minted successfully
+  if (claimStatus === "success") {
+    return (
+      <POAPSuccess 
+        isNewlyClaimed={true}
+        onShare={handleShare}
       />
     );
   }
@@ -488,17 +446,12 @@ export default function POAPMinter() {
                     }}
                     placeholder={walletAddress ? "Verified address from your Farcaster profile" : "Enter wallet address"}
                     className="wallet-input"
-                    disabled={claimStatus === "loading" || claimStatus === "success"}
+                    disabled={claimStatus === "loading"}
                   />
                 </div>
                 {claimStatus === "error" && (
                   <div className="error-message">
                     {claimError}
-                  </div>
-                )}
-                {claimStatus === "success" && (
-                  <div className="success-message">
-                    Your POAP has been claimed successfully! Share your achievement with the Farcaster community.
                   </div>
                 )}
               </div>
@@ -519,14 +472,6 @@ export default function POAPMinter() {
                   ) : (
                     "Connect Wallet"
                   )}
-                </button>
-              ) : claimStatus === "success" ? (
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  className="mint-button"
-                >
-                  Share on Farcaster
                 </button>
               ) : (
                 <button
@@ -862,16 +807,6 @@ export default function POAPMinter() {
           border: 1px solid rgba(255, 107, 107, 0.2);
         }
 
-        .success-message {
-          color: #51cf66;
-          font-size: 14px;
-          font-weight: 400;
-          text-align: center;
-          padding: 8px;
-          background: rgba(81, 207, 102, 0.1);
-          border-radius: 6px;
-          border: 1px solid rgba(81, 207, 102, 0.2);
-        }
 
         .cta {
           display: flex;
