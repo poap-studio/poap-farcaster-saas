@@ -74,6 +74,10 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
   return (
     <div className="follow-gate-container">
       <div className="frame-container">
+        <div className="white-text-horizontal">
+          <img className="group" src="/group0.svg" alt="" />
+          <img className="group2" src="/group1.svg" alt="" />
+        </div>
         <div className="card">
           <div className="header">
             <div className="get-your-arbitrum-poap">
@@ -213,8 +217,37 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
           padding: 0 16px;
           display: flex;
           flex-direction: column;
+          gap: 24px;
           align-items: center;
           justify-content: center;
+        }
+
+        .white-text-horizontal {
+          flex-shrink: 0;
+          width: 200px;
+          height: 51px;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .group {
+          width: 22.56%;
+          height: 100%;
+          position: absolute;
+          right: 77.44%;
+          left: 0%;
+          bottom: 0%;
+          top: 0%;
+        }
+
+        .group2 {
+          width: 71.96%;
+          height: 25.71%;
+          position: absolute;
+          right: -0.03%;
+          left: 28.06%;
+          bottom: 37.14%;
+          top: 37.14%;
         }
 
 
