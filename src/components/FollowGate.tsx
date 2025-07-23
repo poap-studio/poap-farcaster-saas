@@ -210,6 +210,7 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
               </div>
             </div>
           </div>
+          <img className="background" src="/background0.svg" alt="" />
         </div>
       </div>
 
@@ -307,6 +308,8 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
           flex-direction: column;
           gap: 32px;
           margin-bottom: 20px;
+          position: relative;
+          overflow: hidden;
         }
 
         .header {
@@ -617,6 +620,16 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
           to {
             transform: rotate(360deg);
           }
+        }
+
+        .background {
+          width: 100%;
+          height: 100%;
+          position: absolute;
+          left: 0px;
+          top: 0px;
+          overflow: visible;
+          pointer-events: none;
         }
       `}</style>
     </div>
