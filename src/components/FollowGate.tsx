@@ -191,8 +191,10 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
         }
 
         .follow-gate-container {
-          width: 390px;
-          height: 844px;
+          width: 100%;
+          max-width: 390px;
+          height: 100vh;
+          min-height: 600px;
           background: url('/no-steps-completed.png') center;
           background-size: cover;
           background-repeat: no-repeat;
@@ -202,10 +204,13 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
           overflow: hidden;
           position: relative;
           font-family: 'Unica77LlTt', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          margin: 0 auto;
         }
 
         .frame-container {
-          width: 342px;
+          width: 100%;
+          max-width: 342px;
+          padding: 0 16px;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -400,7 +405,8 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
         }
 
         .claim-button {
-          width: 310px;
+          width: 100%;
+          max-width: 310px;
           padding: 16px;
           background: #073d5c;
           border-radius: 8px;
