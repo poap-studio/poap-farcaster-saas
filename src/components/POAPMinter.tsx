@@ -13,14 +13,6 @@ import { checkIfUserFollows, getRequiredFollowUsername, verifyNeynarAPI, getUser
 import FollowGate from "./FollowGate";
 import POAPSuccess from "./POAPSuccess";
 
-const FRAME_URL = typeof window !== 'undefined' 
-  ? window.location.origin
-  : process.env.NEXT_PUBLIC_FRAME_URL 
-    || (process.env.NODE_ENV === 'development' 
-      ? 'http://localhost:3000'
-      : process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}`
-        : '');
 
 export default function POAPMinter() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
