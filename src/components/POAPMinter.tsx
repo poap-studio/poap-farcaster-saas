@@ -579,27 +579,26 @@ export default function POAPMinter() {
 
         .poap-minter-container {
           width: 100%;
-          max-width: 100vw;
+          max-width: 390px;
           min-height: 100vh;
           background: url('/background.jpg') center;
           background-size: cover;
           background-repeat: no-repeat;
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: center;
           overflow-y: auto;
           overflow-x: hidden;
           position: relative;
           font-family: 'Unica77LlTt', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
           margin: 0 auto;
-          padding: 20px 16px 40px 16px;
-          box-sizing: border-box;
+          padding: 20px 0 40px 0;
         }
 
         .frame-container {
           width: 100%;
           max-width: 342px;
-          padding: 0;
+          padding: 0 16px;
           display: flex;
           flex-direction: column;
           gap: 24px;
@@ -607,17 +606,14 @@ export default function POAPMinter() {
           justify-content: flex-start;
           margin-top: auto;
           margin-bottom: auto;
-          box-sizing: border-box;
         }
 
         .white-text-horizontal {
           flex-shrink: 0;
-          width: 100%;
-          max-width: 200px;
+          width: 200px;
           height: 51px;
           position: relative;
           overflow: hidden;
-          margin: 0 auto;
         }
 
         .group {
@@ -645,13 +641,10 @@ export default function POAPMinter() {
           border-radius: 12px;
           padding: 24px 16px;
           width: 100%;
-          max-width: 310px;
           display: flex;
           flex-direction: column;
           gap: 32px;
           margin-bottom: 20px;
-          box-sizing: border-box;
-          overflow: hidden;
         }
 
         .header {
@@ -745,32 +738,11 @@ export default function POAPMinter() {
           }
         }
 
-        /* Mobile specific adjustments */
-        @media (max-width: 390px) {
-          .poap-minter-container {
-            padding: 20px 8px 40px 8px;
-          }
-          
-          .frame-container {
-            max-width: 100%;
-            padding: 0;
-          }
-          
-          .card {
-            max-width: 100%;
-            padding: 20px 12px;
-          }
-          
-          .white-text-horizontal {
-            max-width: 180px;
-          }
-        }
-
         /* Iframe specific adjustments */
         @media (max-height: 700px) {
           .poap-minter-container {
             align-items: flex-start;
-            padding: 10px 8px 30px 8px;
+            padding: 10px 0 30px 0;
           }
           
           .frame-container {
@@ -779,7 +751,7 @@ export default function POAPMinter() {
           
           .card {
             gap: 20px;
-            padding: 20px 12px;
+            padding: 20px 16px;
           }
           
           .poap-image-container {
