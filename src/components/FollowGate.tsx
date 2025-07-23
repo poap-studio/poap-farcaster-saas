@@ -627,7 +627,7 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
           height: 100%;
           position: absolute;
           left: 0px;
-          top: -50px;
+          top: -100px;
           overflow: visible;
           pointer-events: none;
         }
