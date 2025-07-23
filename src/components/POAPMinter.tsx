@@ -567,8 +567,14 @@ export default function POAPMinter() {
           -webkit-font-smoothing: antialiased;
         }
 
-        .poap-minter-container {
+        html, body {
+          overflow-x: hidden;
           width: 100%;
+          max-width: 100vw;
+        }
+
+        .poap-minter-container {
+          width: 100vw;
           max-width: 390px;
           min-height: 100vh;
           background: url('/background.jpg') center;
@@ -583,6 +589,7 @@ export default function POAPMinter() {
           font-family: 'Unica77LlTt', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
           margin: 0 auto;
           padding: 20px 0 40px 0;
+          box-sizing: border-box;
         }
 
         .frame-container {
@@ -596,11 +603,13 @@ export default function POAPMinter() {
           justify-content: flex-start;
           margin-top: auto;
           margin-bottom: auto;
+          box-sizing: border-box;
         }
 
         .white-text-horizontal {
           flex-shrink: 0;
-          width: 200px;
+          width: 100%;
+          max-width: 200px;
           height: 51px;
           position: relative;
           overflow: hidden;
@@ -631,10 +640,13 @@ export default function POAPMinter() {
           border-radius: 12px;
           padding: 24px 16px;
           width: 100%;
+          max-width: 100%;
           display: flex;
           flex-direction: column;
           gap: 32px;
           margin-bottom: 20px;
+          box-sizing: border-box;
+          overflow: hidden;
         }
 
         .header {
@@ -653,7 +665,8 @@ export default function POAPMinter() {
         }
 
         .poap-image-container {
-          width: 200px;
+          width: 100%;
+          max-width: 200px;
           height: 200px;
           display: flex;
           align-items: center;
@@ -661,14 +674,16 @@ export default function POAPMinter() {
         }
 
         .poap-image {
-          width: 200px;
+          width: 100%;
+          max-width: 200px;
           height: 200px;
           border-radius: 50%;
           object-fit: cover;
         }
 
         .poap-image-skeleton {
-          width: 200px;
+          width: 100%;
+          max-width: 200px;
           height: 200px;
           border-radius: 50%;
           background: #1a1c1d;
@@ -693,7 +708,8 @@ export default function POAPMinter() {
         }
 
         .poap-image-error {
-          width: 200px;
+          width: 100%;
+          max-width: 200px;
           height: 200px;
           border-radius: 50%;
           background: #1a1c1d;
