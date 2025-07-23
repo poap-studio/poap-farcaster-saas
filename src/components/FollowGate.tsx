@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import sdk from "@farcaster/frame-sdk";
 
 interface FollowGateProps {
@@ -14,6 +14,7 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
   const [isOpeningProfile, setIsOpeningProfile] = useState(false);
   const [isOpeningCast, setIsOpeningCast] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [poapEventData, setPoapEventData] = useState<{name: string, image_url: string} | null>(null);
 
   const handleFollowClick = async () => {
     setIsOpeningProfile(true);
@@ -71,6 +72,22 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
     }
   };
 
+  useEffect(() => {
+    const fetchPoapEventData = async () => {
+      try {
+        const response = await fetch('/api/poap-event');
+        if (response.ok) {
+          const data = await response.json();
+          setPoapEventData(data);
+        }
+      } catch (error) {
+        console.error('Error fetching POAP event data:', error);
+      }
+    };
+
+    fetchPoapEventData();
+  }, []);
+
   return (
     <div className="follow-gate-container">
       <div className="frame-container">
@@ -81,16 +98,14 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
         <div className="card">
           <div className="header">
             <div className="get-your-arbitrum-poap">
-              Get your<br />Arbitrum POAP
+              Get your<br />{poapEventData?.name || 'POAP'}
             </div>
             <div className="poap-image-container">
-              <svg className="arbitrum-logo" width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="100" cy="100" r="100" fill="#213147"/>
-                <path d="M100 30L40 170H160L100 30Z" fill="#12AAFF"/>
-                <path d="M100 30L70 130H130L100 30Z" fill="#9DCCED"/>
-                <path d="M100 50L80 110H120L100 50Z" fill="#213147"/>
-              </svg>
-              <img className="poap-image" src="/poap-event-image.png" alt="POAP" />
+              <img 
+                className="poap-image" 
+                src={poapEventData?.image_url || "/poap-event-image.png"} 
+                alt="POAP" 
+              />
             </div>
           </div>
           <div className="body">
@@ -277,25 +292,16 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
         }
 
         .poap-image-container {
-          position: relative;
           width: 200px;
           height: 200px;
-        }
-
-        .arbitrum-logo {
-          position: absolute;
-          width: 200px;
-          height: 200px;
-          top: 0;
-          left: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .poap-image {
-          position: absolute;
-          width: 120px;
-          height: 120px;
-          top: 40px;
-          left: 40px;
+          width: 200px;
+          height: 200px;
           border-radius: 50%;
           object-fit: cover;
         }
