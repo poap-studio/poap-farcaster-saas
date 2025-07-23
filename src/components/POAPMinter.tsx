@@ -363,8 +363,7 @@ export default function POAPMinter() {
   if (hasAlreadyClaimed === true) {
     return (
       <POAPSuccess 
-        isNewlyClaimed={false}
-        onShare={handleShare}
+        walletAddress={walletAddress}
       />
     );
   }
@@ -388,8 +387,7 @@ export default function POAPMinter() {
   if (claimStatus === "success") {
     return (
       <POAPSuccess 
-        isNewlyClaimed={true}
-        onShare={handleShare}
+        walletAddress={walletAddress}
       />
     );
   }
