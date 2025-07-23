@@ -120,7 +120,7 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
                   <button
                     type="button"
                     onClick={handleFollowClick}
-                    disabled={isOpeningProfile || isFollowing}
+                    disabled={isOpeningProfile || !!isFollowing}
                     className="action-button"
                   >
                     <span>{isFollowing ? 'Done' : 'Follow'}</span>
@@ -137,7 +137,7 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
                   <button
                     type="button"
                     onClick={handleRecastClick}
-                    disabled={isOpeningCast || hasRecasted || !castHash}
+                    disabled={isOpeningCast || !!hasRecasted || !castHash}
                     className="action-button"
                   >
                     <span>{hasRecasted ? 'Done' : 'Recast'}</span>
