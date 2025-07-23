@@ -1,13 +1,19 @@
 import { useState, useEffect } from "react";
+import { useAccount } from "wagmi";
 
 interface POAPSuccessProps {
   isNewlyClaimed?: boolean; // true if just minted, false if already had it
   onShare?: () => void;
+  walletAddress?: string; // The wallet address where POAP was minted
 }
 
-export default function POAPSuccess({ isNewlyClaimed = false, onShare }: POAPSuccessProps) {
+export default function POAPSuccess({ isNewlyClaimed = false, onShare, walletAddress }: POAPSuccessProps) {
   const [poapEventData, setPoapEventData] = useState<{name: string, image_url: string} | null>(null);
   const [isLoadingPoapData, setIsLoadingPoapData] = useState(true);
+  const { address } = useAccount();
+  
+  // Use provided wallet address or fallback to connected address
+  const displayAddress = walletAddress || address || "";
 
   // Fetch POAP event data
   useEffect(() => {
@@ -29,20 +35,29 @@ export default function POAPSuccess({ isNewlyClaimed = false, onShare }: POAPSuc
     fetchPoapEventData();
   }, []);
 
+  // Format wallet address for display (first 6 and last 6 chars)
+  const formatAddress = (addr: string) => {
+    if (!addr) return "";
+    if (addr.length < 12) return addr;
+    return `${addr.slice(0, 6)}...${addr.slice(-6)}`;
+  };
+
   return (
-    <div className="poap-success-container">
-      <div className="frame-container">
-        <div className="white-text-horizontal">
+    <div className="success-page">
+      <div className="content">
+        <div className="logo">
           <img className="group" src="/group0.svg" alt="" />
           <img className="group2" src="/group1.svg" alt="" />
         </div>
-        <div className="card">
+        <div className="c-ard">
           <div className="header">
-            <div className="success-icon">🎉</div>
-            <div className="success-title">
-              {isNewlyClaimed ? 'POAP Claimed Successfully!' : 'You Already Have This POAP!'}
+            <div className="congratulations-you-ve-got-it">
+              Congratulations,
+              <br />
+              you've got it!
             </div>
-            <div className="poap-image-container">
+            <div className="frame-37">
+              <img className="lottie" src="/lottie0.png" alt="" />
               {isLoadingPoapData ? (
                 <div className="poap-image-skeleton">
                   <div className="skeleton-pulse"></div>
@@ -54,38 +69,33 @@ export default function POAPSuccess({ isNewlyClaimed = false, onShare }: POAPSuc
                   alt="POAP" 
                 />
               ) : (
-                <div className="poap-image-error">
-                  <div className="error-icon">⚠️</div>
-                  <div className="error-text">Unable to load POAP image</div>
-                </div>
+                <img 
+                  className="poap-image" 
+                  src="/poap-image0.png"
+                  alt="POAP" 
+                />
               )}
+              <div className="ellipse-2"></div>
+              <img className="frame" src="/frame0.svg" alt="" />
             </div>
           </div>
           <div className="body">
-            <div className="content">
-              <div className="success-message">
-                {isNewlyClaimed 
-                  ? `Congratulations! You've successfully claimed your ${poapEventData?.name || 'POAP'}. Share your achievement with the Farcaster community!`
-                  : `You have already claimed this ${poapEventData?.name || 'POAP'} event. Each user can only claim one POAP per event.`
-                }
-              </div>
+            <div className="poap-successfully-minted-to-your-wallet">
+              POAP successfully minted
+              <br />
+              to your wallet:
             </div>
-            <div className="cta">
-              <button
-                type="button"
-                onClick={onShare}
-                className="share-button"
-              >
-                Share on Farcaster
-              </button>
-              <div className="share-note">
-                {isNewlyClaimed 
-                  ? "Let everyone know about your new POAP!"
-                  : "Show off your POAP collection!"
-                }
+            <div className="wallet">
+              <div className="data">
+                <img className="wallet2" src="/wallet1.svg" alt="" />
+                <div className="_0-x-1234-34-abcd">
+                  {formatAddress(displayAddress) || "0x1234...34abcd"}
+                </div>
               </div>
+              <img className="copy" src="/copy0.svg" alt="" />
             </div>
           </div>
+          <img className="background" src="/background0.svg" alt="" />
         </div>
       </div>
 
@@ -104,64 +114,39 @@ export default function POAPSuccess({ isNewlyClaimed = false, onShare }: POAPSuc
           font-style: normal;
         }
 
-        * {
+        .success-page,
+        .success-page * {
           box-sizing: border-box;
-          margin: 0;
-          padding: 0;
-          border: none;
-          text-decoration: none;
-          background: none;
-          -webkit-font-smoothing: antialiased;
         }
 
-        html, body {
-          overflow-x: hidden;
-          width: 100%;
-          max-width: 100vw;
-        }
-        
-        * {
-          max-width: 100%;
-        }
-
-        .poap-success-container {
-          width: 100%;
-          max-width: 390px;
-          min-height: 100vh;
-          background: url('/background.jpg') center;
+        .success-page {
+          background: url('/success-page.png') center;
           background-size: cover;
           background-repeat: no-repeat;
-          display: flex;
-          align-items: flex-start;
-          justify-content: center;
-          overflow-y: auto;
-          overflow-x: hidden;
-          position: relative;
-          font-family: 'Unica77LlTt', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          margin: 0 auto;
-          padding: 20px 0 40px 0;
-        }
-
-        .frame-container {
-          width: 100%;
-          max-width: 342px;
-          padding: 0 16px;
-          display: flex;
-          flex-direction: column;
-          gap: 24px;
-          align-items: center;
-          justify-content: flex-start;
-          margin-top: auto;
-          margin-bottom: auto;
-          box-sizing: border-box;
-        }
-
-        .white-text-horizontal {
-          flex-shrink: 0;
-          width: 200px;
-          height: 51px;
+          height: 844px;
           position: relative;
           overflow: hidden;
+          font-family: 'Unica77LlTt', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .content {
+          padding: 24px;
+          width: 390px;
+          height: 595px;
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+          top: 0px;
+        }
+
+        .logo {
+          width: 200px;
+          height: 51px;
+          position: absolute;
+          left: 95px;
+          top: 24px;
+          overflow: hidden;
+          aspect-ratio: 200/51;
         }
 
         .group {
@@ -172,6 +157,7 @@ export default function POAPSuccess({ isNewlyClaimed = false, onShare }: POAPSuc
           left: 0%;
           bottom: 0%;
           top: 0%;
+          overflow: visible;
         }
 
         .group2 {
@@ -182,67 +168,81 @@ export default function POAPSuccess({ isNewlyClaimed = false, onShare }: POAPSuc
           left: 28.06%;
           bottom: 37.14%;
           top: 37.14%;
+          overflow: visible;
         }
 
-        .card {
-          background: #000000;
+        .c-ard {
+          background: linear-gradient(to left, #000000, #000000);
           border-radius: 12px;
-          padding: 24px 16px;
-          width: 100%;
-          display: flex;
-          flex-direction: column;
-          gap: 32px;
-          margin-bottom: 20px;
-          box-sizing: border-box;
+          padding: 24px 16px 32px 16px;
+          width: 342px;
+          height: 472px;
+          position: absolute;
+          left: 24px;
+          top: 99px;
+          overflow: hidden;
         }
 
         .header {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 16px;
+          justify-content: flex-start;
+          width: 310px;
+          position: absolute;
+          left: 16px;
+          top: 24px;
         }
 
-        .success-icon {
-          font-size: 48px;
-          margin-bottom: 8px;
-        }
-
-        .success-title {
-          color: #51cf66;
+        .congratulations-you-ve-got-it {
+          color: #ffffff;
+          text-align: center;
+          font-family: "Unica77LlTt", sans-serif;
           font-size: 24px;
           font-weight: 700;
-          line-height: 1.2;
-          text-align: center;
+          position: relative;
         }
 
-        .poap-image-container {
-          width: 100%;
-          max-width: 200px;
-          height: 200px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+        .frame-37 {
+          margin: -16px 0 0 0;
+          flex-shrink: 0;
+          width: 268px;
+          height: 268px;
+          position: relative;
+        }
+
+        .lottie {
+          width: 268px;
+          height: 268px;
+          position: absolute;
+          left: 0px;
+          top: 0px;
+          object-fit: cover;
+          aspect-ratio: 1;
         }
 
         .poap-image {
-          width: 100%;
-          max-width: 200px;
-          height: 200px;
           border-radius: 50%;
+          width: 200px;
+          height: 200px;
+          position: absolute;
+          left: 35px;
+          top: 44px;
           object-fit: cover;
+          aspect-ratio: 1;
         }
 
         .poap-image-skeleton {
-          width: 100%;
-          max-width: 200px;
-          height: 200px;
           border-radius: 50%;
+          width: 200px;
+          height: 200px;
+          position: absolute;
+          left: 35px;
+          top: 44px;
           background: #1a1c1d;
           display: flex;
           align-items: center;
           justify-content: center;
-          position: relative;
           overflow: hidden;
         }
 
@@ -259,30 +259,6 @@ export default function POAPSuccess({ isNewlyClaimed = false, onShare }: POAPSuc
           animation: skeleton-loading 1.5s infinite;
         }
 
-        .poap-image-error {
-          width: 100%;
-          max-width: 200px;
-          height: 200px;
-          border-radius: 50%;
-          background: #1a1c1d;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-        }
-
-        .error-icon {
-          font-size: 32px;
-        }
-
-        .error-text {
-          color: #c6c6c6;
-          font-size: 12px;
-          text-align: center;
-          font-weight: 400;
-        }
-
         @keyframes skeleton-loading {
           0% {
             transform: translateX(-100%);
@@ -292,95 +268,112 @@ export default function POAPSuccess({ isNewlyClaimed = false, onShare }: POAPSuc
           }
         }
 
-        /* Iframe specific adjustments */
-        @media (max-height: 700px) {
-          .poap-success-container {
-            align-items: flex-start;
-            padding: 10px 0 30px 0;
-          }
-          
-          .frame-container {
-            gap: 16px;
-          }
-          
-          .card {
-            gap: 20px;
-            padding: 20px 16px;
-          }
-          
-          .poap-image-container {
-            width: 160px;
-            height: 160px;
-          }
-          
-          .poap-image,
-          .poap-image-skeleton,
-          .poap-image-error {
-            width: 160px;
-            height: 160px;
-          }
+        .ellipse-2 {
+          background: #adeb9d;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          position: absolute;
+          left: 204px;
+          top: 72px;
+        }
+
+        .frame {
+          width: 23.7px;
+          height: 23.7px;
+          position: absolute;
+          left: 212.15px;
+          top: 80.15px;
+          overflow: visible;
+          aspect-ratio: 1;
         }
 
         .body {
           display: flex;
           flex-direction: column;
-          gap: 24px;
-        }
-
-        .content {
-          display: flex;
-          flex-direction: column;
           gap: 16px;
+          align-items: center;
+          justify-content: flex-start;
+          width: 310px;
+          position: absolute;
+          left: 16px;
+          top: 334px;
         }
 
-        .success-message {
+        .poap-successfully-minted-to-your-wallet {
           color: #c6c6c6;
-          font-size: 16px;
-          font-weight: 400;
-          line-height: 1.5;
           text-align: center;
+          font-family: "Unica77LlTt", sans-serif;
+          font-size: 18px;
+          font-weight: 400;
+          position: relative;
+          align-self: stretch;
         }
 
-        .cta {
+        .wallet {
+          background: #283026;
+          border-radius: 8px;
+          border-style: solid;
+          border-color: #000000;
+          border-width: 1px;
+          padding: 12px;
           display: flex;
-          flex-direction: column;
+          flex-direction: row;
+          gap: 32px;
+          align-items: center;
+          justify-content: flex-start;
+          align-self: stretch;
+          flex-shrink: 0;
+          position: relative;
+        }
+
+        .data {
+          display: flex;
+          flex-direction: row;
           gap: 8px;
           align-items: center;
-          margin-bottom: 20px;
+          justify-content: flex-start;
+          flex: 1;
+          position: relative;
         }
 
-        .share-button {
-          width: 100%;
-          max-width: 310px;
-          padding: 16px;
-          background: #0a5580;
-          border-radius: 8px;
-          color: #ffffff;
+        .wallet2 {
+          flex-shrink: 0;
+          width: 20px;
+          height: 20px;
+          position: relative;
+          overflow: visible;
+          aspect-ratio: 1;
+        }
+
+        ._0-x-1234-34-abcd {
+          color: #caf2bf;
+          text-align: left;
+          font-family: "Unica77LlTt", sans-serif;
           font-size: 18px;
           font-weight: 700;
-          text-align: center;
-          cursor: pointer;
-          transition: all 0.2s;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          font-family: inherit;
-          box-sizing: border-box;
+          position: relative;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
         }
 
-        .share-button:hover {
-          background: #0c6394;
-          transform: translateY(-1px);
+        .copy {
+          flex-shrink: 0;
+          width: 16px;
+          height: 16px;
+          position: relative;
+          overflow: visible;
+          aspect-ratio: 1;
         }
 
-        .share-note {
-          color: #c6c6c6;
-          font-size: 13px;
-          font-weight: 400;
-          text-align: center;
-          line-height: 1.4;
-          width: 100%;
+        .background {
+          width: 342px;
+          height: 363px;
+          position: absolute;
+          left: 0px;
+          top: 0px;
+          overflow: visible;
         }
       `}</style>
     </div>
