@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import Lottie from "lottie-react";
-import animationData from "/public/animation.json";
+import animationData from "../assets/animation.json";
 
 interface POAPSuccessProps {
   walletAddress?: string; // The wallet address where POAP was minted
