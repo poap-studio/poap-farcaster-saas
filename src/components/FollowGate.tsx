@@ -166,7 +166,6 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
                 <div className="requirement-item">
                   <div className="requirement-text">
                     <span className="requirement-main">Recast the original cast</span>
-                    <span className="requirement-sub">with this POAP</span>
                   </div>
                   <button
                     type="button"
