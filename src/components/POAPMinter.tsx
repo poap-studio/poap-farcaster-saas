@@ -578,28 +578,28 @@ export default function POAPMinter() {
         }
 
         .poap-minter-container {
-          width: 100vw;
-          max-width: 390px;
+          width: 100%;
+          max-width: 100vw;
           min-height: 100vh;
           background: url('/background.jpg') center;
           background-size: cover;
           background-repeat: no-repeat;
           display: flex;
-          align-items: flex-start;
+          align-items: center;
           justify-content: center;
           overflow-y: auto;
           overflow-x: hidden;
           position: relative;
           font-family: 'Unica77LlTt', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
           margin: 0 auto;
-          padding: 20px 0 40px 0;
+          padding: 20px 16px 40px 16px;
           box-sizing: border-box;
         }
 
         .frame-container {
           width: 100%;
           max-width: 342px;
-          padding: 0 16px;
+          padding: 0;
           display: flex;
           flex-direction: column;
           gap: 24px;
@@ -617,6 +617,7 @@ export default function POAPMinter() {
           height: 51px;
           position: relative;
           overflow: hidden;
+          margin: 0 auto;
         }
 
         .group {
@@ -644,7 +645,7 @@ export default function POAPMinter() {
           border-radius: 12px;
           padding: 24px 16px;
           width: 100%;
-          max-width: 100%;
+          max-width: 310px;
           display: flex;
           flex-direction: column;
           gap: 32px;
@@ -744,11 +745,32 @@ export default function POAPMinter() {
           }
         }
 
+        /* Mobile specific adjustments */
+        @media (max-width: 390px) {
+          .poap-minter-container {
+            padding: 20px 8px 40px 8px;
+          }
+          
+          .frame-container {
+            max-width: 100%;
+            padding: 0;
+          }
+          
+          .card {
+            max-width: 100%;
+            padding: 20px 12px;
+          }
+          
+          .white-text-horizontal {
+            max-width: 180px;
+          }
+        }
+
         /* Iframe specific adjustments */
         @media (max-height: 700px) {
           .poap-minter-container {
             align-items: flex-start;
-            padding: 10px 0 30px 0;
+            padding: 10px 8px 30px 8px;
           }
           
           .frame-container {
@@ -757,7 +779,7 @@ export default function POAPMinter() {
           
           .card {
             gap: 20px;
-            padding: 20px 16px;
+            padding: 20px 12px;
           }
           
           .poap-image-container {
