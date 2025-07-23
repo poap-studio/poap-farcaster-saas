@@ -95,6 +95,7 @@ export default function POAPSuccess({ walletAddress }: POAPSuccessProps) {
               <img className="copy" src="/copy0.svg" alt="" />
             </div>
           </div>
+          <img className="background" src="/background0.svg" alt="" />
         </div>
       </div>
 
