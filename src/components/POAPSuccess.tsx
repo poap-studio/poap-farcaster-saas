@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
+import Lottie from "lottie-react";
+import animationData from "/public/animation.json";
 
 interface POAPSuccessProps {
   walletAddress?: string; // The wallet address where POAP was minted
@@ -55,7 +57,7 @@ export default function POAPSuccess({ walletAddress }: POAPSuccessProps) {
               you&apos;ve got it!
             </div>
             <div className="frame-37">
-              <img className="lottie" src="/lottie0.png" alt="" />
+              <Lottie className="lottie" animationData={animationData} loop={true} />
               {isLoadingPoapData ? (
                 <div className="poap-image-skeleton">
                   <div className="skeleton-pulse"></div>
@@ -93,7 +95,6 @@ export default function POAPSuccess({ walletAddress }: POAPSuccessProps) {
               <img className="copy" src="/copy0.svg" alt="" />
             </div>
           </div>
-          <img className="background" src="/background0.svg" alt="" />
         </div>
       </div>
 
