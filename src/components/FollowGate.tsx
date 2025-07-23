@@ -227,18 +227,19 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
         .follow-gate-container {
           width: 100%;
           max-width: 390px;
-          height: 100vh;
-          min-height: 600px;
+          min-height: 100vh;
           background: url('/no-steps-completed.png') center;
           background-size: cover;
           background-repeat: no-repeat;
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: center;
-          overflow: hidden;
+          overflow-y: auto;
+          overflow-x: hidden;
           position: relative;
           font-family: 'Unica77LlTt', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
           margin: 0 auto;
+          padding: 20px 0 40px 0;
         }
 
         .frame-container {
@@ -249,7 +250,9 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
           flex-direction: column;
           gap: 24px;
           align-items: center;
-          justify-content: center;
+          justify-content: flex-start;
+          margin-top: auto;
+          margin-bottom: auto;
         }
 
         .white-text-horizontal {
@@ -289,6 +292,7 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
           display: flex;
           flex-direction: column;
           gap: 32px;
+          margin-bottom: 20px;
         }
 
         .header {
@@ -375,6 +379,35 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
           }
           100% {
             transform: translateX(100%);
+          }
+        }
+
+        /* Iframe specific adjustments */
+        @media (max-height: 700px) {
+          .follow-gate-container {
+            align-items: flex-start;
+            padding: 10px 0 30px 0;
+          }
+          
+          .frame-container {
+            gap: 16px;
+          }
+          
+          .card {
+            gap: 20px;
+            padding: 20px 16px;
+          }
+          
+          .poap-image-container {
+            width: 160px;
+            height: 160px;
+          }
+          
+          .poap-image,
+          .poap-image-skeleton,
+          .poap-image-error {
+            width: 160px;
+            height: 160px;
           }
         }
 
@@ -513,6 +546,7 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
           flex-direction: column;
           gap: 8px;
           align-items: center;
+          margin-bottom: 20px;
         }
 
         .claim-button {
