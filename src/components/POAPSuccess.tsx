@@ -2,12 +2,10 @@ import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 
 interface POAPSuccessProps {
-  isNewlyClaimed?: boolean; // true if just minted, false if already had it
-  onShare?: () => void;
   walletAddress?: string; // The wallet address where POAP was minted
 }
 
-export default function POAPSuccess({ isNewlyClaimed = false, onShare, walletAddress }: POAPSuccessProps) {
+export default function POAPSuccess({ walletAddress }: POAPSuccessProps) {
   const [poapEventData, setPoapEventData] = useState<{name: string, image_url: string} | null>(null);
   const [isLoadingPoapData, setIsLoadingPoapData] = useState(true);
   const { address } = useAccount();
@@ -54,7 +52,7 @@ export default function POAPSuccess({ isNewlyClaimed = false, onShare, walletAdd
             <div className="congratulations-you-ve-got-it">
               Congratulations,
               <br />
-              you've got it!
+              you&apos;ve got it!
             </div>
             <div className="frame-37">
               <img className="lottie" src="/lottie0.png" alt="" />
