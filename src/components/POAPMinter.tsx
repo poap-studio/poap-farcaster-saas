@@ -475,6 +475,7 @@ export default function POAPMinter() {
               </div>
             </div>
           </div>
+          <img className="background" src="/background0.svg" alt="" />
         </div>
       </div>
 
@@ -583,6 +584,8 @@ export default function POAPMinter() {
           gap: 32px;
           margin-bottom: 20px;
           box-sizing: border-box;
+          position: relative;
+          overflow: hidden;
         }
 
         .header {
@@ -872,6 +875,15 @@ export default function POAPMinter() {
           to {
             background-position: -200% center;
           }
+        }
+
+        .background {
+          width: 342px;
+          height: 363px;
+          position: absolute;
+          left: 0px;
+          top: 0px;
+          overflow: visible;
         }
       `}</style>
     </div>
