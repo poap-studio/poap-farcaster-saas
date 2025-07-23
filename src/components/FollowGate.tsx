@@ -163,9 +163,6 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
             </div>
           </div>
         </div>
-        <svg className="frame-18" width="370" height="52" viewBox="0 0 370 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path fillRule="evenodd" clipRule="evenodd" d="M0 0H138V6C138 8.20914 136.209 10 134 10H122C119.791 10 118 11.7909 118 14V38C118 40.2091 119.791 42 122 42H248C250.209 42 252 40.2091 252 38V14C252 11.7909 250.209 10 248 10H236C233.791 10 232 8.20914 232 6V0H370V52H0V0Z" fill="white" fillOpacity="0.1"/>
-        </svg>
       </div>
 
       <style jsx>{`
@@ -435,14 +432,6 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
           width: 100%;
         }
 
-        .frame-18 {
-          position: absolute;
-          bottom: 0;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 370px;
-          height: 52px;
-        }
 
         @keyframes spin {
           to {
