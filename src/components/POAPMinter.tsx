@@ -35,6 +35,8 @@ export default function POAPMinter() {
   const [castAuthor, setCastAuthor] = useState<string | null>(null);
   const [hasAlreadyClaimed, setHasAlreadyClaimed] = useState<boolean | null>(null);
   const [checkingClaim, setCheckingClaim] = useState(true);
+  const [poapEventData, setPoapEventData] = useState<{name: string, image_url: string} | null>(null);
+  const [isLoadingPoapData, setIsLoadingPoapData] = useState(true);
 
   const { address, isConnected } = useAccount();
   const { connect, isPending: isConnecting } = useConnect();
@@ -61,6 +63,26 @@ export default function POAPMinter() {
       setWalletAddress(address);
     }
   }, [address]);
+
+  // Fetch POAP event data
+  useEffect(() => {
+    const fetchPoapEventData = async () => {
+      try {
+        setIsLoadingPoapData(true);
+        const response = await fetch('/api/poap-event');
+        if (response.ok) {
+          const data = await response.json();
+          setPoapEventData(data);
+        }
+      } catch (error) {
+        console.error('Error fetching POAP event data:', error);
+      } finally {
+        setIsLoadingPoapData(false);
+      }
+    };
+
+    fetchPoapEventData();
+  }, []);
 
   // Farcaster Mini App Integration
   useEffect(() => {
@@ -428,7 +450,7 @@ export default function POAPMinter() {
         </h2>
         <div className="poap-directions">
           <p>
-            <strong>Click &quot;Mint POAP&quot; to claim your Farewell Warpcast POAP!</strong>
+            <strong>Click &quot;Mint POAP&quot; to claim your {poapEventData?.name || 'POAP'}!</strong>
           </p>
           <ul>
             <li>
@@ -443,18 +465,29 @@ export default function POAPMinter() {
           <div className="card poap-option-card">
             <div className="poap-img-wrapper">
               <a
-                href="https://poap.gallery/drops/189671"
+                href="https://poap.xyz"
                 target="_blank"
                 rel="noreferrer"
               >
-                <Image
-                  src="https://assets.poap.xyz/5adeb818-235d-4824-9ba5-ffb3e46c4279.png?size=large"
-                  alt="POAP Artwork"
-                  title="POAP Artwork"
-                  className="poap-img"
-                  width={300}
-                  height={300}
-                />
+                {isLoadingPoapData ? (
+                  <div className="poap-img-skeleton">
+                    <div className="skeleton-pulse"></div>
+                  </div>
+                ) : poapEventData?.image_url ? (
+                  <Image
+                    src={poapEventData.image_url}
+                    alt="POAP Artwork"
+                    title="POAP Artwork"
+                    className="poap-img"
+                    width={300}
+                    height={300}
+                  />
+                ) : (
+                  <div className="poap-img-error">
+                    <div className="error-icon">⚠️</div>
+                    <div className="error-text">Unable to load POAP image</div>
+                  </div>
+                )}
               </a>
             </div>
             <div className="poap-cost">Free Commemorative POAP</div>
@@ -667,6 +700,63 @@ export default function POAPMinter() {
 
           .poap-img:hover {
             transform: scale(1.05);
+          }
+
+          .poap-img-skeleton {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+          }
+
+          .skeleton-pulse {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(
+              90deg,
+              transparent,
+              rgba(0, 0, 0, 0.1),
+              transparent
+            );
+            animation: skeleton-loading 1.5s infinite;
+          }
+
+          .poap-img-error {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+          }
+
+          .error-icon {
+            font-size: 20px;
+          }
+
+          .error-text {
+            color: #6b7280;
+            font-size: 10px;
+            text-align: center;
+            font-weight: 400;
+          }
+
+          @keyframes skeleton-loading {
+            0% {
+              transform: translateX(-100%);
+            }
+            100% {
+              transform: translateX(100%);
+            }
           }
 
           .poap-cost {
