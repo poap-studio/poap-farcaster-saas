@@ -24,6 +24,7 @@ const FRAME_URL = typeof window !== 'undefined'
 export default function POAPMinter() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string>("");
+  const [userHasModifiedAddress, setUserHasModifiedAddress] = useState<boolean>(false);
   const [claimStatus, setClaimStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [claimError, setClaimError] = useState<string>("");
   const [context, setContext] = useState<Context.FrameContext | null>(null);
@@ -58,10 +59,10 @@ export default function POAPMinter() {
 
   // Set default wallet address when connected (only if not manually changed)
   useEffect(() => {
-    if (address && walletAddress === "") {
+    if (address && walletAddress === "" && !userHasModifiedAddress) {
       setWalletAddress(address);
     }
-  }, [address, walletAddress]);
+  }, [address, walletAddress, userHasModifiedAddress]);
 
   // Fetch POAP event data
   useEffect(() => {
@@ -123,10 +124,10 @@ export default function POAPMinter() {
       }
     };
 
-    if (context && walletAddress === "") {
+    if (context && walletAddress === "" && !userHasModifiedAddress) {
       loadUserVerifiedAddress();
     }
-  }, [context, walletAddress]);
+  }, [context, walletAddress, userHasModifiedAddress]);
 
   // Check if user follows required account, has recasted, and hasn't already claimed
   useEffect(() => {
@@ -297,8 +298,8 @@ export default function POAPMinter() {
           setCastAuthor(recastResult.author);
         }
         
-        // Also load verified address if not already loaded
-        if (walletAddress === "") {
+        // Also load verified address if not already loaded and user hasn't modified it
+        if (walletAddress === "" && !userHasModifiedAddress) {
           const ethAddress = await getUserEthAddress(context.user.fid);
           if (ethAddress) {
             console.log(`[POAPMinter] Auto-filling verified address after requirements check: ${ethAddress}`);
@@ -474,7 +475,10 @@ export default function POAPMinter() {
                   <input
                     type="text"
                     value={walletAddress}
-                    onChange={(e) => setWalletAddress(e.target.value)}
+                    onChange={(e) => {
+                      setWalletAddress(e.target.value);
+                      setUserHasModifiedAddress(true);
+                    }}
                     placeholder={walletAddress ? "Verified address from your Farcaster profile" : "Enter wallet address"}
                     className="wallet-input"
                     disabled={claimStatus === "loading" || claimStatus === "success"}
