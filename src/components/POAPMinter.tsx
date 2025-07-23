@@ -11,7 +11,6 @@ import { base } from "viem/chains";
 import { config } from "./providers/WagmiProvider";
 import { checkIfUserFollows, getRequiredFollowUsername, verifyNeynarAPI, getUserEthAddress, checkIfUserRecasted, getRequiredRecastHash } from "~/lib/neynar";
 import FollowGate from "./FollowGate";
-import Image from "next/image";
 
 const FRAME_URL = typeof window !== 'undefined' 
   ? window.location.origin
@@ -430,471 +429,508 @@ export default function POAPMinter() {
   }
 
   return (
-    <div>
-      <section id="poap" className="poap-section card">
-        <h2 className="poap-title">
-          <Image
-            className="poap-logo"
-            src="https://ethereumupgrades.com/assets/img/poap-logo.webp"
-            alt="POAP Logo"
-            width={40}
-            height={40}
-          />
-          <Image
-            className="poap-text"
-            src="https://ethereumupgrades.com/assets/img/poap.png"
-            alt="POAP Text"
-            width={120}
-            height={30}
-          />
-        </h2>
-        <div className="poap-directions">
-          <p>
-            <strong>Click &quot;Mint POAP&quot; to claim your {poapEventData?.name || 'POAP'}!</strong>
-          </p>
-          <ul>
-            <li>
-              Connect your wallet and mint your commemorative POAP token.
-            </li>
-            <li>
-              This POAP celebrates the Farcaster community and our journey together.
-            </li>
-          </ul>
+    <div className="poap-minter-container">
+      <div className="frame-container">
+        <div className="white-text-horizontal">
+          <img className="group" src="/group0.svg" alt="" />
+          <img className="group2" src="/group1.svg" alt="" />
         </div>
-        <div>
-          <div className="card poap-option-card">
-            <div className="poap-img-wrapper">
-              <a
-                href="https://poap.xyz"
-                target="_blank"
-                rel="noreferrer"
-              >
-                {isLoadingPoapData ? (
-                  <div className="poap-img-skeleton">
-                    <div className="skeleton-pulse"></div>
-                  </div>
-                ) : poapEventData?.image_url ? (
-                  <Image
-                    src={poapEventData.image_url}
-                    alt="POAP Artwork"
-                    title="POAP Artwork"
-                    className="poap-img"
-                    width={300}
-                    height={300}
-                  />
-                ) : (
-                  <div className="poap-img-error">
-                    <div className="error-icon">⚠️</div>
-                    <div className="error-text">Unable to load POAP image</div>
-                  </div>
-                )}
-              </a>
+        <div className="card">
+          <div className="header">
+            <div className="get-your-poap">
+              Get your<br />{poapEventData?.name || 'POAP'}
             </div>
-            <div className="poap-cost">Free Commemorative POAP</div>
-            <div className="poap-details">
-              {!isConnected ? (
-                <button
-                  type="button"
-                  onClick={() => connect({ connector: config.connectors[0] })}
-                  disabled={isConnecting}
-                  className={`poap-airship-button ${isConnecting ? 'loading' : ''}`}
-                >
-                  {isConnecting ? (
-                    <div className="flex items-center gap-2">
-                      <div className="spinner" />
-                      <span>Connecting...</span>
-                    </div>
-                  ) : (
-                    "Connect Wallet"
-                  )}
-                </button>
-              ) : claimStatus === "success" ? (
-                <div className="flex flex-col gap-4">
-                  <div className="text-center text-green-600">
-                    Your POAP has been claimed successfully! Share your achievement with the Farcaster community.
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleShare}
-                    className="poap-airship-button"
-                  >
-                    Share on Farcaster
-                  </button>
+            <div className="poap-image-container">
+              {isLoadingPoapData ? (
+                <div className="poap-image-skeleton">
+                  <div className="skeleton-pulse"></div>
                 </div>
+              ) : poapEventData?.image_url ? (
+                <img 
+                  className="poap-image" 
+                  src={poapEventData.image_url} 
+                  alt="POAP" 
+                />
               ) : (
-                <div className="flex flex-col gap-4">
+                <div className="poap-image-error">
+                  <div className="error-icon">⚠️</div>
+                  <div className="error-text">Unable to load POAP image</div>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="body">
+            <div className="content">
+              <div className="text">
+                <div className="title">
+                  <div className="mint-title">Mint Your POAP</div>
+                </div>
+                <div className="mint-description">
+                  Enter your wallet address to claim your commemorative POAP token.
+                </div>
+              </div>
+              <div className="mint-form">
+                <div className="form-field">
                   <input
                     type="text"
                     value={walletAddress}
                     onChange={(e) => setWalletAddress(e.target.value)}
                     placeholder={walletAddress ? "Verified address from your Farcaster profile" : "Enter wallet address"}
-                    className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="wallet-input"
+                    disabled={claimStatus === "loading" || claimStatus === "success"}
                   />
-                  <button
-                    type="button"
-                    onClick={mintPoap}
-                    disabled={claimStatus === "loading"}
-                    className={`poap-airship-button ${claimStatus === "loading" ? 'loading' : ''}`}
-                  >
-                    {claimStatus === "loading" ? (
-                      <div className="flex items-center gap-2">
-                        <div className="spinner" />
-                        <span>Minting...</span>
-                      </div>
-                    ) : (
-                      "Mint POAP"
-                    )}
-                  </button>
-                  {claimStatus === "error" && (
-                    <div className="text-center text-red-600">
-                      {claimError}
-                    </div>
-                  )}
                 </div>
+                {claimStatus === "error" && (
+                  <div className="error-message">
+                    {claimError}
+                  </div>
+                )}
+                {claimStatus === "success" && (
+                  <div className="success-message">
+                    Your POAP has been claimed successfully! Share your achievement with the Farcaster community.
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="cta">
+              {!isConnected ? (
+                <button
+                  type="button"
+                  onClick={() => connect({ connector: config.connectors[0] })}
+                  disabled={isConnecting}
+                  className={`mint-button ${isConnecting ? 'loading' : ''}`}
+                >
+                  {isConnecting ? (
+                    <>
+                      <div className="spinner" />
+                      <span>Connecting...</span>
+                    </>
+                  ) : (
+                    "Connect Wallet"
+                  )}
+                </button>
+              ) : claimStatus === "success" ? (
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className="mint-button"
+                >
+                  Share on Farcaster
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={mintPoap}
+                  disabled={claimStatus === "loading" || !walletAddress}
+                  className={`mint-button ${claimStatus === "loading" ? 'loading' : ''}`}
+                >
+                  {claimStatus === "loading" ? (
+                    <>
+                      <div className="spinner" />
+                      <span>Minting...</span>
+                    </>
+                  ) : (
+                    "Mint POAP"
+                  )}
+                </button>
               )}
+              <div className="mint-note">
+                This POAP celebrates the Farcaster community and our journey together.
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <style jsx>{`
-          :root {
-            --bg: 255, 254, 246;
-            --card: #ffffff;
-            --text: #966103;
-            --accent-text: #b8810c;
-            --accent-bg: #f8f0d3;
-            --accent-border: #b8810c;
-            --accent-text-hover: #dcae0e;
-            --accent-bg-hover: #f6e8b4;
-            --shadow: rgba(0, 0, 0, 0.05);
-            --border: #dfe3ec;
-            --font-main: 'Inter', 'Segoe UI', sans-serif;
+      <style jsx>{`
+        @font-face {
+          font-family: 'Unica77LlTt';
+          src: url('/fonts/Unica77LLWeb-Regular.woff2') format('woff2');
+          font-weight: 400;
+          font-style: normal;
+        }
+
+        @font-face {
+          font-family: 'Unica77LlTt';
+          src: url('/fonts/Unica77LLWeb-Bold.woff2') format('woff2');
+          font-weight: 700;
+          font-style: normal;
+        }
+
+        * {
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+          border: none;
+          text-decoration: none;
+          background: none;
+          -webkit-font-smoothing: antialiased;
+        }
+
+        .poap-minter-container {
+          width: 100%;
+          max-width: 390px;
+          min-height: 100vh;
+          background: url('/background.jpg') center;
+          background-size: cover;
+          background-repeat: no-repeat;
+          display: flex;
+          align-items: flex-start;
+          justify-content: center;
+          overflow-y: auto;
+          overflow-x: hidden;
+          position: relative;
+          font-family: 'Unica77LlTt', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          margin: 0 auto;
+          padding: 20px 0 40px 0;
+        }
+
+        .frame-container {
+          width: 100%;
+          max-width: 342px;
+          padding: 0 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+          align-items: center;
+          justify-content: flex-start;
+          margin-top: auto;
+          margin-bottom: auto;
+        }
+
+        .white-text-horizontal {
+          flex-shrink: 0;
+          width: 200px;
+          height: 51px;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .group {
+          width: 22.56%;
+          height: 100%;
+          position: absolute;
+          right: 77.44%;
+          left: 0%;
+          bottom: 0%;
+          top: 0%;
+        }
+
+        .group2 {
+          width: 71.96%;
+          height: 25.71%;
+          position: absolute;
+          right: -0.03%;
+          left: 28.06%;
+          bottom: 37.14%;
+          top: 37.14%;
+        }
+
+        .card {
+          background: #000000;
+          border-radius: 12px;
+          padding: 24px 16px;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 32px;
+          margin-bottom: 20px;
+        }
+
+        .header {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .get-your-poap {
+          color: #ffffff;
+          font-size: 24px;
+          font-weight: 700;
+          line-height: 1.2;
+          text-align: center;
+        }
+
+        .poap-image-container {
+          width: 200px;
+          height: 200px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .poap-image {
+          width: 200px;
+          height: 200px;
+          border-radius: 50%;
+          object-fit: cover;
+        }
+
+        .poap-image-skeleton {
+          width: 200px;
+          height: 200px;
+          border-radius: 50%;
+          background: #1a1c1d;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .skeleton-pulse {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.1),
+            transparent
+          );
+          animation: skeleton-loading 1.5s infinite;
+        }
+
+        .poap-image-error {
+          width: 200px;
+          height: 200px;
+          border-radius: 50%;
+          background: #1a1c1d;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+
+        .error-icon {
+          font-size: 32px;
+        }
+
+        .error-text {
+          color: #c6c6c6;
+          font-size: 12px;
+          text-align: center;
+          font-weight: 400;
+        }
+
+        @keyframes skeleton-loading {
+          0% {
+            transform: translateX(-100%);
           }
-
-          body {
-            font-family: var(--font-main);
-            color: var(--text);
-            background: rgba(255,254,246,100);
+          100% {
+            transform: translateX(100%);
           }
+        }
 
+        /* Iframe specific adjustments */
+        @media (max-height: 700px) {
+          .poap-minter-container {
+            align-items: flex-start;
+            padding: 10px 0 30px 0;
+          }
+          
+          .frame-container {
+            gap: 16px;
+          }
+          
           .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            box-shadow: 0 4px 12px var(--shadow);
-            padding: 24px;
-            border-radius: 14px;
-            margin-bottom: 30px;
+            gap: 20px;
+            padding: 20px 16px;
           }
-
-          .poap-section {
-            max-width: 1000px;
-            margin: 0 auto;
-            margin-top: 2rem;
-            margin-bottom: 2rem;
-            background-image: linear-gradient(rgba(255, 255, 255, 0.97), rgba(255, 255, 255, 0.97)), url(https://ethereumupgrades.com/assets/img/poap-bg.svg);
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: cover;
-            color: #473e6b;
+          
+          .poap-image-container {
+            width: 160px;
+            height: 160px;
           }
-
-          .poap-title {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
+          
+          .poap-image,
+          .poap-image-skeleton,
+          .poap-image-error {
+            width: 160px;
+            height: 160px;
           }
+        }
 
-          .poap-logo {
-            height: 40px;
+        .body {
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
+
+        .content {
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
+
+        .text {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .title {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .mint-title {
+          color: #ffffff;
+          font-size: 20px;
+          font-weight: 700;
+        }
+
+        .mint-description {
+          color: #c6c6c6;
+          font-size: 16px;
+          font-weight: 400;
+          line-height: 1.5;
+          text-align: center;
+        }
+
+        .mint-form {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .form-field {
+          background: #1a1c1d;
+          border-radius: 8px;
+          padding: 12px;
+        }
+
+        .wallet-input {
+          width: 100%;
+          background: transparent;
+          color: #ffffff;
+          font-size: 15px;
+          font-weight: 400;
+          border: none;
+          outline: none;
+          font-family: inherit;
+        }
+
+        .wallet-input::placeholder {
+          color: #c6c6c6;
+          opacity: 1;
+        }
+
+        .wallet-input:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .error-message {
+          color: #ff6b6b;
+          font-size: 14px;
+          font-weight: 400;
+          text-align: center;
+          padding: 8px;
+          background: rgba(255, 107, 107, 0.1);
+          border-radius: 6px;
+          border: 1px solid rgba(255, 107, 107, 0.2);
+        }
+
+        .success-message {
+          color: #51cf66;
+          font-size: 14px;
+          font-weight: 400;
+          text-align: center;
+          padding: 8px;
+          background: rgba(81, 207, 102, 0.1);
+          border-radius: 6px;
+          border: 1px solid rgba(81, 207, 102, 0.2);
+        }
+
+        .cta {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+
+        .mint-button {
+          width: 100%;
+          max-width: 310px;
+          padding: 16px;
+          background: #0a5580;
+          border-radius: 8px;
+          color: #ffffff;
+          font-size: 18px;
+          font-weight: 700;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          font-family: inherit;
+        }
+
+        .mint-button:hover:not(:disabled) {
+          background: #0c6394;
+          transform: translateY(-1px);
+        }
+
+        .mint-button:disabled {
+          background: #073d5c;
+          color: #5c727f;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .mint-button.loading {
+          background: linear-gradient(
+            90deg,
+            #0a5580,
+            #0c6394,
+            #0e6ba8,
+            #0c6394,
+            #0a5580
+          );
+          background-size: 200% auto;
+          animation: shine 2s linear infinite;
+        }
+
+        .mint-note {
+          color: #c6c6c6;
+          font-size: 13px;
+          font-weight: 400;
+          text-align: center;
+          line-height: 1.4;
+          width: 100%;
+        }
+
+        .spinner {
+          width: 16px;
+          height: 16px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-radius: 50%;
+          border-top-color: white;
+          animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
           }
+        }
 
-          .poap-text {
-            height: 30px;
+        @keyframes shine {
+          from {
+            background-position: 200% center;
           }
-
-          .poap-directions {
-            margin-bottom: 2rem;
+          to {
+            background-position: -200% center;
           }
-
-          .poap-directions ul {
-            list-style-type: disc;
-            padding-left: 1.5rem;
-            margin-top: 1rem;
-          }
-
-          .poap-directions li {
-            margin: 10px 0;
-          }
-
-          a {
-            color: var(--accent-text);
-            font-weight: 500;
-            text-decoration: none;
-          }
-
-          a:hover {
-            color: var(--accent-text-hover);
-            text-decoration: none;
-          }
-
-          .ethstaker-link {
-            color: #6d62df;
-            text-decoration: none;
-          }
-
-          .ethstaker-link:hover {
-            color: #8579ff;
-            text-decoration: underline;
-          }
-
-          .poap-options {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            align-items: stretch;
-            gap: 25px;
-            margin-bottom: 2rem;
-          }
-
-          .poap-option-card {
-            flex: 1;
-            min-width: 280px;
-            max-width: 450px;
-            border: 1px solid #473e6b !important;
-            border-radius: 32px !important;
-            box-shadow: -6px 8px #ecebff !important;
-            padding: 16px;
-            transition: all 0.3s ease !important;
-            background: var(--card);
-          }
-
-          .poap-option-card:hover {
-            box-shadow: -12px 14px #ecebff !important;
-            transform: translate(6px, -6px);
-          }
-
-          .poap-img-wrapper {
-            border: 1px solid #eac9f8;
-            border-radius: 24px;
-            padding: 16px;
-            background: #f5f4ff;
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 1rem;
-          }
-
-          .poap-img-wrapper a {
-            text-decoration: none !important;
-          }
-
-          .poap-img {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            transition: transform 0.2s ease;
-          }
-
-          .poap-img:hover {
-            transform: scale(1.05);
-          }
-
-          .poap-img-skeleton {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: #f3f4f6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-          }
-
-          .skeleton-pulse {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: linear-gradient(
-              90deg,
-              transparent,
-              rgba(0, 0, 0, 0.1),
-              transparent
-            );
-            animation: skeleton-loading 1.5s infinite;
-          }
-
-          .poap-img-error {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: #f3f4f6;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-          }
-
-          .error-icon {
-            font-size: 20px;
-          }
-
-          .error-text {
-            color: #6b7280;
-            font-size: 10px;
-            text-align: center;
-            font-weight: 400;
-          }
-
-          @keyframes skeleton-loading {
-            0% {
-              transform: translateX(-100%);
-            }
-            100% {
-              transform: translateX(100%);
-            }
-          }
-
-          .poap-cost {
-            font-size: 1.1rem;
-            font-weight: 500;
-            margin: 1rem 0;
-            color: #473e6b;
-            text-align: center;
-          }
-
-          .poap-details {
-            text-align: center;
-          }
-
-          .poap-airship-button {
-            background: #7c3aed;
-            color: white;
-            padding: 0.75rem 2rem;
-            border-radius: 50px;
-            text-decoration: none !important;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            display: inline-block;
-            border: none;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-          }
-
-          .poap-airship-button.loading {
-            background: linear-gradient(
-              90deg,
-              #7c3aed,
-              #6d28d9,
-              #5b21b6,
-              #6d28d9,
-              #7c3aed
-            );
-            background-size: 200% auto;
-            animation: shine 2s linear infinite;
-          }
-
-          .poap-airship-button:hover {
-            background: #6d28d9;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-            color: white;
-            text-decoration: none;
-          }
-
-          .poap-airship-button:disabled {
-            background: #9ca3af;
-            cursor: not-allowed;
-            box-shadow: none;
-          }
-
-          .poap-airship-button:disabled.loading {
-            background: linear-gradient(
-              90deg,
-              #9ca3af,
-              #6b7280,
-              #4b5563,
-              #6b7280,
-              #9ca3af
-            );
-            background-size: 200% auto;
-            animation: shine 2s linear infinite;
-          }
-
-          @keyframes spin {
-            to {
-              transform: rotate(360deg);
-            }
-          }
-
-          @keyframes shine {
-            from {
-              background-position: 200% center;
-            }
-          }
-
-          .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 0.8s linear infinite;
-          }
-
-          .poap-sponsor {
-            text-align: center;
-            margin-top: 3rem;
-            padding-top: 2rem;
-            border-top: 1px solid var(--border);
-          }
-
-          .poap-sponsor-img {
-            margin-top: 1rem;
-            margin-left: auto;
-            margin-right: auto;
-            display: block;
-            max-width: 200px;
-          }
-
-          @media screen and (min-width: 768px) {
-            .poap-img {
-              width: 120px;
-              height: 120px;
-            }
-
-            .poap-img-wrapper {
-              padding: 16px 24px;
-            }
-          }
-
-          @media screen and (max-width: 767px) {
-            .poap-section {
-              margin: 1rem;
-            }
-
-            .poap-options {
-              gap: 16px;
-            }
-
-            .poap-option-card {
-              width: 100%;
-            }
-
-            .poap-img-wrapper {
-              gap: 0.75rem;
-            }
-
-            .poap-img-wrapper a:not(:first-child) {
-              margin-top: 0;
-            }
-          }
-        `}</style>
-      </section>
+        }
+      `}</style>
     </div>
   );
 }
