@@ -37,6 +37,7 @@ export default function POAPMinter() {
   const [checkingClaim, setCheckingClaim] = useState(true);
   const [poapEventData, setPoapEventData] = useState<{name: string, image_url: string} | null>(null);
   const [isLoadingPoapData, setIsLoadingPoapData] = useState(true);
+  const [showMintingScreen, setShowMintingScreen] = useState(false);
 
   const { address, isConnected } = useAccount();
   const { connect, isPending: isConnecting } = useConnect();
@@ -319,6 +320,11 @@ export default function POAPMinter() {
     }
   };
 
+  const handleClaimPoapClick = () => {
+    // Navigate to minting screen when user clicks "Claim POAP" from FollowGate
+    setShowMintingScreen(true);
+  };
+
   // Show loading while checking requirements
   if (checkingFollow || checkingRecast || checkingClaim) {
     return (
@@ -415,8 +421,8 @@ export default function POAPMinter() {
     );
   }
 
-  // Show requirements gate if user hasn't fulfilled requirements
-  if (isFollowing === false || hasRecasted === false) {
+  // Show FollowGate unless user has clicked "Claim POAP" to proceed to minting
+  if (!showMintingScreen) {
     return (
       <FollowGate 
         username={getRequiredFollowUsername()}
@@ -425,6 +431,7 @@ export default function POAPMinter() {
         isFollowing={isFollowing}
         hasRecasted={hasRecasted}
         onFollowComplete={handleFollowComplete}
+        onClaimPoapClick={handleClaimPoapClick}
       />
     );
   }

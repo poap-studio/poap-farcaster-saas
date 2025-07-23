@@ -8,9 +8,10 @@ interface FollowGateProps {
   isFollowing?: boolean | null;
   hasRecasted?: boolean | null;
   onFollowComplete?: () => void;
+  onClaimPoapClick?: () => void;
 }
 
-export default function FollowGate({ username, castHash, castAuthor, isFollowing, hasRecasted, onFollowComplete }: FollowGateProps) {
+export default function FollowGate({ username, castHash, castAuthor, isFollowing, hasRecasted, onFollowComplete, onClaimPoapClick }: FollowGateProps) {
   const [isOpeningProfile, setIsOpeningProfile] = useState(false);
   const [isOpeningCast, setIsOpeningCast] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -200,7 +201,7 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
                 type="button"
                 disabled={!isFollowing || !hasRecasted}
                 className="claim-button"
-                onClick={onFollowComplete}
+                onClick={onClaimPoapClick}
               >
                 Claim POAP
               </button>
