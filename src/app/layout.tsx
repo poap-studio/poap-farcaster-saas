@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
   
   const frame = {
     version: "next",
-    imageUrl: `${FRAME_URL}/cast-background0.png`,
+    imageUrl: `${FRAME_URL}/api/frame-image`,
     button: {
       title: title,
       action: {
@@ -43,7 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: title,
       description: title,
       images: [{
-        url: `${FRAME_URL}/cast-background0.png`,
+        url: `${FRAME_URL}/api/frame-image`,
         alt: title
       }]
     },
