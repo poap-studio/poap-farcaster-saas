@@ -74,14 +74,6 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
   return (
     <div className="follow-gate-container">
       <div className="frame-container">
-        <div className="white-text-horizontal">
-          <svg width="245" height="45" viewBox="0 0 245 45" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12.15 44.55C9.45 44.55 7.05 43.95 4.95 42.75C2.85 41.55 1.2 39.9 0 37.8L5.4 34.65C6.3 36.15 7.425 37.275 8.775 38.025C10.125 38.775 11.55 39.15 13.05 39.15C15.75 39.15 17.85 38.25 19.35 36.45C20.85 34.65 21.6 32.25 21.6 29.25V2.7H27.45V29.25C27.45 33.75 26.175 37.275 23.625 39.825C21.075 42.375 17.55 43.65 13.05 43.65L12.15 44.55Z" fill="white"/>
-          </svg>
-          <svg width="245" height="45" viewBox="0 0 245 45" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M221.15 44.55C218.45 44.55 216.05 43.95 213.95 42.75C211.85 41.55 210.2 39.9 209 37.8L214.4 34.65C215.3 36.15 216.425 37.275 217.775 38.025C219.125 38.775 220.55 39.15 222.05 39.15C224.75 39.15 226.85 38.25 228.35 36.45C229.85 34.65 230.6 32.25 230.6 29.25V2.7H236.45V29.25C236.45 33.75 235.175 37.275 232.625 39.825C230.075 42.375 226.55 43.65 222.05 43.65L221.15 44.55Z" fill="white"/>
-          </svg>
-        </div>
         <div className="card">
           <div className="header">
             <div className="get-your-arbitrum-poap">
@@ -204,7 +196,9 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
         .follow-gate-container {
           width: 390px;
           height: 844px;
-          background: linear-gradient(-74.01deg, rgba(33, 49, 71, 1) 1.16%, rgba(18, 170, 255, 1) 100%);
+          background: url('/no-steps-completed.png') center;
+          background-size: cover;
+          background-repeat: no-repeat;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -217,18 +211,10 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
           width: 342px;
           display: flex;
           flex-direction: column;
-          gap: 24px;
           align-items: center;
+          justify-content: center;
         }
 
-        .white-text-horizontal {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          width: 100%;
-          height: 45px;
-          padding: 0 48px;
-        }
 
         .card {
           background: #000000;
@@ -452,7 +438,8 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
         .frame-18 {
           position: absolute;
           bottom: 0;
-          left: 10px;
+          left: 50%;
+          transform: translateX(-50%);
           width: 370px;
           height: 52px;
         }
