@@ -56,12 +56,12 @@ export default function POAPMinter() {
     switchToBase();
   }, [chainId, switchChainAsync, isConnected]);
 
-  // Set default wallet address when connected
+  // Set default wallet address when connected (only if not manually changed)
   useEffect(() => {
-    if (address) {
+    if (address && walletAddress === "") {
       setWalletAddress(address);
     }
-  }, [address]);
+  }, [address, walletAddress]);
 
   // Fetch POAP event data
   useEffect(() => {
