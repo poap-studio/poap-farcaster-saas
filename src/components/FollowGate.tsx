@@ -15,6 +15,7 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
   const [isOpeningCast, setIsOpeningCast] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [poapEventData, setPoapEventData] = useState<{name: string, image_url: string} | null>(null);
+  const [isLoadingPoapData, setIsLoadingPoapData] = useState(true);
 
   const handleFollowClick = async () => {
     setIsOpeningProfile(true);
@@ -75,6 +76,7 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
   useEffect(() => {
     const fetchPoapEventData = async () => {
       try {
+        setIsLoadingPoapData(true);
         const response = await fetch('/api/poap-event');
         if (response.ok) {
           const data = await response.json();
@@ -82,6 +84,8 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
         }
       } catch (error) {
         console.error('Error fetching POAP event data:', error);
+      } finally {
+        setIsLoadingPoapData(false);
       }
     };
 
@@ -101,11 +105,22 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
               Get your<br />{poapEventData?.name || 'POAP'}
             </div>
             <div className="poap-image-container">
-              <img 
-                className="poap-image" 
-                src={poapEventData?.image_url || "/poap-event-image.png"} 
-                alt="POAP" 
-              />
+              {isLoadingPoapData ? (
+                <div className="poap-image-skeleton">
+                  <div className="skeleton-pulse"></div>
+                </div>
+              ) : poapEventData?.image_url ? (
+                <img 
+                  className="poap-image" 
+                  src={poapEventData.image_url} 
+                  alt="POAP" 
+                />
+              ) : (
+                <div className="poap-image-error">
+                  <div className="error-icon">⚠️</div>
+                  <div className="error-text">Unable to load POAP image</div>
+                </div>
+              )}
             </div>
           </div>
           <div className="body">
@@ -304,6 +319,63 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
           height: 200px;
           border-radius: 50%;
           object-fit: cover;
+        }
+
+        .poap-image-skeleton {
+          width: 200px;
+          height: 200px;
+          border-radius: 50%;
+          background: #1a1c1d;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .skeleton-pulse {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.1),
+            transparent
+          );
+          animation: skeleton-loading 1.5s infinite;
+        }
+
+        .poap-image-error {
+          width: 200px;
+          height: 200px;
+          border-radius: 50%;
+          background: #1a1c1d;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+
+        .error-icon {
+          font-size: 32px;
+        }
+
+        .error-text {
+          color: #c6c6c6;
+          font-size: 12px;
+          text-align: center;
+          font-weight: 400;
+        }
+
+        @keyframes skeleton-loading {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
         }
 
         .body {
