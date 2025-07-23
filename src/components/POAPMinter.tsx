@@ -204,13 +204,6 @@ export default function POAPMinter() {
     }
   }, [context]);
 
-  const shareCast = async () => {
-    sdk.actions.composeCast({
-      text: "Farewell Warpcast, I just minted the new POAP! Get yours too and support Farcaster choooo chooo🚂! All proceeds from mint go to @purple DAO to support RetroPGF across Farcaster. Thanks @gabo @sandiforward.eth and 👨‍💻 @samuellhuber.eth",
-      embeds: [FRAME_URL],
-      close: true,
-    });
-  };
 
   const mintPoap = async () => {
     if (!walletAddress) {
