@@ -157,16 +157,17 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
                     disabled={isOpeningProfile || !!isFollowing}
                     className={`action-button ${isFollowing ? 'completed' : ''}`}
                   >
-                    <span>{isFollowing ? 'Done' : 'Follow'}</span>
                     {isFollowing ? (
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M13.3334 4L6.00008 11.3333L2.66675 8" stroke="#CAF2BF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
-                    ) : (
+                    ) : null}
+                    <span>{isFollowing ? 'Done' : 'Follow'}</span>
+                    {!isFollowing ? (
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M4 12L12 4M12 4H6M12 4V10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
-                    )}
+                    ) : null}
                   </button>
                 </div>
                 <div className="requirement-item">
@@ -179,16 +180,17 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
                     disabled={isOpeningCast || !!hasRecasted || !castHash}
                     className={`action-button ${hasRecasted ? 'completed' : ''}`}
                   >
-                    <span>{hasRecasted ? 'Done' : 'Recast'}</span>
                     {hasRecasted ? (
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M13.3334 4L6.00008 11.3333L2.66675 8" stroke="#CAF2BF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
-                    ) : (
+                    ) : null}
+                    <span>{hasRecasted ? 'Done' : 'Recast'}</span>
+                    {!hasRecasted ? (
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M4 12L12 4M12 4H6M12 4V10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
-                    )}
+                    ) : null}
                   </button>
                 </div>
               </div>
@@ -530,10 +532,10 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
         .action-button {
           background: #2e3234;
           border-radius: 8px;
-          padding: 8px 12px 8px 12px;
+          padding: 8px;
           display: flex;
           align-items: center;
-          gap: 6px;
+          justify-content: space-between;
           cursor: pointer;
           transition: all 0.2s;
           color: #ffffff;
@@ -541,6 +543,14 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
           font-weight: 700;
           white-space: nowrap;
           width: 88px;
+        }
+
+        .action-button.completed {
+          background: #394636;
+          color: #caf2bf;
+          cursor: default;
+          justify-content: flex-start;
+          gap: 6px;
         }
 
         .action-button.completed {
