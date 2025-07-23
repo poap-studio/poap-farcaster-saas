@@ -241,9 +241,9 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
           width: 100%;
           max-width: 390px;
           min-height: 100vh;
-          background: url('/no-steps-completed.png') center;
-          background-size: cover;
-          background-repeat: no-repeat;
+          background: linear-gradient(-74.01deg, #213147 1.16%, #12AAFF 100%), url('/no-steps-completed.png') center;
+          background-size: cover, cover;
+          background-repeat: no-repeat, no-repeat;
           display: flex;
           align-items: flex-start;
           justify-content: center;
