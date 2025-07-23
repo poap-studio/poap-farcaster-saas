@@ -1,8 +1,8 @@
-.no-steps-completed,
-.no-steps-completed * {
+.all-steps-completed,
+.all-steps-completed * {
   box-sizing: border-box;
 }
-.no-steps-completed {
+.all-steps-completed {
   background: linear-gradient(
     -74.01deg,
     rgba(33, 49, 71, 1) 1.1602615006268024%,
@@ -20,12 +20,12 @@
   align-items: center;
   justify-content: flex-start;
   width: 390px;
-  height: 736px;
   position: absolute;
-  left: 0px;
+  left: 50%;
+  translate: -50%;
   top: 0px;
 }
-.white-text-horizontal-rgb-1 {
+.logo {
   flex-shrink: 0;
   width: 200px;
   height: 51px;
@@ -57,15 +57,19 @@
   background: linear-gradient(to left, #000000, #000000);
   border-radius: 12px;
   padding: 24px 16px 24px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  align-items: center;
-  justify-content: center;
   align-self: stretch;
   flex-shrink: 0;
+  height: 671px;
   position: relative;
   overflow: hidden;
+}
+.background {
+  width: 342px;
+  height: 363px;
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  overflow: visible;
 }
 .header {
   display: flex;
@@ -73,8 +77,10 @@
   gap: 16px;
   align-items: center;
   justify-content: flex-start;
-  flex-shrink: 0;
-  position: relative;
+  width: 310px;
+  position: absolute;
+  left: 16px;
+  top: 24px;
 }
 .get-your-arbitrum-poap {
   color: #ffffff;
@@ -84,7 +90,7 @@
   font-weight: 700;
   position: relative;
 }
-.ellipse-1 {
+.poap-image {
   border-radius: 50%;
   flex-shrink: 0;
   width: 200px;
@@ -99,9 +105,10 @@
   gap: 16px;
   align-items: flex-start;
   justify-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  position: relative;
+  width: 310px;
+  position: absolute;
+  left: 16px;
+  top: 330px;
 }
 .content {
   display: flex;
@@ -187,8 +194,8 @@
   flex-shrink: 0;
   position: relative;
 }
-.requirement-1 {
-  background: #1a1c1d;
+.requirement-2 {
+  background: rgba(202, 242, 191, 0.2);
   border-radius: 8px;
   padding: 12px;
   display: flex;
@@ -217,24 +224,17 @@
 .follow-arbitrum-on-farcaster-span2 {
   font-family: "Unica77LlTt-Regular", sans-serif;
 }
-.button {
-  background: #2e3234;
+.state {
+  background: #394636;
   border-radius: 8px;
-  padding: 8px 4px 8px 12px;
+  padding: 8px;
   display: flex;
   flex-direction: row;
+  gap: 6px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   flex-shrink: 0;
   width: 88px;
-  position: relative;
-}
-.follow {
-  color: #ffffff;
-  text-align: left;
-  font-family: "Unica77LlTt-Bold", sans-serif;
-  font-size: 15px;
-  font-weight: 700;
   position: relative;
 }
 .frame2 {
@@ -245,8 +245,16 @@
   overflow: visible;
   aspect-ratio: 1;
 }
-.requirement-2 {
-  background: #1a1c1d;
+.done {
+  color: #caf2bf;
+  text-align: left;
+  font-family: "Unica77LlTt-Bold", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  position: relative;
+}
+.requirement-1 {
+  background: rgba(202, 242, 191, 0.2);
   border-radius: 8px;
   padding: 12px;
   display: flex;
@@ -293,8 +301,8 @@
   flex-shrink: 0;
   position: relative;
 }
-.button2 {
-  background: #073d5c;
+.button {
+  background: #12aaff;
   border-radius: 8px;
   padding: 16px;
   display: flex;
@@ -307,7 +315,7 @@
   position: relative;
 }
 .claim-poap {
-  color: #5c727f;
+  color: #ffffff;
   text-align: left;
   font-family: "Unica77LlTt-Bold", sans-serif;
   font-size: 18px;
@@ -322,13 +330,4 @@
   font-weight: 400;
   position: relative;
   align-self: stretch;
-}
-.frame-18 {
-  flex-shrink: 0;
-  width: 342px;
-  height: 363px;
-  position: absolute;
-  left: 24px;
-  top: 99px;
-  overflow: visible;
 }
