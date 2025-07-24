@@ -9,11 +9,26 @@ export interface SpamEntry {
 }
 
 /**
+ * Check if spam validation is enabled via environment variable
+ * @returns boolean - true if spam validation should be performed
+ */
+export function isSpamValidationEnabled(): boolean {
+  const enableSpamValidation = process.env.NEXT_PUBLIC_ENABLE_SPAM_VALIDATION;
+  return enableSpamValidation === 'true' || enableSpamValidation === '1';
+}
+
+/**
  * Check if a Farcaster ID is marked as spam
  * @param fid - The Farcaster ID to check
  * @returns Promise<boolean> - true if the FID is marked as spam (label_value = 2)
  */
 export async function isSpamUser(fid: number): Promise<boolean> {
+  // Check if spam validation is enabled
+  if (!isSpamValidationEnabled()) {
+    console.log(`[SpamValidation] Spam validation is disabled via environment variable`);
+    return false;
+  }
+
   try {
     console.log(`[SpamValidation] Checking FID ${fid} for spam status...`);
     

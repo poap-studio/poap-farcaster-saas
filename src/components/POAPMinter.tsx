@@ -11,7 +11,7 @@ import { base } from "viem/chains";
 import { config } from "./providers/WagmiProvider";
 import { checkIfUserFollows, getRequiredFollowUsername, verifyNeynarAPI, getUserEthAddress, checkIfUserRecasted, getRequiredRecastHash } from "~/lib/neynar";
 import { resolveAddressOrENS } from "~/lib/ens";
-import { isSpamUser } from "~/lib/spam-validation";
+import { isSpamUser, isSpamValidationEnabled } from "~/lib/spam-validation";
 import FollowGate from "./FollowGate";
 import POAPSuccess from "./POAPSuccess";
 
@@ -275,7 +275,8 @@ export default function POAPMinter() {
       setClaimStatus("loading");
       setClaimError("");
       
-      // Check if user is marked as spam
+      // Check if user is marked as spam (if validation is enabled)
+      console.log(`[POAPMinter] Spam validation enabled: ${isSpamValidationEnabled()}`);
       console.log(`[POAPMinter] Checking spam status for FID: ${context.user.fid}`);
       const userIsSpam = await isSpamUser(context.user.fid);
       
