@@ -10,6 +10,7 @@ import {
 import { base } from "viem/chains";
 import { config } from "./providers/WagmiProvider";
 import { checkIfUserFollows, getRequiredFollowUsername, verifyNeynarAPI, getUserEthAddress, checkIfUserRecasted, getRequiredRecastHash } from "~/lib/neynar";
+import { resolveAddressOrENS } from "~/lib/ens";
 import FollowGate from "./FollowGate";
 import POAPSuccess from "./POAPSuccess";
 
@@ -32,6 +33,9 @@ export default function POAPMinter() {
   const [isLoadingPoapData, setIsLoadingPoapData] = useState(true);
   const [showMintingScreen, setShowMintingScreen] = useState(false);
   const [savedMintingAddress, setSavedMintingAddress] = useState<string>("");
+  const [isResolvingENS, setIsResolvingENS] = useState(false);
+  const [resolvedAddress, setResolvedAddress] = useState<string>("");
+  const [ensError, setEnsError] = useState<string>("");
 
   const { address, isConnected } = useAccount();
   const { connect, isPending: isConnecting } = useConnect();
@@ -96,6 +100,53 @@ export default function POAPMinter() {
   useEffect(() => {
     verifyNeynarAPI();
   }, []);
+
+  // Resolve ENS names in real-time as user types
+  useEffect(() => {
+    const resolveENSDebounced = async () => {
+      if (!walletAddress || !userHasModifiedAddress) {
+        setResolvedAddress("");
+        setEnsError("");
+        return;
+      }
+
+      // Only try to resolve if it looks like an ENS name
+      if (walletAddress.includes('.') && walletAddress.length > 4) {
+        setIsResolvingENS(true);
+        setEnsError("");
+        
+        try {
+          const resolution = await resolveAddressOrENS(walletAddress);
+          
+          if (resolution.isENS) {
+            if (resolution.address) {
+              setResolvedAddress(resolution.address);
+              setEnsError("");
+            } else {
+              setResolvedAddress("");
+              setEnsError("ENS name not found");
+            }
+          } else {
+            setResolvedAddress("");
+            setEnsError("");
+          }
+        } catch (error) {
+          console.error('Error resolving ENS:', error);
+          setResolvedAddress("");
+          setEnsError("Error resolving ENS name");
+        } finally {
+          setIsResolvingENS(false);
+        }
+      } else {
+        setResolvedAddress("");
+        setEnsError("");
+      }
+    };
+
+    // Debounce ENS resolution to avoid too many requests
+    const timeoutId = setTimeout(resolveENSDebounced, 500);
+    return () => clearTimeout(timeoutId);
+  }, [walletAddress, userHasModifiedAddress]);
 
   // Load user's verified ETH address from Neynar
   useEffect(() => {
@@ -221,6 +272,25 @@ export default function POAPMinter() {
 
     try {
       setClaimStatus("loading");
+      setClaimError("");
+      
+      // Resolve ENS name to address if needed
+      console.log(`[POAPMinter] Resolving wallet address: ${walletAddress}`);
+      const resolution = await resolveAddressOrENS(walletAddress);
+      
+      if (!resolution.address) {
+        setClaimStatus("error");
+        if (resolution.isENS) {
+          setClaimError(`Could not resolve ENS name: ${resolution.original}`);
+        } else {
+          setClaimError("Invalid wallet address or ENS name");
+        }
+        return;
+      }
+      
+      const finalAddress = resolution.address;
+      console.log(`[POAPMinter] Using final address: ${finalAddress} (original: ${resolution.original}, isENS: ${resolution.isENS})`);
+      
       // Generate a mock transaction hash for the POAP claim
       // This is just for compatibility with existing API expectations
       const mockTxHash = `0x${Date.now().toString(16)}${Math.random().toString(16).substring(2)}`;
@@ -231,7 +301,7 @@ export default function POAPMinter() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          address: walletAddress,
+          address: finalAddress,
           txHash: mockTxHash,
           fid: context.user.fid,
         }),
@@ -433,7 +503,7 @@ export default function POAPMinter() {
                   <div className="mint-title">Mint Your POAP</div>
                 </div>
                 <div className="mint-description">
-                  Enter your wallet address to claim your commemorative POAP token.
+                  Enter your wallet address or ENS name to claim your commemorative POAP token.
                 </div>
               </div>
               <div className="mint-form">
@@ -445,11 +515,33 @@ export default function POAPMinter() {
                       setWalletAddress(e.target.value);
                       setUserHasModifiedAddress(true);
                     }}
-                    placeholder={walletAddress ? "Verified address from your Farcaster profile" : "Enter wallet address"}
+                    placeholder={walletAddress ? "Verified address from your Farcaster profile" : "Enter wallet address or ENS name (e.g., vitalik.eth)"}
                     className="wallet-input"
                     disabled={claimStatus === "loading"}
                   />
                 </div>
+                
+                {/* ENS Resolution Status */}
+                {isResolvingENS && (
+                  <div className="ens-status resolving">
+                    <div className="spinner-small" />
+                    <span>Resolving ENS name...</span>
+                  </div>
+                )}
+                
+                {resolvedAddress && (
+                  <div className="ens-status resolved">
+                    <span className="ens-label">✓ Resolves to:</span>
+                    <span className="resolved-address">{resolvedAddress}</span>
+                  </div>
+                )}
+                
+                {ensError && (
+                  <div className="ens-status error">
+                    <span>⚠️ {ensError}</span>
+                  </div>
+                )}
+                
                 {claimStatus === "error" && (
                   <div className="error-message">
                     {claimError}
@@ -809,6 +901,56 @@ export default function POAPMinter() {
           background: rgba(255, 107, 107, 0.1);
           border-radius: 6px;
           border: 1px solid rgba(255, 107, 107, 0.2);
+        }
+
+        .ens-status {
+          font-size: 13px;
+          padding: 6px 8px;
+          border-radius: 4px;
+          margin-top: 4px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .ens-status.resolving {
+          background: rgba(255, 255, 255, 0.05);
+          color: #c6c6c6;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ens-status.resolved {
+          background: rgba(202, 242, 191, 0.1);
+          color: #CAF2BF;
+          border: 1px solid rgba(202, 242, 191, 0.2);
+        }
+
+        .ens-status.error {
+          background: rgba(255, 107, 107, 0.1);
+          color: #ff6b6b;
+          border: 1px solid rgba(255, 107, 107, 0.2);
+        }
+
+        .spinner-small {
+          width: 12px;
+          height: 12px;
+          border: 1.5px solid rgba(255, 255, 255, 0.2);
+          border-radius: 50%;
+          border-top-color: #c6c6c6;
+          animation: spin 0.8s linear infinite;
+        }
+
+        .ens-label {
+          font-weight: 600;
+        }
+
+        .resolved-address {
+          font-family: monospace;
+          font-size: 12px;
+          background: rgba(0, 0, 0, 0.3);
+          padding: 2px 4px;
+          border-radius: 3px;
+          word-break: break-all;
         }
 
 
