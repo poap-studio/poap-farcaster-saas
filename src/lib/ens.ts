@@ -2,9 +2,10 @@ import { createPublicClient, http, isAddress } from 'viem';
 import { mainnet } from 'viem/chains';
 
 // Create a public client for ENS resolution on mainnet
+// Using a reliable RPC endpoint
 const publicClient = createPublicClient({
   chain: mainnet,
-  transport: http()
+  transport: http('https://1rpc.io/eth')
 });
 
 /**
@@ -13,11 +14,14 @@ const publicClient = createPublicClient({
 export function isENSName(input: string): boolean {
   if (!input) return false;
   
-  // ENS names end with .eth or other TLD and contain at least one dot
+  // Don't process if it's already a valid Ethereum address
+  if (isAddress(input)) return false;
+  
+  // ENS names should end with .eth (most common) or other valid TLDs
+  // Allow letters, numbers, hyphens and dots, but be more permissive
   return input.includes('.') && 
-         input.length > 4 && 
-         !isAddress(input) && 
-         /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(input);
+         input.length > 3 && 
+         /^[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]\.[a-z]{2,}$/i.test(input);
 }
 
 /**
@@ -26,24 +30,40 @@ export function isENSName(input: string): boolean {
 export async function resolveENS(ensName: string): Promise<string | null> {
   try {
     if (!isENSName(ensName)) {
+      console.log(`[ENS] ${ensName} is not a valid ENS name format`);
       return null;
     }
 
     console.log(`[ENS] Resolving ENS name: ${ensName}`);
     
     const address = await publicClient.getEnsAddress({
-      name: ensName,
+      name: ensName.toLowerCase(), // ENS names are case-insensitive
     });
 
-    if (address) {
-      console.log(`[ENS] Resolved ${ensName} to ${address}`);
+    if (address && address !== '0x0000000000000000000000000000000000000000') {
+      console.log(`[ENS] Successfully resolved ${ensName} to ${address}`);
       return address;
     }
 
-    console.log(`[ENS] No address found for ${ensName}`);
+    console.log(`[ENS] No address found for ${ensName} (returned ${address})`);
     return null;
   } catch (error) {
     console.error(`[ENS] Error resolving ${ensName}:`, error);
+    
+    // Log the specific error type for debugging
+    if (error instanceof Error) {
+      console.error(`[ENS] Error details: ${error.message}`);
+      
+      // Check for specific error types that indicate the ENS name doesn't exist
+      if (error.message.includes('Internal error') || 
+          error.message.includes('ResolverNotFound') ||
+          error.message.includes('resolver not found')) {
+        console.log(`[ENS] ${ensName} appears to not exist or have no resolver`);
+        return null;
+      }
+    }
+    
+    // For other errors (network issues, etc.), return null but it might be worth retrying
     return null;
   }
 }

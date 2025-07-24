@@ -124,7 +124,7 @@ export default function POAPMinter() {
               setEnsError("");
             } else {
               setResolvedAddress("");
-              setEnsError("ENS name not found");
+              setEnsError("ENS name could not be resolved");
             }
           } else {
             setResolvedAddress("");
@@ -538,7 +538,7 @@ export default function POAPMinter() {
                 
                 {ensError && (
                   <div className="ens-status error">
-                    <span>⚠️ {ensError}</span>
+                    <span>{ensError}</span>
                   </div>
                 )}
                 
