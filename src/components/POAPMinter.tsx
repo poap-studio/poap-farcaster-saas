@@ -531,8 +531,7 @@ export default function POAPMinter() {
                 
                 {resolvedAddress && (
                   <div className="ens-status resolved">
-                    <span className="ens-label">✓ Resolves to:</span>
-                    <span className="resolved-address">{resolvedAddress}</span>
+                    <span className="resolved-address">{resolvedAddress.slice(0, 6)}...{resolvedAddress.slice(-4)}</span>
                   </div>
                 )}
                 
@@ -923,6 +922,7 @@ export default function POAPMinter() {
           background: rgba(202, 242, 191, 0.1);
           color: #CAF2BF;
           border: 1px solid rgba(202, 242, 191, 0.2);
+          justify-content: center;
         }
 
         .ens-status.error {
@@ -940,17 +940,10 @@ export default function POAPMinter() {
           animation: spin 0.8s linear infinite;
         }
 
-        .ens-label {
-          font-weight: 600;
-        }
-
         .resolved-address {
           font-family: monospace;
-          font-size: 12px;
-          background: rgba(0, 0, 0, 0.3);
-          padding: 2px 4px;
-          border-radius: 3px;
-          word-break: break-all;
+          font-size: 13px;
+          font-weight: 600;
         }
 
 
