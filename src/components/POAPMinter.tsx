@@ -1040,6 +1040,7 @@ export default function POAPMinter() {
           left: 0px;
           top: 0px;
           overflow: visible;
+          z-index: -1;
         }
       `}</style>
     </div>
