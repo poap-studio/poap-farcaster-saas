@@ -58,15 +58,16 @@ export async function hasUserClaimedPoap(fid: number, eventId: string): Promise<
 /**
  * Record that a user has claimed a specific POAP event
  */
-export async function recordPoapClaim(fid: number, eventId: string, txHash?: string): Promise<boolean> {
+export async function recordPoapClaim(fid: number, eventId: string, address: string, txHash?: string): Promise<boolean> {
   try {
     const client = await getRedisClient();
     const key = getPoapClaimKey(eventId, fid);
     
-    // Store claim data with timestamp and optional transaction hash
+    // Store claim data with timestamp, address, and optional transaction hash
     const claimData = {
       fid,
       eventId,
+      address, // The ethereum address where POAP was minted
       claimedAt: new Date().toISOString(),
       txHash: txHash || null
     };
@@ -76,7 +77,7 @@ export async function recordPoapClaim(fid: number, eventId: string, txHash?: str
     // Set TTL to 1 year to eventually clean up old claims
     await client.expire(key, 365 * 24 * 60 * 60);
     
-    console.log(`[Redis] Recorded POAP claim for FID ${fid}, Event ${eventId}`);
+    console.log(`[Redis] Recorded POAP claim for FID ${fid}, Event ${eventId}, Address ${address}`);
     return true;
   } catch (error) {
     console.error('[Redis] Error recording POAP claim:', error);
@@ -90,6 +91,7 @@ export async function recordPoapClaim(fid: number, eventId: string, txHash?: str
 export async function getPoapClaimDetails(fid: number, eventId: string): Promise<{
   fid: number;
   eventId: string;
+  address: string;
   claimedAt: string;
   txHash: string | null;
 } | null> {

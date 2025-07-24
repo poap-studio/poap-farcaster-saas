@@ -67,7 +67,10 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
       if (onFollowComplete) {
         await onFollowComplete();
       }
+    } catch (error) {
+      console.error("Error during refresh:", error);
     } finally {
+      // Always re-enable the button after a short delay
       setTimeout(() => {
         setIsRefreshing(false);
       }, 500);
@@ -92,6 +95,17 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
 
     fetchPoapEventData();
   }, []);
+
+  // Safety mechanism: ensure refresh button is never permanently disabled
+  useEffect(() => {
+    if (isRefreshing) {
+      const timeout = setTimeout(() => {
+        setIsRefreshing(false);
+      }, 3000); // Force re-enable after 3 seconds maximum
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [isRefreshing]);
 
   return (
     <div className="follow-gate-container">
@@ -133,6 +147,7 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
                     className="refresh"
                     onClick={handleRefresh}
                     disabled={isRefreshing}
+                    type="button"
                   >
                     <svg className={`refresh-icon ${isRefreshing ? 'rotating' : ''}`} width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M10.5 2.5V5.5H7.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -463,17 +478,25 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
           align-items: center;
           gap: 4px;
           padding: 4px 6px;
+          border-radius: 4px;
           cursor: pointer;
-          transition: opacity 0.2s;
+          transition: all 0.2s;
+          background: transparent;
+          border: none;
         }
 
         .refresh:hover:not(:disabled) {
           opacity: 0.8;
+          background: rgba(255, 255, 255, 0.1);
         }
 
         .refresh:disabled {
-          opacity: 0.5;
+          opacity: 0.6;
           cursor: not-allowed;
+        }
+
+        .refresh:active:not(:disabled) {
+          transform: scale(0.95);
         }
 
         .refresh-icon {

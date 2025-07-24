@@ -1,19 +1,18 @@
 import { useState, useEffect } from "react";
-import { useAccount } from "wagmi";
 import Lottie from "lottie-react";
 import animationData from "../assets/animation.json";
 
 interface POAPSuccessProps {
-  walletAddress?: string; // The wallet address where POAP was minted
+  walletAddress: string; // The wallet address where POAP was minted
 }
 
 export default function POAPSuccess({ walletAddress }: POAPSuccessProps) {
   const [poapEventData, setPoapEventData] = useState<{name: string, image_url: string} | null>(null);
   const [isLoadingPoapData, setIsLoadingPoapData] = useState(true);
-  const { address } = useAccount();
+  const [showCopyTooltip, setShowCopyTooltip] = useState(false);
   
-  // Use provided wallet address or fallback to connected address
-  const displayAddress = walletAddress || address || "";
+  // Use the wallet address where POAP was minted
+  const displayAddress = walletAddress || "";
 
   // Fetch POAP event data
   useEffect(() => {
@@ -40,6 +39,33 @@ export default function POAPSuccess({ walletAddress }: POAPSuccessProps) {
     if (!addr) return "";
     if (addr.length < 12) return addr;
     return `${addr.slice(0, 6)}...${addr.slice(-6)}`;
+  };
+
+  // Handle copy to clipboard functionality
+  const handleCopyAddress = async () => {
+    if (!displayAddress) return;
+    
+    try {
+      await navigator.clipboard.writeText(displayAddress);
+      setShowCopyTooltip(true);
+      // Hide tooltip after 2 seconds
+      setTimeout(() => {
+        setShowCopyTooltip(false);
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to copy address:', error);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = displayAddress;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setShowCopyTooltip(true);
+      setTimeout(() => {
+        setShowCopyTooltip(false);
+      }, 2000);
+    }
   };
 
   return (
@@ -89,10 +115,24 @@ export default function POAPSuccess({ walletAddress }: POAPSuccessProps) {
               <div className="data">
                 <img className="wallet2" src="/wallet1.svg" alt="" />
                 <div className="_0-x-1234-34-abcd">
-                  {formatAddress(displayAddress) || "0x1234...34abcd"}
+                  {formatAddress(displayAddress)}
                 </div>
               </div>
-              <img className="copy" src="/copy0.svg" alt="" />
+              <div className="copy-container">
+                <button 
+                  className="copy-button" 
+                  onClick={handleCopyAddress}
+                  type="button"
+                  aria-label="Copy wallet address"
+                >
+                  <img className="copy" src="/copy0.svg" alt="" />
+                </button>
+                {showCopyTooltip && (
+                  <div className="copy-tooltip">
+                    Copied!
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <img className="background" src="/background0.svg" alt="" />
@@ -358,6 +398,34 @@ export default function POAPSuccess({ walletAddress }: POAPSuccessProps) {
           white-space: nowrap;
         }
 
+        .copy-container {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .copy-button {
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+        }
+
+        .copy-button:hover {
+          background: rgba(255, 255, 255, 0.1);
+          transform: scale(1.1);
+        }
+
+        .copy-button:active {
+          transform: scale(0.95);
+        }
+
         .copy {
           flex-shrink: 0;
           width: 16px;
@@ -365,6 +433,44 @@ export default function POAPSuccess({ walletAddress }: POAPSuccessProps) {
           position: relative;
           overflow: visible;
           aspect-ratio: 1;
+        }
+
+        .copy-tooltip {
+          position: absolute;
+          top: -35px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: #000000;
+          color: #CAF2BF;
+          padding: 6px 10px;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 600;
+          white-space: nowrap;
+          border: 1px solid #394636;
+          z-index: 1000;
+          animation: tooltip-appear 0.2s ease-out;
+        }
+
+        .copy-tooltip::after {
+          content: '';
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          border: 5px solid transparent;
+          border-top-color: #000000;
+        }
+
+        @keyframes tooltip-appear {
+          from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(-5px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+          }
         }
 
         .background {

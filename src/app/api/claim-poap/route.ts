@@ -134,8 +134,8 @@ export async function POST(request: Request) {
     const claimData = await claimResponse.json();
     console.log("POAP claimed successfully:", claimData);
 
-    // Record the claim in Redis
-    const recordSuccess = await recordPoapClaim(fid, POAP_EVENT_ID, txHash);
+    // Record the claim in Redis with the minting address
+    const recordSuccess = await recordPoapClaim(fid, POAP_EVENT_ID, address, txHash);
     if (!recordSuccess) {
       console.warn(`[POAP Claim] Failed to record claim in Redis for FID ${fid}, but POAP was claimed successfully`);
     }

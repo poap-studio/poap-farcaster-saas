@@ -31,6 +31,7 @@ export default function POAPMinter() {
   const [poapEventData, setPoapEventData] = useState<{name: string, image_url: string} | null>(null);
   const [isLoadingPoapData, setIsLoadingPoapData] = useState(true);
   const [showMintingScreen, setShowMintingScreen] = useState(false);
+  const [savedMintingAddress, setSavedMintingAddress] = useState<string>("");
 
   const { address, isConnected } = useAccount();
   const { connect, isPending: isConnecting } = useConnect();
@@ -151,7 +152,7 @@ export default function POAPMinter() {
         const [follows, recastResult, claimResponse] = await Promise.all([
           checkIfUserFollows(context.user.fid),
           checkIfUserRecasted(context.user.fid, castHash),
-          fetch("/api/check-claim", {
+          fetch("/api/poap-claim", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ fid: context.user.fid })
@@ -165,11 +166,21 @@ export default function POAPMinter() {
         
         // Process claim check response
         let hasClaimedThisEvent = false;
+        let savedAddress = '';
         if (claimResponse.ok) {
           const claimData = await claimResponse.json();
-          hasClaimedThisEvent = claimData.hasClaimedCurrentEvent;
+          hasClaimedThisEvent = claimData.claimed;
+          savedAddress = claimData.address || '';
         } else {
           console.error("[POAPMinter] Error checking claim status:", await claimResponse.text());
+        }
+        
+        // Set the saved address if user has already claimed and hasn't manually changed address
+        if (hasClaimedThisEvent && savedAddress) {
+          setSavedMintingAddress(savedAddress);
+          if (!userHasModifiedAddress) {
+            setWalletAddress(savedAddress);
+          }
         }
         
         console.log(`[POAPMinter] Follow check result: ${follows}`);
@@ -256,7 +267,7 @@ export default function POAPMinter() {
         const [follows, recastResult, claimResponse] = await Promise.all([
           checkIfUserFollows(context.user.fid),
           checkIfUserRecasted(context.user.fid, castHash),
-          fetch("/api/check-claim", {
+          fetch("/api/poap-claim", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ fid: context.user.fid })
@@ -267,9 +278,19 @@ export default function POAPMinter() {
         
         // Process claim check response
         let hasClaimedThisEvent = false;
+        let savedAddress = '';
         if (claimResponse.ok) {
           const claimData = await claimResponse.json();
-          hasClaimedThisEvent = claimData.hasClaimedCurrentEvent;
+          hasClaimedThisEvent = claimData.claimed;
+          savedAddress = claimData.address || '';
+        }
+        
+        // Set the saved address if user has already claimed and hasn't manually changed address
+        if (hasClaimedThisEvent && savedAddress) {
+          setSavedMintingAddress(savedAddress);
+          if (!userHasModifiedAddress) {
+            setWalletAddress(savedAddress);
+          }
         }
         
         console.log(`[POAPMinter] Manual recheck - Follow: ${follows}, Recast: ${recasted}, Claimed: ${hasClaimedThisEvent}`);
@@ -345,7 +366,7 @@ export default function POAPMinter() {
   if (hasAlreadyClaimed === true) {
     return (
       <POAPSuccess 
-        walletAddress={walletAddress}
+        walletAddress={savedMintingAddress || walletAddress}
       />
     );
   }
