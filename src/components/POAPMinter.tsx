@@ -11,6 +11,7 @@ import { base } from "viem/chains";
 import { config } from "./providers/WagmiProvider";
 import { checkIfUserFollows, getRequiredFollowUsername, verifyNeynarAPI, getUserEthAddress, checkIfUserRecasted, getRequiredRecastHash } from "~/lib/neynar";
 import { resolveAddressOrENS } from "~/lib/ens";
+import { isSpamUser } from "~/lib/spam-validation";
 import FollowGate from "./FollowGate";
 import POAPSuccess from "./POAPSuccess";
 
@@ -273,6 +274,16 @@ export default function POAPMinter() {
     try {
       setClaimStatus("loading");
       setClaimError("");
+      
+      // Check if user is marked as spam
+      console.log(`[POAPMinter] Checking spam status for FID: ${context.user.fid}`);
+      const userIsSpam = await isSpamUser(context.user.fid);
+      
+      if (userIsSpam) {
+        setClaimStatus("error");
+        setClaimError("It looks like your user is SPAM");
+        return;
+      }
       
       // Resolve ENS name to address if needed
       console.log(`[POAPMinter] Resolving wallet address: ${walletAddress}`);
