@@ -67,13 +67,12 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
       if (onFollowComplete) {
         await onFollowComplete();
       }
+      // After updating data, reload the page
+      window.location.reload();
     } catch (error) {
       console.error("Error during refresh:", error);
-    } finally {
-      // Always re-enable the button after a short delay
-      setTimeout(() => {
-        setIsRefreshing(false);
-      }, 500);
+      // Even on error, reload the page
+      window.location.reload();
     }
   };
 
