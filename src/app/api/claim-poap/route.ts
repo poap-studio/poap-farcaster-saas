@@ -92,7 +92,7 @@ export async function POST(request: Request) {
     if (!availableQr) {
       console.log("No available QR codes found");
       return NextResponse.json(
-        { error: "No available POAPs left" },
+        { error: "No more POAPs left to claim." },
         { status: 400 }
       );
     }
