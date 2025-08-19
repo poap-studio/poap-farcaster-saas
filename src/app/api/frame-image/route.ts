@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
-import { createCanvas, loadImage } from "canvas";
+import { createCanvas, loadImage, registerFont } from "canvas";
 import path from "path";
+
+// Register fonts for canvas
+try {
+  registerFont(path.join(process.cwd(), 'public/fonts/Inter-Regular.ttf'), { family: 'Inter', weight: 'normal' });
+  registerFont(path.join(process.cwd(), 'public/fonts/Inter-Bold.ttf'), { family: 'Inter', weight: 'bold' });
+} catch (error) {
+  console.error('[Frame Image] Error registering fonts:', error);
+}
 
 const POAP_API_KEY = process.env.POAP_API_KEY;
 const POAP_EVENT_ID = process.env.POAP_EVENT_ID;
@@ -52,16 +60,17 @@ export async function GET() {
     ctx.fillStyle = '#073d5c';
     ctx.fillRect(0, 0, 1200, 630);
 
-    // Draw text with most basic approach
-    ctx.fillStyle = 'white';
+    // Draw text with registered font
+    ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     
-    // Use simple numeric font size and basic font family
-    ctx.font = '48px Arial';
-    ctx.fillText('Get your', 600, 250);
+    // Use registered Inter font
+    ctx.font = 'normal 48px Inter';
+    ctx.fillText('Get your', 600, 260);
     
-    ctx.font = '64px Arial';
-    ctx.fillText('Arbitrum POAP', 600, 330);
+    ctx.font = 'bold 64px Inter';
+    ctx.fillText('Arbitrum POAP', 600, 340);
 
     // Try to load and draw POAP image
     try {
