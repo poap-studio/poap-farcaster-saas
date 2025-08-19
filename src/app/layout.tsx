@@ -13,9 +13,7 @@ async function getPoapEventData() {
 const FRAME_URL = process.env.NEXT_PUBLIC_FRAME_URL 
   || (process.env.NODE_ENV === 'development' 
     ? 'http://localhost:3000'
-    : process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}`
-      : '');
+    : 'https://poap-farcaster-saas.vercel.app');
 
 export async function generateMetadata(): Promise<Metadata> {
   const poapName = await getPoapEventData();
