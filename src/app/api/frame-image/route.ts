@@ -52,6 +52,19 @@ export async function GET() {
     ctx.fillStyle = '#073d5c';
     ctx.fillRect(0, 0, 1200, 630);
 
+    // Add text "Get your Arbitrum POAP"
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 48px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    // Draw "Get your" on one line
+    ctx.fillText('Get your', 600, 280);
+    
+    // Draw "Arbitrum POAP" on the next line
+    ctx.font = 'bold 64px Arial';
+    ctx.fillText('Arbitrum POAP', 600, 350);
+
     // Try to load and draw POAP image
     try {
       let poapImage;
