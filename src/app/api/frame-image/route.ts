@@ -48,10 +48,9 @@ export async function GET() {
     const canvas = createCanvas(1200, 630); // Standard Open Graph size
     const ctx = canvas.getContext('2d');
 
-    // Load and draw background image
-    const backgroundPath = path.join(process.cwd(), 'public', 'cast-background.png');
-    const background = await loadImage(backgroundPath);
-    ctx.drawImage(background, 0, 0, 1200, 630);
+    // Fill background with solid color #073d5c (same as claim button)
+    ctx.fillStyle = '#073d5c';
+    ctx.fillRect(0, 0, 1200, 630);
 
     // Try to load and draw POAP image
     try {
@@ -104,16 +103,9 @@ export async function GET() {
     const canvas = createCanvas(1200, 630);
     const ctx = canvas.getContext('2d');
     
-    try {
-      // Try to load background image for fallback
-      const backgroundPath = path.join(process.cwd(), 'public', 'cast-background.png');
-      const background = await loadImage(backgroundPath);
-      ctx.drawImage(background, 0, 0, 1200, 630);
-    } catch {
-      // If background fails, use black background
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(0, 0, 1200, 630);
-    }
+    // Use solid color background #073d5c (same as claim button)
+    ctx.fillStyle = '#073d5c';
+    ctx.fillRect(0, 0, 1200, 630);
     
     const buffer = canvas.toBuffer('image/png');
     
