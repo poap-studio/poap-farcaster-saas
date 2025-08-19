@@ -482,7 +482,7 @@ export default function POAPMinter() {
       <div className="frame-container">
         <div className="white-text-horizontal">
           <img className="group" src="/group0.svg" alt="" />
-          <img className="group2" src="/group1.svg" alt="" />
+          <img className="group2" src="/logo.svg" alt="" />
         </div>
         <div className="card">
           <div className="header">

@@ -73,7 +73,7 @@ export default function POAPSuccess({ walletAddress }: POAPSuccessProps) {
       <div className="content">
         <div className="logo">
           <img className="group" src="/group0.svg" alt="" />
-          <img className="group2" src="/group1.svg" alt="" />
+          <img className="group2" src="/logo.svg" alt="" />
         </div>
         <div className="c-ard">
           <div className="header">
