@@ -2,14 +2,6 @@ import { NextResponse } from "next/server";
 import { createCanvas, loadImage, registerFont } from "canvas";
 import path from "path";
 
-// Register fonts for canvas
-try {
-  registerFont(path.join(process.cwd(), 'public/fonts/Inter-Regular.ttf'), { family: 'Inter', weight: 'normal' });
-  registerFont(path.join(process.cwd(), 'public/fonts/Inter-Bold.ttf'), { family: 'Inter', weight: 'bold' });
-} catch (error) {
-  console.error('[Frame Image] Error registering fonts:', error);
-}
-
 const POAP_API_KEY = process.env.POAP_API_KEY;
 const POAP_EVENT_ID = process.env.POAP_EVENT_ID;
 
@@ -30,6 +22,21 @@ interface POAPEvent {
 
 export async function GET() {
   try {
+    // Register fonts before creating canvas
+    try {
+      const fontPathRegular = path.join(process.cwd(), 'public/fonts/Inter-Regular.ttf');
+      const fontPathBold = path.join(process.cwd(), 'public/fonts/Inter-Bold.ttf');
+      
+      console.log('[Frame Image] Registering fonts from:', fontPathRegular, fontPathBold);
+      
+      registerFont(fontPathRegular, { family: 'Inter' });
+      registerFont(fontPathBold, { family: 'Inter', weight: 'bold' });
+      
+      console.log('[Frame Image] Fonts registered successfully');
+    } catch (fontError) {
+      console.error('[Frame Image] Error registering fonts:', fontError);
+    }
+    
     // Get POAP event data
     let poapImageUrl = '';
     
@@ -65,12 +72,26 @@ export async function GET() {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
-    // Use registered Inter font
-    ctx.font = 'normal 48px Inter';
-    ctx.fillText('Get your', 600, 260);
-    
-    ctx.font = 'bold 64px Inter';
-    ctx.fillText('Arbitrum POAP', 600, 340);
+    // Try different font syntaxes
+    try {
+      // First try with Inter font
+      ctx.font = '48px Inter';
+      console.log('[Frame Image] Font set to:', ctx.font);
+      ctx.fillText('Get your', 600, 260);
+      
+      ctx.font = 'bold 64px Inter';
+      console.log('[Frame Image] Font set to:', ctx.font);
+      ctx.fillText('Arbitrum POAP', 600, 340);
+    } catch (textError) {
+      console.error('[Frame Image] Error drawing text with Inter font:', textError);
+      
+      // Fallback to system font
+      ctx.font = '48px sans-serif';
+      ctx.fillText('Get your', 600, 260);
+      
+      ctx.font = 'bold 64px sans-serif';
+      ctx.fillText('Arbitrum POAP', 600, 340);
+    }
 
     // Try to load and draw POAP image
     try {
