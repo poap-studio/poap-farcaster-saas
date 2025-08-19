@@ -54,8 +54,7 @@ export async function GET() {
 
     // Add text "Get your Arbitrum POAP"
     ctx.fillStyle = '#ffffff';
-    ctx.font = '48px sans-serif';
-    ctx.fontWeight = 'bold';
+    ctx.font = 'bold 48px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
@@ -63,8 +62,7 @@ export async function GET() {
     ctx.fillText('Get your', 600, 280);
     
     // Draw "Arbitrum POAP" on the next line
-    ctx.font = '64px sans-serif';
-    ctx.fontWeight = 'bold';
+    ctx.font = 'bold 64px sans-serif';
     ctx.fillText('Arbitrum POAP', 600, 350);
 
     // Try to load and draw POAP image
