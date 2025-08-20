@@ -224,7 +224,6 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
               </div>
             </div>
           </div>
-          <img className="background" src="/background0.svg" alt="" />
         </div>
       </div>
 
