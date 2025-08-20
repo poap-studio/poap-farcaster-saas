@@ -9,7 +9,7 @@ import farcasterFrame from "@farcaster/frame-wagmi-connector";
 export const config = createConfig({
   chains: [base],
   transports: {
-    [base.id]: http(process.env.BASE_RPC_URL),
+    [base.id]: http(process.env.BASE_RPC_URL || 'https://mainnet.base.org'),
   },
   connectors: [
     farcasterFrame(),
