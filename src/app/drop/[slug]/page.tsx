@@ -26,6 +26,28 @@ export async function generateMetadata({
 
     const { drop } = await response.json();
 
+    // Fetch POAP event name
+    let poapEventName = `POAP #${drop.poapEventId}`;
+    if (process.env.POAP_API_KEY) {
+      try {
+        const poapResponse = await fetch(
+          `https://api.poap.tech/events/id/${drop.poapEventId}`,
+          {
+            headers: {
+              "X-API-Key": process.env.POAP_API_KEY,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (poapResponse.ok) {
+          const poapData = await poapResponse.json();
+          poapEventName = poapData.name || poapEventName;
+        }
+      } catch (error) {
+        console.error("Error fetching POAP name:", error);
+      }
+    }
+
     const baseUrl = `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}`;
     // Use timestamp from URL if available, otherwise generate new one
     const urlTimestamp = search?.t || Date.now().toString();
@@ -39,10 +61,10 @@ export async function generateMetadata({
       version: "next",
       imageUrl: frameImageUrl,
       button: {
-        title: `Mint POAP #${drop.poapEventId}`,
+        title: `Mint ${poapEventName}`,
         action: {
           type: "launch_frame",
-          name: `Mint POAP #${drop.poapEventId}`,
+          name: `Mint ${poapEventName}`,
           url: frameUrl,
           splashImageUrl: drop.logoUrl || `${baseUrl}/logo.svg`,
           splashBackgroundColor: drop.backgroundColor || "#f7f7f7",
@@ -51,14 +73,14 @@ export async function generateMetadata({
     };
 
     return {
-      title: `Mint POAP #${drop.poapEventId}`,
+      title: `Mint ${poapEventName}`,
       description: drop.mintMessage,
       openGraph: {
-        title: `Mint POAP #${drop.poapEventId}`,
+        title: `Mint ${poapEventName}`,
         description: drop.mintMessage,
         images: [{
           url: frameImageUrl,
-          alt: `POAP #${drop.poapEventId}`
+          alt: poapEventName
         }]
       },
       other: {

@@ -26,9 +26,32 @@ export async function generateMetadata({
     }
 
     const { drop } = await response.json();
+    
+    // Fetch POAP event name
+    let poapEventName = `POAP #${drop.poapEventId}`;
+    if (process.env.POAP_API_KEY) {
+      try {
+        const poapResponse = await fetch(
+          `https://api.poap.tech/events/id/${drop.poapEventId}`,
+          {
+            headers: {
+              "X-API-Key": process.env.POAP_API_KEY,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (poapResponse.ok) {
+          const poapData = await poapResponse.json();
+          poapEventName = poapData.name || poapEventName;
+        }
+      } catch (error) {
+        console.error("Error fetching POAP name:", error);
+      }
+    }
+    
     const timestamp = Date.now();
     const frameImageUrl = `${baseUrl}/api/frame-image?dropId=${dropId}&t=${timestamp}`;
-    const title = `Mint POAP #${drop.poapEventId}`;
+    const title = `Mint ${poapEventName}`;
 
     // Frame v2 structure
     const frame = {
