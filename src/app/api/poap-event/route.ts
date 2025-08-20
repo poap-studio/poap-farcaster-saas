@@ -38,6 +38,7 @@ export async function GET(request: Request) {
     }
     
     if (!POAP_API_KEY || !poapEventId) {
+      console.error('[POAP Event] Missing configuration:', { hasApiKey: !!POAP_API_KEY, poapEventId });
       return NextResponse.json(
         { error: "POAP API configuration missing" },
         { status: 500 }
@@ -55,6 +56,8 @@ export async function GET(request: Request) {
 
     if (!response.ok) {
       console.error(`[POAP Event] API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('[POAP Event] Error response:', errorText);
       return NextResponse.json(
         { error: "Failed to fetch POAP event data" },
         { status: response.status }
@@ -70,6 +73,12 @@ export async function GET(request: Request) {
       image_url: eventData.image_url,
       event_url: eventData.event_url,
       supply: eventData.supply
+    }, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
     });
 
   } catch (error) {

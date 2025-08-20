@@ -85,13 +85,19 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
         setIsLoadingPoapData(true);
         const drop = getCurrentDrop();
         const url = drop?.id ? `/api/poap-event?dropId=${drop.id}` : '/api/poap-event';
+        console.log('[FollowGate] Fetching POAP event data from:', url);
         const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();
+          console.log('[FollowGate] POAP event data received:', data);
           setPoapEventData(data);
+        } else {
+          console.error('[FollowGate] Error fetching POAP event data:', response.status, response.statusText);
+          const errorText = await response.text();
+          console.error('[FollowGate] Error response:', errorText);
         }
       } catch (error) {
-        console.error('Error fetching POAP event data:', error);
+        console.error('[FollowGate] Error fetching POAP event data:', error);
       } finally {
         setIsLoadingPoapData(false);
       }

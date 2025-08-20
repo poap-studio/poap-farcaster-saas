@@ -99,10 +99,10 @@ export default function AdminPage() {
   };
 
   const copyLink = (slug: string) => {
-    // Use the redirect endpoint to prevent cache issues
-    const url = `${window.location.origin}/f/${slug}`;
+    // Use the share endpoint that generates unique URLs
+    const url = `${window.location.origin}/share/${slug}`;
     navigator.clipboard.writeText(url);
-    alert(`Link copied!\n\n${url}\n\nThis link uses a special redirect to prevent Farcaster cache issues between different drops.`);
+    alert(`Shareable link copied!\n\n${url}\n\nThis link will generate a unique URL each time it's accessed to prevent cache issues.`);
   };
 
   if (!isAuthenticated) {
@@ -222,7 +222,7 @@ export default function AdminPage() {
                     onClick={() => copyLink(drop.slug)}
                     className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2 px-4 rounded-lg transition-colors duration-200 text-sm"
                   >
-                    Copy Link
+                    Copy Share Link
                   </button>
                   <Link
                     href={`/admin/drops/${drop.id}/edit`}

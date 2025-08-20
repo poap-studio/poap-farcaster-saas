@@ -97,17 +97,21 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
       try {
         setIsLoadingPoapData(true);
         const url = drop?.id ? `/api/poap-event?dropId=${drop.id}` : '/api/poap-event';
+        console.log('[POAPMinter] Fetching POAP event data from:', url);
         const response = await fetch(url);
         
         if (response.ok) {
           const data = await response.json();
+          console.log('[POAPMinter] POAP event data received:', data);
           setPoapEventData(data);
         } else {
-          console.error('Error fetching POAP event data:', response.status, response.statusText);
+          console.error('[POAPMinter] Error fetching POAP event data:', response.status, response.statusText);
+          const errorText = await response.text();
+          console.error('[POAPMinter] Error response:', errorText);
           setPoapEventData(null);
         }
       } catch (error) {
-        console.error('Error fetching POAP event data:', error);
+        console.error('[POAPMinter] Error fetching POAP event data:', error);
         setPoapEventData(null);
       } finally {
         setIsLoadingPoapData(false);

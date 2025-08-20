@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
           eventId = drop.poapEventId;
           dropBackgroundColor = drop.backgroundColor || "#073d5c";
           dropLogoUrl = drop.logoUrl || "";
+          console.log('[Frame Image] Using drop colors:', dropBackgroundColor);
         }
       } catch (error) {
         console.error("[Frame Image] Error fetching drop data:", error);
@@ -86,8 +87,22 @@ export async function GET(request: NextRequest) {
             justifyContent: "center",
             backgroundColor: dropBackgroundColor,
             padding: "60px",
+            position: "relative",
           }}
         >
+          {/* Add unique identifier to prevent cache */}
+          <div
+            style={{
+              position: "absolute",
+              top: "10px",
+              right: "10px",
+              fontSize: "10px",
+              color: "rgba(255,255,255,0.3)",
+              fontFamily: "monospace",
+            }}
+          >
+            {dropId ? `Drop: ${dropId.slice(-6)}` : "Default"}
+          </div>
           {/* POAP Image on the left */}
           <img
             src={poapImageUrl}

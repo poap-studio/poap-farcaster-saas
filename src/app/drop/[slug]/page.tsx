@@ -7,8 +7,10 @@ interface MetadataProps {
 
 export async function generateMetadata({
   params,
-}: MetadataProps): Promise<Metadata> {
+  searchParams,
+}: MetadataProps & { searchParams?: Promise<{ [key: string]: string | string[] | undefined }> }): Promise<Metadata> {
   const { slug } = await params;
+  const search = await searchParams;
   
   try {
     const response = await fetch(
@@ -25,12 +27,13 @@ export async function generateMetadata({
     const { drop } = await response.json();
 
     const baseUrl = `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}`;
-    // Add version to frame URL to ensure each drop is cached separately
-    const frameVersion = drop.updatedAt ? new Date(drop.updatedAt).getTime() : Date.now();
-    const frameUrl = `${baseUrl}/drop/${slug}?v=${frameVersion}`;
-    // Add timestamp to frame image URL to bust cache
-    const timestamp = Date.now();
-    const frameImageUrl = `${baseUrl}/api/frame-image?dropId=${drop.id}&t=${timestamp}`;
+    // Use timestamp from URL if available, otherwise generate new one
+    const urlTimestamp = search?.t || Date.now().toString();
+    // Add random component to ensure uniqueness
+    const randomId = Math.random().toString(36).substring(7);
+    const frameUrl = `${baseUrl}/drop/${slug}?t=${urlTimestamp}&rid=${randomId}`;
+    // Use same timestamp for image to ensure consistency
+    const frameImageUrl = `${baseUrl}/api/frame-image?dropId=${drop.id}&t=${urlTimestamp}&v=${drop.updatedAt}&rid=${randomId}`;
 
     const frame = {
       version: "next",
@@ -63,8 +66,8 @@ export async function generateMetadata({
         "fc:frame:image": frameImageUrl,
         "fc:frame:post_url": frameUrl,
         // Add unique identifier to help Farcaster differentiate between drops
-        "fc:frame:id": `${drop.id}-${frameVersion}`,
-        "fc:frame:state": JSON.stringify({ dropId: drop.id, version: frameVersion }),
+        "fc:frame:id": `${drop.id}-${urlTimestamp}-${randomId}`,
+        "fc:frame:state": JSON.stringify({ dropId: drop.id, timestamp: urlTimestamp, rid: randomId }),
       },
     };
   } catch (error) {
