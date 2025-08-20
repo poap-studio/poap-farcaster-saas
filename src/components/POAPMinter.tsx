@@ -208,12 +208,16 @@ export default function POAPMinter() {
           : undefined;
         
         const [follows, recastResult, claimResponse] = await Promise.all([
-          checkIfUserFollows(context.user.fid),
-          checkIfUserRecasted(context.user.fid, castHash),
+          dropConfig.requireFollow 
+            ? checkIfUserFollows(context.user.fid, dropConfig.followUsername || getRequiredFollowUsername())
+            : Promise.resolve(true),
+          dropConfig.requireRecast
+            ? checkIfUserRecasted(context.user.fid, castHash)
+            : Promise.resolve(true),
           fetch("/api/poap-claim", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ fid: context.user.fid })
+            body: JSON.stringify({ fid: context.user.fid, dropId: drop?.id })
           })
         ]);
         
@@ -354,12 +358,16 @@ export default function POAPMinter() {
           : undefined;
         
         const [follows, recastResult, claimResponse] = await Promise.all([
-          checkIfUserFollows(context.user.fid),
-          checkIfUserRecasted(context.user.fid, castHash),
+          dropConfig.requireFollow 
+            ? checkIfUserFollows(context.user.fid, dropConfig.followUsername || getRequiredFollowUsername())
+            : Promise.resolve(true),
+          dropConfig.requireRecast
+            ? checkIfUserRecasted(context.user.fid, castHash)
+            : Promise.resolve(true),
           fetch("/api/poap-claim", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ fid: context.user.fid })
+            body: JSON.stringify({ fid: context.user.fid, dropId: drop?.id })
           })
         ]);
         
@@ -464,11 +472,13 @@ export default function POAPMinter() {
   if (!showMintingScreen) {
     return (
       <FollowGate 
-        username={getRequiredFollowUsername()}
+        username={dropConfig.followUsername || getRequiredFollowUsername()}
         castHash={(context?.location?.type === 'cast_embed' ? context.location.cast.hash : undefined) || getRequiredRecastHash()}
         castAuthor={castAuthor}
         isFollowing={isFollowing}
         hasRecasted={hasRecasted}
+        requireFollow={dropConfig.requireFollow}
+        requireRecast={dropConfig.requireRecast}
         onFollowComplete={handleFollowComplete}
         onClaimPoapClick={handleClaimPoapClick}
       />
