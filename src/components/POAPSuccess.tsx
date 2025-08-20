@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Lottie from "lottie-react";
 import animationData from "../assets/animation.json";
+import { getDropConfig, getCurrentDrop } from "~/lib/drop-data";
 
 interface POAPSuccessProps {
   walletAddress: string; // The wallet address where POAP was minted
@@ -13,13 +14,16 @@ export default function POAPSuccess({ walletAddress }: POAPSuccessProps) {
   
   // Use the wallet address where POAP was minted
   const displayAddress = walletAddress || "";
+  
+  const drop = getCurrentDrop();
 
   // Fetch POAP event data
   useEffect(() => {
     const fetchPoapEventData = async () => {
       try {
         setIsLoadingPoapData(true);
-        const response = await fetch('/api/poap-event');
+        const url = drop?.id ? `/api/poap-event?dropId=${drop.id}` : '/api/poap-event';
+        const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();
           setPoapEventData(data);
@@ -32,7 +36,7 @@ export default function POAPSuccess({ walletAddress }: POAPSuccessProps) {
     };
 
     fetchPoapEventData();
-  }, []);
+  }, [drop]);
 
   // Format wallet address for display (first 6 and last 6 chars)
   const formatAddress = (addr: string) => {
@@ -160,7 +164,7 @@ export default function POAPSuccess({ walletAddress }: POAPSuccessProps) {
         }
 
         .success-page {
-          background: url('/success-page.png') center;
+          background: ${getDropConfig().backgroundColor};
           background-size: cover;
           background-repeat: no-repeat;
           height: 844px;

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getRedisClient } from "~/lib/redis";
+import { prisma } from "~/lib/prisma";
 
 function escapeCSVField(field: string | number | null | undefined): string {
   if (field === null || field === undefined) {
@@ -13,13 +13,24 @@ function escapeCSVField(field: string | number | null | undefined): string {
   return stringField;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const client = await getRedisClient();
-    const pattern = 'poap:claimed:*:*';
-    const keys = await client.keys(pattern);
+    // Get dropId from query params if provided
+    const { searchParams } = new URL(request.url);
+    const dropId = searchParams.get('dropId');
     
-    if (keys.length === 0) {
+    // Fetch claims from database
+    const claims = await prisma.claim.findMany({
+      where: dropId ? { dropId } : undefined,
+      include: {
+        drop: true
+      },
+      orderBy: {
+        claimedAt: 'desc'
+      }
+    });
+    
+    if (claims.length === 0) {
       return new NextResponse("No POAP claims found", {
         headers: {
           'Content-Type': 'text/plain',
@@ -27,22 +38,14 @@ export async function GET() {
       });
     }
     
-    const claims = await client.mGet(keys);
-    const parsedClaims = claims
-      .filter(claim => claim !== null)
-      .map(claim => JSON.parse(claim!));
-    
-    parsedClaims.sort((a, b) => 
-      new Date(b.claimedAt).getTime() - new Date(a.claimedAt).getTime()
-    );
-    
-    const csvHeader = 'FID,Event ID,Address,Claimed At,Transaction Hash\n';
-    const csvRows = parsedClaims.map(claim => {
+    const csvHeader = 'FID,Drop ID,Event ID,Address,Claimed At,Transaction Hash\n';
+    const csvRows = claims.map(claim => {
       return [
         escapeCSVField(claim.fid),
-        escapeCSVField(claim.eventId),
+        escapeCSVField(claim.dropId),
+        escapeCSVField(claim.drop.poapEventId),
         escapeCSVField(claim.address),
-        escapeCSVField(claim.claimedAt),
+        escapeCSVField(claim.claimedAt.toISOString()),
         escapeCSVField(claim.txHash || '')
       ].join(',');
     });

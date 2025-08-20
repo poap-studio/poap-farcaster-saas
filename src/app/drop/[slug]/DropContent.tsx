@@ -37,6 +37,11 @@ export default function DropContent({ slug }: { slug: string }) {
       
       // Set drop data in localStorage for components to use
       localStorage.setItem("currentDrop", JSON.stringify(drop));
+      
+      // Also set environment variables for the components
+      if (typeof window !== 'undefined') {
+        (window as any).__DROP_DATA__ = drop;
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load drop");
     } finally {

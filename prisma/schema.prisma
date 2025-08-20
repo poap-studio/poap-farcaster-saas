@@ -51,7 +51,24 @@ model Drop {
   updatedAt               DateTime @updatedAt
   
   user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  claims                  Claim[]
   
   @@index([userId])
   @@index([slug])
+}
+
+model Claim {
+  id                      String   @id @default(cuid())
+  dropId                  String
+  fid                     Int
+  address                 String
+  txHash                  String?
+  claimedAt               DateTime @default(now())
+  
+  drop                    Drop     @relation(fields: [dropId], references: [id], onDelete: Cascade)
+  
+  // Ensure one claim per user per drop
+  @@unique([dropId, fid])
+  @@index([dropId])
+  @@index([fid])
 }

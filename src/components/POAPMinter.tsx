@@ -14,6 +14,7 @@ import { resolveAddressOrENS } from "~/lib/ens";
 import { isSpamUser, isSpamValidationEnabled } from "~/lib/spam-validation";
 import FollowGate from "./FollowGate";
 import POAPSuccess from "./POAPSuccess";
+import { getCurrentDrop, getDropConfig } from "~/lib/drop-data";
 
 
 export default function POAPMinter() {
@@ -37,6 +38,10 @@ export default function POAPMinter() {
   const [isResolvingENS, setIsResolvingENS] = useState(false);
   const [resolvedAddress, setResolvedAddress] = useState<string>("");
   const [ensError, setEnsError] = useState<string>("");
+  
+  // Get drop configuration
+  const dropConfig = getDropConfig();
+  const drop = getCurrentDrop();
 
   const { address, isConnected } = useAccount();
   const { connect, isPending: isConnecting } = useConnect();
@@ -69,7 +74,8 @@ export default function POAPMinter() {
     const fetchPoapEventData = async () => {
       try {
         setIsLoadingPoapData(true);
-        const response = await fetch('/api/poap-event');
+        const url = drop?.id ? `/api/poap-event?dropId=${drop.id}` : '/api/poap-event';
+        const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();
           setPoapEventData(data);
@@ -82,7 +88,7 @@ export default function POAPMinter() {
     };
 
     fetchPoapEventData();
-  }, []);
+  }, [drop]);
 
   // Farcaster Mini App Integration
   useEffect(() => {
@@ -316,6 +322,7 @@ export default function POAPMinter() {
           address: finalAddress,
           txHash: mockTxHash,
           fid: context.user.fid,
+          dropId: drop?.id,
         }),
       });
 
@@ -515,7 +522,7 @@ export default function POAPMinter() {
                   <div className="mint-title">Mint Your POAP</div>
                 </div>
                 <div className="mint-description">
-                  Enter your wallet address or ENS name to claim your commemorative POAP token.
+                  {dropConfig.mintMessage}
                 </div>
               </div>
               <div className="mint-form">
@@ -641,7 +648,7 @@ export default function POAPMinter() {
           width: 100%;
           max-width: 390px;
           min-height: 100vh;
-          background: #0a5580;
+          background: ${dropConfig.backgroundColor};
           display: flex;
           align-items: flex-start;
           justify-content: center;
@@ -968,7 +975,7 @@ export default function POAPMinter() {
           width: 100%;
           max-width: 310px;
           padding: 16px;
-          background: #0a5580;
+          background: ${dropConfig.buttonColor};
           border-radius: 8px;
           color: #ffffff;
           font-size: 18px;
@@ -999,11 +1006,11 @@ export default function POAPMinter() {
         .mint-button.loading {
           background: linear-gradient(
             90deg,
-            #0a5580,
-            #0c6394,
-            #0e6ba8,
-            #0c6394,
-            #0a5580
+            ${dropConfig.buttonColor},
+            ${dropConfig.buttonColor}dd,
+            ${dropConfig.buttonColor}bb,
+            ${dropConfig.buttonColor}dd,
+            ${dropConfig.buttonColor}
           );
           background-size: 200% auto;
           animation: shine 2s linear infinite;

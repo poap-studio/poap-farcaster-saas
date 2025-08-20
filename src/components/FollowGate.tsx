@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import sdk from "@farcaster/frame-sdk";
+import { getDropConfig } from "~/lib/drop-data";
 
 interface FollowGateProps {
   username: string;
@@ -7,11 +8,13 @@ interface FollowGateProps {
   castAuthor?: string | null;
   isFollowing?: boolean | null;
   hasRecasted?: boolean | null;
+  requireFollow?: boolean;
+  requireRecast?: boolean;
   onFollowComplete?: () => void;
   onClaimPoapClick?: () => void;
 }
 
-export default function FollowGate({ username, castHash, castAuthor, isFollowing, hasRecasted, onFollowComplete, onClaimPoapClick }: FollowGateProps) {
+export default function FollowGate({ username, castHash, castAuthor, isFollowing, hasRecasted, requireFollow = true, requireRecast = true, onFollowComplete, onClaimPoapClick }: FollowGateProps) {
   const [isOpeningProfile, setIsOpeningProfile] = useState(false);
   const [isOpeningCast, setIsOpeningCast] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -80,7 +83,8 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
     const fetchPoapEventData = async () => {
       try {
         setIsLoadingPoapData(true);
-        const response = await fetch('/api/poap-event');
+        const url = drop?.id ? `/api/poap-event?dropId=${drop.id}` : '/api/poap-event';
+        const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();
           setPoapEventData(data);
@@ -93,7 +97,7 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
     };
 
     fetchPoapEventData();
-  }, []);
+  }, [drop]);
 
   // Safety mechanism: ensure refresh button is never permanently disabled
   useEffect(() => {
@@ -157,63 +161,69 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
                   </button>
                 </div>
                 <div className="complete-both-steps-to-unlock-your-poap">
-                  Complete both steps to unlock your POAP:
+                  {requireFollow && requireRecast ? 'Complete both steps to unlock your POAP:' :
+                   requireFollow || requireRecast ? 'Complete the step to unlock your POAP:' :
+                   'Your POAP is ready to claim!'}
                 </div>
               </div>
               <div className="requirements-container">
-                <div className="requirement-item">
-                  <div className="requirement-text">
-                    <span className="requirement-main">Follow @{username}</span>
-                    <span className="requirement-sub">on Farcaster</span>
+                {requireFollow && (
+                  <div className="requirement-item">
+                    <div className="requirement-text">
+                      <span className="requirement-main">Follow @{username}</span>
+                      <span className="requirement-sub">on Farcaster</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleFollowClick}
+                      disabled={isOpeningProfile || !!isFollowing}
+                      className={`action-button ${isFollowing ? 'completed' : ''}`}
+                    >
+                      {isFollowing ? (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M13.3334 4L6.00008 11.3333L2.66675 8" stroke="#CAF2BF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      ) : null}
+                      <span>{isFollowing ? 'Done' : 'Follow'}</span>
+                      {!isFollowing ? (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M4 12L12 4M12 4H6M12 4V10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      ) : null}
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleFollowClick}
-                    disabled={isOpeningProfile || !!isFollowing}
-                    className={`action-button ${isFollowing ? 'completed' : ''}`}
-                  >
-                    {isFollowing ? (
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M13.3334 4L6.00008 11.3333L2.66675 8" stroke="#CAF2BF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    ) : null}
-                    <span>{isFollowing ? 'Done' : 'Follow'}</span>
-                    {!isFollowing ? (
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4 12L12 4M12 4H6M12 4V10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    ) : null}
-                  </button>
-                </div>
-                <div className="requirement-item">
-                  <div className="requirement-text">
-                    <span className="requirement-main">Recast the original cast</span>
+                )}
+                {requireRecast && (
+                  <div className="requirement-item">
+                    <div className="requirement-text">
+                      <span className="requirement-main">Recast the original cast</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRecastClick}
+                      disabled={isOpeningCast || !!hasRecasted || !castHash}
+                      className={`action-button ${hasRecasted ? 'completed' : ''}`}
+                    >
+                      {hasRecasted ? (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M13.3334 4L6.00008 11.3333L2.66675 8" stroke="#CAF2BF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      ) : null}
+                      <span>{hasRecasted ? 'Done' : 'Recast'}</span>
+                      {!hasRecasted ? (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M4 12L12 4M12 4H6M12 4V10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      ) : null}
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleRecastClick}
-                    disabled={isOpeningCast || !!hasRecasted || !castHash}
-                    className={`action-button ${hasRecasted ? 'completed' : ''}`}
-                  >
-                    {hasRecasted ? (
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M13.3334 4L6.00008 11.3333L2.66675 8" stroke="#CAF2BF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    ) : null}
-                    <span>{hasRecasted ? 'Done' : 'Recast'}</span>
-                    {!hasRecasted ? (
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4 12L12 4M12 4H6M12 4V10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    ) : null}
-                  </button>
-                </div>
+                )}
               </div>
             </div>
             <div className="cta">
               <button
                 type="button"
-                disabled={!isFollowing || !hasRecasted}
+                disabled={(requireFollow && !isFollowing) || (requireRecast && !hasRecasted)}
                 className="claim-button"
                 onClick={onClaimPoapClick}
               >
@@ -256,7 +266,7 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
           width: 100%;
           max-width: 390px;
           min-height: 100vh;
-          background: #073d5c;
+          background: ${getDropConfig().backgroundColor};
           display: flex;
           align-items: flex-start;
           justify-content: center;
@@ -617,11 +627,11 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
         .claim-button:not(:disabled) {
           color: #ffffff;
           cursor: pointer;
-          background: #0a5580;
+          background: ${getDropConfig().buttonColor};
         }
 
         .claim-button:not(:disabled):hover {
-          background: #0c6394;
+          filter: brightness(1.1);
           transform: translateY(-1px);
         }
 

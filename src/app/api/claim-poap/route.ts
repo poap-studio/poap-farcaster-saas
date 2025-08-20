@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPOAPAuthManager } from "~/lib/poap-auth";
-import { hasUserClaimedPoap, recordPoapClaim } from "~/lib/redis";
-
-const POAP_API_KEY = process.env.POAP_API_KEY;
-const POAP_EVENT_ID = process.env.POAP_EVENT_ID;
-const POAP_SECRET_CODE = process.env.POAP_SECRET_CODE;
+import { prisma } from "~/lib/prisma";
 
 interface QRCode {
   qr_hash: string;
@@ -14,7 +10,7 @@ interface QRCode {
 
 export async function POST(request: Request) {
   try {
-    const { address, txHash, fid } = await request.json();
+    const { address, txHash, fid, dropId } = await request.json();
 
     if (!address || !txHash) {
       return NextResponse.json(
@@ -30,23 +26,55 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!POAP_API_KEY || !POAP_EVENT_ID || !POAP_SECRET_CODE) {
+    // Get POAP configuration from database or environment
+    let poapApiKey = process.env.POAP_API_KEY;
+    let poapEventId: string | undefined;
+    let poapSecretCode: string | undefined;
+
+    if (dropId) {
+      const drop = await prisma.drop.findUnique({
+        where: { id: dropId },
+        select: { poapEventId: true, poapSecretCode: true }
+      });
+      
+      if (!drop) {
+        return NextResponse.json(
+          { error: "Drop not found" },
+          { status: 404 }
+        );
+      }
+      
+      poapEventId = drop.poapEventId;
+      poapSecretCode = drop.poapSecretCode;
+    } else {
+      // Fallback to environment variables for backward compatibility
+      poapEventId = process.env.POAP_EVENT_ID;
+      poapSecretCode = process.env.POAP_SECRET_CODE;
+    }
+
+    if (!poapApiKey || !poapEventId || !poapSecretCode) {
       console.error("Missing POAP configuration:", {
-        hasApiKey: !!POAP_API_KEY,
-        hasEventId: !!POAP_EVENT_ID,
-        hasSecretCode: !!POAP_SECRET_CODE
+        hasApiKey: !!poapApiKey,
+        hasEventId: !!poapEventId,
+        hasSecretCode: !!poapSecretCode
       });
       throw new Error("POAP configuration incomplete");
     }
 
-    // Check if user has already claimed this POAP event
-    console.log(`[POAP Claim] Checking if FID ${fid} has already claimed event ${POAP_EVENT_ID}`);
-    const hasAlreadyClaimed = await hasUserClaimedPoap(fid, POAP_EVENT_ID);
+    // Check if user has already claimed this drop
+    console.log(`[POAP Claim] Checking if FID ${fid} has already claimed drop ${dropId}`);
     
-    if (hasAlreadyClaimed) {
-      console.log(`[POAP Claim] User ${fid} has already claimed event ${POAP_EVENT_ID}`);
+    const existingClaim = await prisma.claim.findFirst({
+      where: {
+        dropId: dropId || undefined,
+        fid: fid
+      }
+    });
+    
+    if (existingClaim) {
+      console.log(`[POAP Claim] User ${fid} has already claimed drop ${dropId}`);
       return NextResponse.json(
-        { error: "You have already claimed this POAP event" },
+        { error: "You have already claimed this POAP" },
         { status: 409 }
       );
     }
@@ -55,7 +83,7 @@ export async function POST(request: Request) {
     const authManager = getPOAPAuthManager();
 
     // First get QR codes for the event
-    const qrUrl = `https://api.poap.tech/event/${POAP_EVENT_ID}/qr-codes`;
+    const qrUrl = `https://api.poap.tech/event/${poapEventId}/qr-codes`;
     console.log("Fetching QR codes from:", qrUrl);
     
     const qrResponse = await authManager.makeAuthenticatedRequest(qrUrl, {
@@ -63,10 +91,10 @@ export async function POST(request: Request) {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        "X-API-Key": POAP_API_KEY,
+        "X-API-Key": poapApiKey,
       },
       body: JSON.stringify({
-        secret_code: POAP_SECRET_CODE,
+        secret_code: poapSecretCode,
       }),
     });
 
@@ -110,7 +138,7 @@ export async function POST(request: Request) {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        "X-API-Key": POAP_API_KEY,
+        "X-API-Key": poapApiKey,
       },
       body: JSON.stringify({
         address,
@@ -134,10 +162,19 @@ export async function POST(request: Request) {
     const claimData = await claimResponse.json();
     console.log("POAP claimed successfully:", claimData);
 
-    // Record the claim in Redis with the minting address
-    const recordSuccess = await recordPoapClaim(fid, POAP_EVENT_ID, address, txHash);
-    if (!recordSuccess) {
-      console.warn(`[POAP Claim] Failed to record claim in Redis for FID ${fid}, but POAP was claimed successfully`);
+    // Record the claim in database
+    try {
+      await prisma.claim.create({
+        data: {
+          dropId: dropId!,
+          fid: fid,
+          address: address,
+          txHash: txHash
+        }
+      });
+      console.log(`[POAP Claim] Recorded claim for FID ${fid}, Drop ${dropId}`);
+    } catch (error) {
+      console.warn(`[POAP Claim] Failed to record claim in database for FID ${fid}, but POAP was claimed successfully`, error);
     }
 
     return NextResponse.json({

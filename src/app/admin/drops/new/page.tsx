@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useProfile } from "@farcaster/auth-kit";
 import Link from "next/link";
+import DropPreview from "~/components/admin/DropPreview";
 
 export default function NewDropPage() {
   const router = useRouter();
   const { profile } = useProfile();
   const [loading, setLoading] = useState(false);
   const [validating, setValidating] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
   
   const [formData, setFormData] = useState({
     poapEventId: "",
@@ -120,7 +121,7 @@ export default function NewDropPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Header */}
       <div className="mb-8">
         <Link
@@ -132,7 +133,10 @@ export default function NewDropPage() {
         <h1 className="text-3xl font-bold text-white">Create New Drop</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        {/* Form Column */}
+        <div className="order-2 xl:order-1">
+          <form onSubmit={handleSubmit} className="space-y-8">
         {/* POAP Configuration */}
         <div className="bg-slate-800 rounded-xl shadow-xl p-6">
           <h2 className="text-xl font-semibold text-white mb-6">
@@ -330,7 +334,7 @@ export default function NewDropPage() {
           <button
             type="button"
             onClick={() => setShowPreview(true)}
-            className="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+            className="xl:hidden flex-1 bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
             disabled={!eventInfo}
           >
             Preview
@@ -344,24 +348,51 @@ export default function NewDropPage() {
           </button>
         </div>
       </form>
+        </div>
+        
+        {/* Preview Column - Always visible on desktop */}
+        <div className="order-1 xl:order-2">
+          <div className="sticky top-8">
+            <DropPreview
+              poapEventId={formData.poapEventId}
+              buttonColor={formData.buttonColor}
+              backgroundColor={formData.backgroundColor}
+              logoUrl={formData.logoUrl}
+              mintMessage={formData.mintMessage}
+              requireFollow={formData.requireFollow}
+              followUsername={formData.followUsername}
+              requireRecast={formData.requireRecast}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Preview Modal */}
       {showPreview && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-slate-700">
-              <h3 className="text-xl font-semibold text-white">Preview</h3>
-            </div>
-            <div className="p-6">
-              <p className="text-gray-300 mb-4">
-                Preview functionality will be implemented here...
-              </p>
+        <div className="xl:hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-900 rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-700 flex justify-between items-center">
+              <h3 className="text-xl font-semibold text-white">Drop Preview</h3>
               <button
                 onClick={() => setShowPreview(false)}
-                className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg"
+                className="text-gray-400 hover:text-white"
               >
-                Close
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
+            </div>
+            <div className="p-6">
+              <DropPreview
+                poapEventId={formData.poapEventId}
+                buttonColor={formData.buttonColor}
+                backgroundColor={formData.backgroundColor}
+                logoUrl={formData.logoUrl}
+                mintMessage={formData.mintMessage}
+                requireFollow={formData.requireFollow}
+                followUsername={formData.followUsername}
+                requireRecast={formData.requireRecast}
+              />
             </div>
           </div>
         </div>

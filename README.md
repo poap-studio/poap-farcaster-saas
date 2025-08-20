@@ -1,18 +1,25 @@
-# POAP Farcaster Minter
+# POAP Farcaster SaaS
 
-A production-ready Farcaster Frame v2 application for minting POAP tokens with follow-gate functionality.
+A production-ready Farcaster Frame v2 SaaS application for creating and managing POAP drops with customizable requirements and branding.
 
 ## Features
 
-- **Dual Requirements Gate**: Users must both follow a specified Farcaster account AND recast the original cast before minting
-- **Duplicate Prevention**: Redis-powered tracking system prevents users from claiming the same POAP event multiple times
-- **Auto-Detection**: Automatically detects the cast hash from Frame context for recast verification
-- **Verified Address Auto-Fill**: Automatically fills wallet address with user's verified Ethereum address from their Farcaster profile
-- **POAP Minting**: Seamless POAP token claiming process with production-ready API integration
-- **Wallet Integration**: Connect and interact with users' wallets using Wagmi v2
-- **Frame v2 SDK**: Built with the latest Farcaster Frame v2 SDK and optimized for mini-apps
-- **Real-time Verification**: Live checking of follow, recast, and claim status with manual refresh capability
-- **Production Ready**: Fully optimized for deployment on Vercel with proper caching controls and Redis database
+### For Drop Creators
+- **Backoffice Dashboard**: Create and manage multiple POAP drops with unique configurations
+- **Farcaster Authentication**: Secure login with Farcaster (SIWF)
+- **Customizable Requirements**: Configure follow and recast requirements per drop
+- **Visual Customization**: Set custom colors, logos, and messages for each drop
+- **Live Preview**: See exactly how your frames will look before publishing
+- **Unique URLs**: Each drop gets a unique shareable link
+
+### For End Users
+- **Dual Requirements Gate**: Configurable follow and recast requirements per drop
+- **Duplicate Prevention**: PostgreSQL-powered tracking prevents multiple claims
+- **Auto-Detection**: Automatically detects cast hash from Frame context
+- **Verified Address Auto-Fill**: Auto-fills user's verified Ethereum address from Farcaster
+- **POAP Minting**: Seamless POAP token claiming process
+- **Wallet Integration**: Connect and interact with wallets using Wagmi v2
+- **Frame v2 SDK**: Built with the latest Farcaster Frame v2 SDK
 
 ## Environment Variables
 
@@ -21,96 +28,93 @@ Set up the following environment variables in your `.env.local` file or deployme
 ### Required Variables
 
 ```bash
-# POAP API Configuration
-POAP_CLIENT_ID=your_poap_client_id                    # POAP API client ID from your POAP developer account
-POAP_CLIENT_SECRET=your_poap_client_secret            # POAP API client secret for authentication
-POAP_API_KEY=your_poap_api_key                        # POAP API key for accessing POAP services
-POAP_EVENT_ID=12345                                   # The specific POAP event ID for your event
-POAP_SECRET_CODE=your_secret_code                     # Secret code required for POAP claiming
+# Database - PostgreSQL
+DATABASE_URL=postgresql://user:password@host:port/database
+
+# POAP API Configuration (Global)
+POAP_CLIENT_ID=your_poap_client_id
+POAP_CLIENT_SECRET=your_poap_client_secret
+POAP_API_KEY=your_poap_api_key
 
 # Neynar API Configuration
-NEXT_PUBLIC_NEYNAR_API_KEY=your_neynar_api_key        # Neynar API key for Farcaster follow verification and cast data
-
-# Follow Gate Configuration
-NEXT_PUBLIC_REQUIRED_FOLLOW_USERNAME=username         # Farcaster username that users must follow to mint (without @)
+NEXT_PUBLIC_NEYNAR_API_KEY=your_neynar_api_key
 
 # Frame Configuration
-NEXT_PUBLIC_FRAME_URL=https://your-domain.vercel.app  # Your deployed frame URL (auto-detected if not set)
+NEXT_PUBLIC_URL=https://your-domain.vercel.app
 
-# Redis Database Configuration (for preventing duplicate claims)
-REDIS_URL=redis://default:password@host:port          # Redis connection URL for tracking POAP claims
+# Base RPC
+BASE_RPC_URL=https://mainnet.base.org
 ```
-
-### Optional Variables
-
-```bash
-# Recast Requirement (optional - auto-detects from frame context if not set)
-NEXT_PUBLIC_REQUIRED_RECAST_HASH=0xabc123...          # Specific cast hash that users must recast
-
-# Development/Debug mode (optional)
-NEXT_PUBLIC_DEBUG_FOLLOW=true                         # Bypass follow check in development mode
-NODE_ENV=development                                   # Environment mode (development/production)
-```
-
-### Variable Descriptions
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `POAP_CLIENT_ID` | ✅ | Your POAP API client ID obtained from the POAP developer portal |
-| `POAP_CLIENT_SECRET` | ✅ | Your POAP API client secret for secure authentication |
-| `POAP_API_KEY` | ✅ | API key for accessing POAP services and minting tokens |
-| `POAP_EVENT_ID` | ✅ | The unique identifier for your POAP event (numeric) |
-| `POAP_SECRET_CODE` | ✅ | Secret code that validates POAP claims for your event |
-| `NEXT_PUBLIC_NEYNAR_API_KEY` | ✅ | API key from Neynar for Farcaster data access and follow verification |
-| `NEXT_PUBLIC_REQUIRED_FOLLOW_USERNAME` | ✅ | Farcaster username (without @) that users must follow |
-| `NEXT_PUBLIC_FRAME_URL` | ⚠️ | Your deployed frame URL. Auto-detects from Vercel if not provided |
-| `REDIS_URL` | ✅ | Redis connection URL for tracking POAP claims and preventing duplicates |
-| `NEXT_PUBLIC_REQUIRED_RECAST_HASH` | ❌ | Specific cast hash to require recast. Auto-detects from frame context if not set |
-| `NEXT_PUBLIC_DEBUG_FOLLOW` | ❌ | Set to `true` to bypass follow requirements in development |
 
 ### Getting API Keys
 
-- **POAP API**: Visit [POAP Studio](https://poap.studio) or [POAP Developer Portal](https://poap.tech/developers) to create an event and get API credentials
-- **Neynar API**: Sign up at [Neynar](https://neynar.com) to get your API key for Farcaster data access
-- **Redis Database**: Use [Redis Cloud](https://redis.com/try-free/) or [Upstash](https://upstash.com/) for a managed Redis instance. The app uses Redis to track which users have claimed POAPs to prevent duplicate claims per event.
+- **POAP API**: Visit [POAP Studio](https://poap.studio) to create events and get API credentials
+- **Neynar API**: Sign up at [Neynar](https://neynar.com) for Farcaster data access
+- **PostgreSQL**: Use any PostgreSQL provider (AWS RDS, Supabase, Neon, etc.)
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ or Bun
-- A POAP API account with event setup
-- A Neynar API key for follow verification
+- Node.js 18+
+- PostgreSQL database
+- POAP API account
+- Neynar API key
 
 ### Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-username/poap-farcaster-minter.git
-cd poap-farcaster-minter
+git clone https://github.com/poap-studio/poap-farcaster-saas.git
+cd poap-farcaster-saas
 ```
 
 2. Install dependencies:
 ```bash
-npm install
-# or
-bun install
+npm install --legacy-peer-deps
 ```
 
 3. Set up environment variables:
 ```bash
-cp .env.example .env.local
+cp .env.local.example .env.local
 # Edit .env.local with your configuration
 ```
 
-4. Run the development server:
+4. Set up the database:
 ```bash
-npm run dev
-# or
-bun dev
+npx prisma db push
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Run the development server:
+```bash
+npm run dev
+```
+
+6. Open [http://localhost:3000](http://localhost:3000)
+
+## Usage
+
+### Creating a Drop
+
+1. Navigate to `/admin`
+2. Login with your Farcaster account
+3. Click "Create New Drop"
+4. Enter your POAP event details:
+   - POAP Event ID
+   - Secret Code
+   - Custom colors and branding
+   - Requirements (follow/recast)
+   - Custom mint message
+5. Preview your drop
+6. Create and share the unique drop URL
+
+### Managing Drops
+
+- View all your drops in the admin dashboard
+- Edit drop configurations
+- Toggle drops active/inactive
+- Download claim data as CSV
+- Copy shareable links
 
 ## Deployment
 
@@ -121,55 +125,45 @@ bun dev
 vercel --prod
 ```
 
-2. Set environment variables in the Vercel dashboard
-3. Redeploy if needed after setting variables
+2. Set environment variables in Vercel dashboard
+3. Configure your PostgreSQL database connection
 
-### Frame Configuration
+### Database Setup
 
-Add your deployed URL as a Frame in the Farcaster ecosystem by configuring your frame metadata.
+The application uses PostgreSQL with Prisma ORM. Tables:
+- `User`: Stores Farcaster user data
+- `Drop`: Stores drop configurations
+- `Claim`: Tracks POAP claims per drop
 
 ## API Endpoints
 
-- `/api/claim-poap` - Handles POAP minting requests
-- `/api/refresh-token` - Manages POAP API token refresh
+- `/api/auth/login` - Farcaster authentication
+- `/api/drops` - CRUD operations for drops
+- `/api/claim-poap` - Handles POAP minting
+- `/api/poap-claim` - Checks claim status
+- `/api/poap-event` - Fetches POAP event data
+- `/api/download` - Exports claims as CSV
 
 ## Architecture
 
 - **Frontend**: Next.js 15 with React 19
 - **Styling**: Tailwind CSS with custom components
-- **Wallet Integration**: Wagmi v2 with Farcaster Frame Connector
-- **Follow Verification**: Neynar API integration
-- **Deployment**: Optimized for Vercel with serverless functions
-
-## Development
-
-### Testing Follow Gate
-
-To test the application without requiring actual follows:
-
-1. Set `NEXT_PUBLIC_DEBUG_FOLLOW=true` in your environment
-2. The follow gate will be bypassed in development mode
-
-### Debugging
-
-The application includes comprehensive logging:
-- `[POAPMinter]` - Main component logs
-- `[Follow Check]` - Follow verification logs
-- `[Neynar API]` - API connectivity logs
-
-Open browser developer tools to view console logs for debugging.
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: Farcaster Auth Kit
+- **Wallet Integration**: Wagmi v2
+- **Deployment**: Optimized for Vercel
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Commit your changes: `git commit -m 'Add your feature'`
-4. Push to the branch: `git push origin feature/your-feature`
+3. Commit your changes: `git commit -m 'Add feature'`
+4. Push to branch: `git push origin feature/your-feature`
 5. Open a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Support
 

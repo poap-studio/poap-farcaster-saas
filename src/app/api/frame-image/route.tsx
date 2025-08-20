@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "#073d5c",
+            backgroundColor: backgroundColor,
             padding: "60px",
           }}
         >

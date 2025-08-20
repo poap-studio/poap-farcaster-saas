@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { prisma } from "~/lib/prisma";
+import { getCurrentDrop } from "~/lib/drop-data";
 
 const POAP_API_KEY = process.env.POAP_API_KEY;
-const POAP_EVENT_ID = process.env.POAP_EVENT_ID;
 
 interface POAPEvent {
   id: number;
@@ -18,16 +19,33 @@ interface POAPEvent {
   supply: number;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    if (!POAP_API_KEY || !POAP_EVENT_ID) {
+    // Get dropId from query params if available
+    const { searchParams } = new URL(request.url);
+    const dropId = searchParams.get('dropId');
+    
+    let poapEventId: string | undefined;
+    
+    if (dropId) {
+      const drop = await prisma.drop.findUnique({
+        where: { id: dropId },
+        select: { poapEventId: true }
+      });
+      poapEventId = drop?.poapEventId;
+    } else {
+      // Fallback to environment variable for backward compatibility
+      poapEventId = process.env.POAP_EVENT_ID;
+    }
+    
+    if (!POAP_API_KEY || !poapEventId) {
       return NextResponse.json(
         { error: "POAP API configuration missing" },
         { status: 500 }
       );
     }
 
-    const eventUrl = `https://api.poap.tech/events/id/${POAP_EVENT_ID}`;
+    const eventUrl = `https://api.poap.tech/events/id/${poapEventId}`;
     
     const response = await fetch(eventUrl, {
       headers: {

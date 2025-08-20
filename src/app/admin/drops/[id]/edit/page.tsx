@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useProfile } from "@farcaster/auth-kit";
 import Link from "next/link";
+import DropPreview from "~/components/admin/DropPreview";
 
 export default function EditDropPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const { profile } = useProfile();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [showPreview, setShowPreview] = useState(false);
   
   const [formData, setFormData] = useState({
     poapEventId: "",
@@ -117,7 +119,7 @@ export default function EditDropPage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Header */}
       <div className="mb-8">
         <Link
@@ -129,7 +131,10 @@ export default function EditDropPage({ params }: { params: { id: string } }) {
         <h1 className="text-3xl font-bold text-white">Edit Drop</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        {/* Form Column */}
+        <div className="order-2 xl:order-1">
+          <form onSubmit={handleSubmit} className="space-y-8">
         {/* POAP Configuration */}
         <div className="bg-slate-800 rounded-xl shadow-xl p-6">
           <h2 className="text-xl font-semibold text-white mb-6">
@@ -326,6 +331,13 @@ export default function EditDropPage({ params }: { params: { id: string } }) {
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-4">
+          <button
+            type="button"
+            onClick={() => setShowPreview(true)}
+            className="xl:hidden flex-1 bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+          >
+            Preview
+          </button>
           <Link
             href="/admin"
             className="flex-1 text-center bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
@@ -341,6 +353,55 @@ export default function EditDropPage({ params }: { params: { id: string } }) {
           </button>
         </div>
       </form>
+        </div>
+        
+        {/* Preview Column - Always visible on desktop */}
+        <div className="order-1 xl:order-2">
+          <div className="sticky top-8">
+            <DropPreview
+              poapEventId={formData.poapEventId}
+              buttonColor={formData.buttonColor}
+              backgroundColor={formData.backgroundColor}
+              logoUrl={formData.logoUrl}
+              mintMessage={formData.mintMessage}
+              requireFollow={formData.requireFollow}
+              followUsername={formData.followUsername}
+              requireRecast={formData.requireRecast}
+            />
+          </div>
+        </div>
+      </div>
+      
+      {/* Preview Modal - Only for mobile */}
+      {showPreview && (
+        <div className="xl:hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-900 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-700 flex justify-between items-center">
+              <h3 className="text-xl font-semibold text-white">Drop Preview</h3>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <DropPreview
+                poapEventId={formData.poapEventId}
+                buttonColor={formData.buttonColor}
+                backgroundColor={formData.backgroundColor}
+                logoUrl={formData.logoUrl}
+                mintMessage={formData.mintMessage}
+                requireFollow={formData.requireFollow}
+                followUsername={formData.followUsername}
+                requireRecast={formData.requireRecast}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
