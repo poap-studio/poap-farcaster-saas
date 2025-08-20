@@ -1,10 +1,5 @@
 import { Metadata } from "next";
-import dynamic from "next/dynamic";
-
-// Dynamic import to avoid SSR issues with Farcaster SDK
-const DropContent = dynamic(() => import("./DropContent"), {
-  ssr: false,
-});
+import DropContent from "./DropContent";
 
 export async function generateMetadata({
   params,
