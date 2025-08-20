@@ -218,19 +218,64 @@ export default function AdminPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className={`flex items-center justify-center min-h-screen p-4 bg-slate-900 ${styles.adminLogin}`}>
-        <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 max-w-md w-full">
-          <h1 className="text-3xl font-bold text-white mb-6 text-center">
-            POAP Drop Manager
-          </h1>
-          <p className="text-gray-300 mb-8 text-center">
-            Sign in with Farcaster to manage your POAP drops
-          </p>
-          <div className="flex justify-center">
-            <SignInButton />
+      <>
+        <div className={`flex items-center justify-center min-h-screen p-4 bg-slate-900 ${styles.adminLogin}`}>
+          <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <h1 className="text-3xl font-bold text-white mb-6 text-center">
+              Lucas Branch portal experimentation
+            </h1>
+            <p className="text-gray-300 mb-8 text-center">
+              Connectate Vieja, dale with Farcaster to manage your POAP drops (puto el que lee)
+            </p>
+            <div className="flex justify-center">
+              <SignInButton />
+            </div>
           </div>
         </div>
-      </div>
+        
+        <style jsx global>{`
+          /* Custom pink styling for Farcaster SignInButton - More aggressive targeting */
+          button[class*="farcaster"],
+          button[data-testid*="sign-in"],
+          button:has(svg),
+          div[class*="auth"] button,
+          div button {
+            background: linear-gradient(135deg, #ec4899, #db2777) !important;
+            border: none !important;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.5) !important;
+            transition: all 0.3s ease !important;
+            border-radius: 12px !important;
+          }
+          
+          button[class*="farcaster"]:hover,
+          button[data-testid*="sign-in"]:hover,
+          button:has(svg):hover,
+          div[class*="auth"] button:hover,
+          div button:hover {
+            background: linear-gradient(135deg, #db2777, #be185d) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 25px rgba(236, 72, 153, 0.7) !important;
+          }
+          
+          /* Target any button inside the login container */
+          .bg-slate-800 button,
+          .rounded-2xl button {
+            background: linear-gradient(135deg, #ec4899, #db2777) !important;
+            border: none !important;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.5) !important;
+            transition: all 0.3s ease !important;
+            border-radius: 12px !important;
+            color: white !important;
+          }
+          
+          .bg-slate-800 button:hover,
+          .rounded-2xl button:hover {
+            background: linear-gradient(135deg, #db2777, #be185d) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 25px rgba(236, 72, 153, 0.7) !important;
+          }
+        `}</style>
+      </>
     );
   }
 

@@ -586,7 +586,7 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
                   <div className="mint-title">Mint Your POAP</div>
                 </div>
                 <div className="mint-description">
-                  {dropConfig.mintMessage}
+                  {dropConfig.mintMessage || "Claim your exclusive digital collectible and join our community celebration."}
                 </div>
               </div>
               <div className="mint-form">
@@ -666,7 +666,7 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
                 </button>
               )}
               <div className="mint-note">
-                This POAP celebrates the Farcaster community and our journey together.
+                Join our growing community and celebrate this special moment together.
               </div>
             </div>
           </div>
@@ -674,6 +674,18 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
       </div>
 
       <style jsx>{`
+        :root {
+          --primary-purple: #8b5cf6;
+          --custom-accent: #0ea5e9;
+          --success-green: #10b981;
+          --warning-amber: #f59e0b;
+          --error-red: #ef4444;
+          --background-dark: #000000;
+          --background-light: #1a1c1d;
+          --text-primary: #ffffff;
+          --text-secondary: #c6c6c6;
+        }
+
         @font-face {
           font-family: 'Unica77LlTt';
           src: url('/fonts/Unica77LLWeb-Regular.woff2') format('woff2');
@@ -1059,7 +1071,7 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
         }
 
         .mint-button:hover:not(:disabled) {
-          background: #0c6394;
+          background: var(--button-hover-color, #0c6394);
           transform: translateY(-1px);
         }
 
