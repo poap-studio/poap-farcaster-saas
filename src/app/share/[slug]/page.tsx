@@ -77,9 +77,7 @@ interface PageProps {
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export default async function SharePage({ params }: PageProps) {
-  const { slug } = await params;
-  
+export default async function SharePage() {
   // Simple page that exists just to serve frame metadata
   return (
     <div style={{ 
