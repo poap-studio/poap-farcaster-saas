@@ -57,21 +57,32 @@ export async function GET(request: NextRequest) {
             width: "100%",
             height: "100%",
             display: "flex",
-            flexDirection: "column",
+            flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
             backgroundColor: "#073d5c",
-            position: "relative",
+            padding: "60px",
           }}
         >
-          {/* Text */}
+          {/* POAP Image on the left */}
+          <img
+            src={poapImageUrl}
+            alt="POAP"
+            style={{
+              width: "280px",
+              height: "280px",
+              borderRadius: "50%",
+              objectFit: "cover",
+              marginRight: "80px",
+            }}
+          />
+
+          {/* Text on the right */}
           <div
             style={{
               display: "flex",
               flexDirection: "column",
-              alignItems: "center",
-              position: "absolute",
-              top: "220px",
+              alignItems: "flex-start",
             }}
           >
             <div
@@ -79,7 +90,7 @@ export async function GET(request: NextRequest) {
                 fontSize: "48px",
                 color: "white",
                 fontWeight: "normal",
-                marginBottom: "20px",
+                marginBottom: "10px",
               }}
             >
               Get your
@@ -94,19 +105,6 @@ export async function GET(request: NextRequest) {
               Arbitrum POAP
             </div>
           </div>
-
-          {/* POAP Image */}
-          <img
-            src={poapImageUrl}
-            alt="POAP"
-            style={{
-              width: "400px",
-              height: "400px",
-              borderRadius: "50%",
-              objectFit: "cover",
-              marginTop: "180px",
-            }}
-          />
         </div>
       ),
       {
