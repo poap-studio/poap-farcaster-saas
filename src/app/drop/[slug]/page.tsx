@@ -26,7 +26,9 @@ export async function generateMetadata({
 
     const baseUrl = `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}`;
     const frameUrl = `${baseUrl}/drop/${slug}`;
-    const frameImageUrl = `${baseUrl}/api/frame-image?dropId=${drop.id}`;
+    // Add timestamp to frame image URL to bust cache
+    const timestamp = Date.now();
+    const frameImageUrl = `${baseUrl}/api/frame-image?dropId=${drop.id}&t=${timestamp}`;
 
     const frame = {
       version: "next",
@@ -56,6 +58,8 @@ export async function generateMetadata({
       },
       other: {
         "fc:frame": JSON.stringify(frame),
+        "fc:frame:image": frameImageUrl,
+        "fc:frame:post_url": frameUrl,
       },
     };
   } catch (error) {
@@ -69,6 +73,9 @@ export async function generateMetadata({
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function DropPage({ params }: PageProps) {
   const { slug } = await params;

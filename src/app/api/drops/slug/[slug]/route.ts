@@ -25,7 +25,16 @@ export async function GET(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { poapSecretCode, ...publicDrop } = drop;
 
-    return NextResponse.json({ drop: publicDrop });
+    return NextResponse.json(
+      { drop: publicDrop },
+      {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      }
+    );
   } catch (error) {
     console.error("[Drop Slug GET] Error:", error);
     return NextResponse.json(

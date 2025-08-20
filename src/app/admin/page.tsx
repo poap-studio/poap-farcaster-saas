@@ -101,7 +101,7 @@ export default function AdminPage() {
   const copyLink = (slug: string) => {
     const url = `${window.location.origin}/drop/${slug}`;
     navigator.clipboard.writeText(url);
-    alert("Link copied to clipboard!");
+    alert(`Link copied! \n\nNote: If you've already shared this frame in Farcaster, the old version might be cached. To force an update:\n\n1. Use the Farcaster Frame Validator to refresh: https://farcaster.xyz/~/developers\n2. Or wait a few minutes for the cache to expire\n3. Or share the link with ?v=${Date.now()} added to force a refresh`);
   };
 
   if (!isAuthenticated) {

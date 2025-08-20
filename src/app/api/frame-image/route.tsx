@@ -149,6 +149,11 @@ export async function GET(request: NextRequest) {
       {
         width: 1200,
         height: 630,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
       }
     );
   } catch (error) {
@@ -181,6 +186,11 @@ export async function GET(request: NextRequest) {
       {
         width: 1200,
         height: 630,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
       }
     );
   }
