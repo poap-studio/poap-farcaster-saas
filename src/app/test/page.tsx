@@ -3,7 +3,7 @@ export default function TestPage() {
     <div>
       <h1>Test Page</h1>
       <p>Si ves esto, las rutas funcionan.</p>
-      <a href="/admin">Ir a Admin</a>
+      <a href="/">Ir a Admin</a>
     </div>
   );
 }

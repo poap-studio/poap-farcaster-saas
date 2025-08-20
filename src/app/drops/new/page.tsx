@@ -114,7 +114,7 @@ export default function NewDropPage() {
 
       if (response.ok) {
         toast.success("Drop created successfully!");
-        router.push("/admin");
+        router.push("/");
       } else {
         toast.error("Failed to create drop");
       }
@@ -133,7 +133,7 @@ export default function NewDropPage() {
       {/* Header */}
       <div className="mb-8">
         <Link
-          href="/admin"
+          href="/"
           className="text-purple-400 hover:text-purple-300 mb-4 inline-block"
         >
           ← Back to Dashboard
