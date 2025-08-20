@@ -113,7 +113,6 @@ export default function NewDropPage() {
       });
 
       if (response.ok) {
-        const { drop } = await response.json();
         toast.success("Drop created successfully!");
         router.push("/admin");
       } else {
