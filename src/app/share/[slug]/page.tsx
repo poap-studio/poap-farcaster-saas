@@ -70,10 +70,6 @@ export async function generateMetadata({
   }
 }
 
-interface PageProps {
-  params: Promise<{ slug: string }>;
-}
-
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
