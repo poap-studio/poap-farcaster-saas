@@ -1,0 +1,19 @@
+/* Farcaster Auth Kit modal text color overrides for admin login */
+.adminLogin div[role="dialog"] h1,
+.adminLogin [class*="authkit"] h1,
+.adminLogin [class*="authkit"] p,
+.adminLogin [class*="signin"] h1,
+.adminLogin [class*="fc-"] h1 {
+  color: #000000 !important;
+}
+
+/* Target all text elements in the modal */
+.adminLogin div[role="dialog"] * {
+  color: #000000 !important;
+}
+
+/* Ensure modal heading is black */
+.adminLogin .fc-authkit-modal-heading,
+.adminLogin .fc-authkit-signin-button-modal h1 {
+  color: #000000 !important;
+}
