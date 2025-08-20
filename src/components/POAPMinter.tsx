@@ -180,7 +180,7 @@ export default function POAPMinter() {
     if (context && walletAddress === "" && !userHasModifiedAddress) {
       loadUserVerifiedAddress();
     }
-  }, [context, walletAddress, userHasModifiedAddress]);
+  }, [context, walletAddress]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Check if user follows required account, has recasted, and hasn't already claimed
   useEffect(() => {

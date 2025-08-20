@@ -4,11 +4,12 @@ import { prisma } from "~/lib/prisma";
 // GET a single drop
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const drop = await prisma.drop.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { user: true },
     });
 
@@ -32,10 +33,11 @@ export async function GET(
 // UPDATE a drop
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userId = request.headers.get("x-user-id");
+    const { id } = await params;
     
     if (!userId) {
       return NextResponse.json(
@@ -48,7 +50,7 @@ export async function PUT(
     
     // Verify ownership
     const existingDrop = await prisma.drop.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingDrop || existingDrop.userId !== userId) {
@@ -59,7 +61,7 @@ export async function PUT(
     }
 
     const drop = await prisma.drop.update({
-      where: { id: params.id },
+      where: { id },
       data: body,
     });
 
@@ -76,10 +78,11 @@ export async function PUT(
 // DELETE a drop
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userId = request.headers.get("x-user-id");
+    const { id } = await params;
     
     if (!userId) {
       return NextResponse.json(
@@ -90,7 +93,7 @@ export async function DELETE(
 
     // Verify ownership
     const existingDrop = await prisma.drop.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingDrop || existingDrop.userId !== userId) {
@@ -101,7 +104,7 @@ export async function DELETE(
     }
 
     await prisma.drop.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });

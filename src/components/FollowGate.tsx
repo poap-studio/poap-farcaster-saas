@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import sdk from "@farcaster/frame-sdk";
-import { getDropConfig } from "~/lib/drop-data";
+import { getDropConfig, getCurrentDrop } from "~/lib/drop-data";
 
 interface FollowGateProps {
   username: string;
@@ -83,6 +83,7 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
     const fetchPoapEventData = async () => {
       try {
         setIsLoadingPoapData(true);
+        const drop = getCurrentDrop();
         const url = drop?.id ? `/api/poap-event?dropId=${drop.id}` : '/api/poap-event';
         const response = await fetch(url);
         if (response.ok) {

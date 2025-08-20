@@ -1,3 +1,5 @@
+"use client";
+
 import { AuthKitProvider } from "@farcaster/auth-kit";
 import "@farcaster/auth-kit/styles.css";
 

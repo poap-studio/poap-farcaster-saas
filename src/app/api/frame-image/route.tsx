@@ -23,12 +23,32 @@ interface POAPEvent {
 
 export async function GET(request: NextRequest) {
   try {
+    // Get dropId from query params if provided
+    const searchParams = request.nextUrl.searchParams;
+    const dropId = searchParams.get('dropId');
+    
     // Get POAP event data
     let poapImageUrl = "";
+    let eventId = POAP_EVENT_ID;
+    let dropBackgroundColor = "#073d5c"; // default
 
-    if (POAP_API_KEY && POAP_EVENT_ID) {
+    // If dropId is provided, fetch drop data
+    if (dropId) {
       try {
-        const eventUrl = `https://api.poap.tech/events/id/${POAP_EVENT_ID}`;
+        const dropResponse = await fetch(`${request.nextUrl.origin}/api/drops/${dropId}`);
+        if (dropResponse.ok) {
+          const { drop } = await dropResponse.json();
+          eventId = drop.poapEventId;
+          dropBackgroundColor = drop.backgroundColor || "#073d5c";
+        }
+      } catch (error) {
+        console.error("[Frame Image] Error fetching drop data:", error);
+      }
+    }
+
+    if (POAP_API_KEY && eventId) {
+      try {
+        const eventUrl = `https://api.poap.tech/events/id/${eventId}`;
         const response = await fetch(eventUrl, {
           headers: {
             "X-API-Key": POAP_API_KEY,
@@ -60,7 +80,7 @@ export async function GET(request: NextRequest) {
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: backgroundColor,
+            backgroundColor: dropBackgroundColor,
             padding: "60px",
           }}
         >

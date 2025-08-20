@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { SignInButton, useProfile } from "@farcaster/auth-kit";
 import Link from "next/link";
 
@@ -25,14 +25,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
-  // Handle login
-  useEffect(() => {
-    if (isAuthenticated && profile) {
-      handleLogin();
-    }
-  }, [isAuthenticated, profile]);
-
-  const handleLogin = async () => {
+  const handleLogin = useCallback(async () => {
     if (!profile) return;
 
     try {
@@ -50,14 +43,14 @@ export default function AdminPage() {
       if (response.ok) {
         const data = await response.json();
         setUserId(data.user.id);
-        fetchDrops(data.user.id);
+        return data.user.id;
       }
     } catch (error) {
       console.error("Login error:", error);
     }
-  };
+  }, [profile]);
 
-  const fetchDrops = async (uid: string) => {
+  const fetchDrops = useCallback(async (uid: string) => {
     setLoading(true);
     try {
       const response = await fetch("/api/drops", {
@@ -73,7 +66,20 @@ export default function AdminPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Handle login
+  useEffect(() => {
+    const loginAndFetch = async () => {
+      if (isAuthenticated && profile) {
+        const uid = await handleLogin();
+        if (uid) {
+          fetchDrops(uid);
+        }
+      }
+    };
+    loginAndFetch();
+  }, [isAuthenticated, profile, handleLogin, fetchDrops]);
 
   const handleDelete = async (dropId: string) => {
     if (!userId || !confirm("Are you sure you want to delete this drop?")) return;

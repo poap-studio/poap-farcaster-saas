@@ -1,14 +1,18 @@
 import { Metadata } from "next";
 import DropContent from "./DropContent";
 
+interface MetadataProps {
+  params: Promise<{ slug: string }>;
+}
+
 export async function generateMetadata({
   params,
-}: {
-  params: { slug: string };
-}): Promise<Metadata> {
+}: MetadataProps): Promise<Metadata> {
+  const { slug } = await params;
+  
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}/api/drops/slug/${params.slug}`,
+      `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}/api/drops/slug/${slug}`,
       { cache: "no-store" }
     );
 
@@ -20,7 +24,7 @@ export async function generateMetadata({
 
     const { drop } = await response.json();
 
-    const frameUrl = `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}/drop/${params.slug}`;
+    const frameUrl = `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}/drop/${slug}`;
 
     const frame = {
       version: "next",
@@ -60,6 +64,11 @@ export async function generateMetadata({
   }
 }
 
-export default function DropPage({ params }: { params: { slug: string } }) {
-  return <DropContent slug={params.slug} />;
+interface PageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export default async function DropPage({ params }: PageProps) {
+  const { slug } = await params;
+  return <DropContent slug={slug} />;
 }

@@ -1,17 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useProfile } from "@farcaster/auth-kit";
 import Link from "next/link";
 import DropPreview from "~/components/admin/DropPreview";
 
-export default function EditDropPage({ params }: { params: { id: string } }) {
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function EditDropPage({ params }: PageProps) {
   const router = useRouter();
   const { profile } = useProfile();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
+  const [dropId, setDropId] = useState<string>("");
   
   const [formData, setFormData] = useState({
     poapEventId: "",
@@ -27,12 +32,16 @@ export default function EditDropPage({ params }: { params: { id: string } }) {
   });
 
   useEffect(() => {
-    fetchDrop();
-  }, [params.id]);
+    const loadParams = async () => {
+      const resolvedParams = await params;
+      setDropId(resolvedParams.id);
+    };
+    loadParams();
+  }, [params]);
 
-  const fetchDrop = async () => {
+  const fetchDrop = useCallback(async () => {
     try {
-      const response = await fetch(`/api/drops/${params.id}`);
+      const response = await fetch(`/api/drops/${dropId}`);
       if (response.ok) {
         const { drop } = await response.json();
         setFormData({
@@ -53,7 +62,13 @@ export default function EditDropPage({ params }: { params: { id: string } }) {
     } finally {
       setFetching(false);
     }
-  };
+  }, [dropId]);
+
+  useEffect(() => {
+    if (dropId) {
+      fetchDrop();
+    }
+  }, [dropId, fetchDrop]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -87,7 +102,7 @@ export default function EditDropPage({ params }: { params: { id: string } }) {
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/drops/${params.id}`, {
+      const response = await fetch(`/api/drops/${dropId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
