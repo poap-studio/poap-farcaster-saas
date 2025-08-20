@@ -85,9 +85,8 @@ export default function DropPreview({
           style={{ backgroundColor }}
         >
           {/* Logo */}
-          <div className="absolute top-6 left-1/2 transform -translate-x-1/2 flex items-center gap-4">
-            <img src="/group0.svg" alt="" className="h-12" />
-            <img src={logoUrl || "/logo.svg"} alt="" className="h-3" />
+          <div className="absolute top-6 left-1/2 transform -translate-x-1/2">
+            <img src={logoUrl || "/logo.svg"} alt="" style={{ width: 'auto', height: 'auto', maxHeight: '48px' }} />
           </div>
 
           {/* Card */}
@@ -203,7 +202,7 @@ export default function DropPreview({
                   </button>
                   
                   <p className="text-gray-400 text-xs text-center">
-                    This POAP celebrates the Farcaster community and our journey together.
+                    {mintMessage}
                   </p>
                 </div>
               </>

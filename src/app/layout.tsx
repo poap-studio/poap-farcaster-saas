@@ -30,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
         type: "launch_frame",
         name: title,
         url: FRAME_URL,
-        splashImageUrl: `${FRAME_URL}/group0.svg`,
+        splashImageUrl: `${FRAME_URL}/logo.svg`,
         splashBackgroundColor: "#f7f7f7",
       },
     },

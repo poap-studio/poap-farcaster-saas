@@ -130,8 +130,11 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
     <div className="follow-gate-container">
       <div className="frame-container">
         <div className="white-text-horizontal">
-          <img className="group" src="/group0.svg" alt="" />
-          <img className="group2" src="/logo.svg" alt="" />
+          {getDropConfig().logoUrl ? (
+            <img src={getDropConfig().logoUrl} alt="" style={{ width: 'auto', height: 'auto', maxHeight: '48px' }} />
+          ) : (
+            <img src="/logo.svg" alt="" style={{ width: 'auto', height: 'auto', maxHeight: '48px' }} />
+          )}
         </div>
         <div className="card">
           <div className="header">

@@ -76,8 +76,11 @@ export default function POAPSuccess({ walletAddress }: POAPSuccessProps) {
     <div className="success-page">
       <div className="content">
         <div className="logo">
-          <img className="group" src="/group0.svg" alt="" />
-          <img className="group2" src="/logo.svg" alt="" />
+          {drop?.logoUrl ? (
+            <img src={drop.logoUrl} alt="" style={{ width: 'auto', height: 'auto', maxHeight: '48px' }} />
+          ) : (
+            <img src="/logo.svg" alt="" style={{ width: 'auto', height: 'auto', maxHeight: '48px' }} />
+          )}
         </div>
         <div className="c-ard">
           <div className="header">
