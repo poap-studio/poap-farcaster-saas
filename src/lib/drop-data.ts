@@ -40,6 +40,7 @@ export function getDropConfig() {
     return {
       buttonColor: '#0a5580',
       backgroundColor: '#073d5c',
+      logoUrl: undefined,
       mintMessage: 'Enter your wallet address or ENS name to claim your commemorative POAP token.',
       requireFollow: true,
       followUsername: null,
@@ -50,6 +51,7 @@ export function getDropConfig() {
   return {
     buttonColor: drop.buttonColor,
     backgroundColor: drop.backgroundColor,
+    logoUrl: drop.logoUrl,
     mintMessage: drop.mintMessage,
     requireFollow: drop.requireFollow,
     followUsername: drop.followUsername,
