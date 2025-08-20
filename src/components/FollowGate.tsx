@@ -256,9 +256,7 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
           width: 100%;
           max-width: 390px;
           min-height: 100vh;
-          background: url('/background.jpg') center;
-          background-size: cover;
-          background-repeat: no-repeat;
+          background: #073d5c;
           display: flex;
           align-items: flex-start;
           justify-content: center;
