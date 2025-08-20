@@ -103,6 +103,15 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
         if (response.ok) {
           const data = await response.json();
           console.log('[POAPMinter] POAP event data received:', data);
+          // Verify image URL is valid
+          if (data.image_url) {
+            console.log('[POAPMinter] Testing image URL:', data.image_url);
+            // Preload image to check if it's accessible
+            const img = new Image();
+            img.onload = () => console.log('[POAPMinter] Image preloaded successfully');
+            img.onerror = () => console.error('[POAPMinter] Image preload failed');
+            img.src = data.image_url;
+          }
           setPoapEventData(data);
         } else {
           console.error('[POAPMinter] Error fetching POAP event data:', response.status, response.statusText);
@@ -545,12 +554,18 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
               ) : poapEventData?.image_url ? (
                 <img 
                   className="poap-image" 
-                  src={poapEventData.image_url} 
+                  src={`/api/proxy-image?url=${encodeURIComponent(poapEventData.image_url)}`} 
                   alt="POAP"
-                  crossOrigin="anonymous"
-                  onError={() => {
-                    console.error('POAP image failed to load:', poapEventData.image_url);
-                    setPoapEventData({ ...poapEventData, image_url: '' });
+                  onError={(e) => {
+                    console.error('[POAPMinter] POAP image failed to load:', poapEventData.image_url);
+                    // Fallback to direct URL if proxy fails
+                    const img = e.target as HTMLImageElement;
+                    if (!img.src.includes(poapEventData.image_url)) {
+                      console.log('[POAPMinter] Trying direct URL...');
+                      img.src = poapEventData.image_url;
+                    } else {
+                      setPoapEventData({ ...poapEventData, image_url: '' });
+                    }
                   }}
                 />
               ) : (
