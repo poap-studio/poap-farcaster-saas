@@ -32,8 +32,8 @@ export async function generateMetadata({
     // Add random component to ensure uniqueness
     const randomId = Math.random().toString(36).substring(7);
     const frameUrl = `${baseUrl}/drop/${slug}?t=${urlTimestamp}&rid=${randomId}`;
-    // Use same timestamp for image to ensure consistency
-    const frameImageUrl = `${baseUrl}/api/frame-image?dropId=${drop.id}&t=${urlTimestamp}&v=${drop.updatedAt}&rid=${randomId}`;
+    // Use same timestamp for image to ensure consistency - now with slug
+    const frameImageUrl = `${baseUrl}/api/frame-image?slug=${slug}&dropId=${drop.id}&t=${urlTimestamp}&v=${drop.updatedAt}&rid=${randomId}`;
 
     const frame = {
       version: "next",

@@ -23,9 +23,10 @@ interface POAPEvent {
 
 export async function GET(request: NextRequest) {
   try {
-    // Get dropId from query params if provided
+    // Get dropId and slug from query params if provided
     const searchParams = request.nextUrl.searchParams;
     const dropId = searchParams.get('dropId');
+    const slug = searchParams.get('slug');
     
     // Get POAP event data
     let poapImageUrl = "";
@@ -34,8 +35,22 @@ export async function GET(request: NextRequest) {
     let dropLogoUrl = "";
     let poapEventName = "POAP";
 
-    // If dropId is provided, fetch drop data
-    if (dropId) {
+    // If slug is provided, fetch drop data by slug first
+    if (slug) {
+      try {
+        const dropResponse = await fetch(`${request.nextUrl.origin}/api/drops/slug/${slug}`);
+        if (dropResponse.ok) {
+          const { drop } = await dropResponse.json();
+          eventId = drop.poapEventId;
+          dropBackgroundColor = drop.backgroundColor || "#073d5c";
+          dropLogoUrl = drop.logoUrl || "";
+          console.log('[Frame Image] Using drop from slug:', slug, 'colors:', dropBackgroundColor);
+        }
+      } catch (error) {
+        console.error("[Frame Image] Error fetching drop data by slug:", error);
+      }
+    } else if (dropId) {
+      // Fallback to dropId if no slug provided
       try {
         const dropResponse = await fetch(`${request.nextUrl.origin}/api/drops/${dropId}`);
         if (dropResponse.ok) {
@@ -101,7 +116,7 @@ export async function GET(request: NextRequest) {
               fontFamily: "monospace",
             }}
           >
-            {dropId ? `Drop: ${dropId.slice(-6)}` : "Default"}
+            {slug ? `Drop: ${slug}` : dropId ? `Drop: ${dropId.slice(-6)}` : "Default"}
           </div>
           {/* POAP Image on the left */}
           <img
