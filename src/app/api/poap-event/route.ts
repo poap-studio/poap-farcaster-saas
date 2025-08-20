@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "~/lib/prisma";
-import { getCurrentDrop } from "~/lib/drop-data";
 
 const POAP_API_KEY = process.env.POAP_API_KEY;
 

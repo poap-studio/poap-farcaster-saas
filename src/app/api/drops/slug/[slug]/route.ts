@@ -21,7 +21,7 @@ export async function GET(
     }
 
     // Don't expose sensitive data in public endpoint
-    const { poapSecretCode, ...publicDrop } = drop;
+    const { poapSecretCode: _, ...publicDrop } = drop;
 
     return NextResponse.json({ drop: publicDrop });
   } catch (error) {

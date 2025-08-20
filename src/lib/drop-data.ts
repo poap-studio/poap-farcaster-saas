@@ -17,7 +17,7 @@ export function getCurrentDrop(): Drop | null {
   if (typeof window === 'undefined') return null;
   
   // Try to get from window first (set by DropContent)
-  const windowData = (window as any).__DROP_DATA__;
+  const windowData = (window as Window & { __DROP_DATA__?: Drop }).__DROP_DATA__;
   if (windowData) return windowData;
   
   // Fallback to localStorage

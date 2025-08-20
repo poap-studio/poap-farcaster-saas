@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     }
 
     // Get POAP configuration from database or environment
-    let poapApiKey = process.env.POAP_API_KEY;
+    const poapApiKey = process.env.POAP_API_KEY;
     let poapEventId: string | undefined;
     let poapSecretCode: string | undefined;
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { SignInButton, useProfile } from "@farcaster/auth-kit";
+import { useProfile } from "@farcaster/auth-kit";
 import Link from "next/link";
 
 interface Drop {

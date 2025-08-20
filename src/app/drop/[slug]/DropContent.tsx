@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import sdk from "@farcaster/frame-sdk";
+import { useEffect, useState, useCallback } from "react";
 import POAPMinter from "~/components/POAPMinter";
 
 interface Drop {
@@ -22,11 +21,7 @@ export default function DropContent({ slug }: { slug: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchDrop();
-  }, [slug]);
-
-  const fetchDrop = async () => {
+  const fetchDrop = useCallback(async () => {
     try {
       const response = await fetch(`/api/drops/slug/${slug}`);
       if (!response.ok) {
@@ -40,14 +35,18 @@ export default function DropContent({ slug }: { slug: string }) {
       
       // Also set environment variables for the components
       if (typeof window !== 'undefined') {
-        (window as any).__DROP_DATA__ = drop;
+        (window as Window & { __DROP_DATA__?: Drop }).__DROP_DATA__ = drop;
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load drop");
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug]);
+
+  useEffect(() => {
+    fetchDrop();
+  }, [fetchDrop]);
 
   if (loading) {
     return (
