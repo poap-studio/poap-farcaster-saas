@@ -54,20 +54,25 @@ export async function GET() {
     ctx.fillStyle = '#073d5c';
     ctx.fillRect(0, 0, 1200, 630);
 
-    // Create SVG with text and render it
-    const svgText = `
-      <svg width="1200" height="200" xmlns="http://www.w3.org/2000/svg">
-        <text x="600" y="50" font-family="Arial, sans-serif" font-size="48" fill="white" text-anchor="middle">Get your</text>
-        <text x="600" y="120" font-family="Arial, sans-serif" font-size="64" font-weight="bold" fill="white" text-anchor="middle">Arbitrum POAP</text>
-      </svg>
-    `;
-    
+    // Draw text using the most basic approach possible
     try {
-      const textBuffer = Buffer.from(svgText);
-      const textImage = await loadImage(textBuffer);
-      ctx.drawImage(textImage, 0, 200);
-    } catch (svgError) {
-      console.error('[Frame Image] Error rendering SVG text:', svgError);
+      // Set text properties
+      ctx.fillStyle = '#FFFFFF';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      
+      // Try to draw text with different approaches
+      // Approach 1: Most basic
+      ctx.font = '48px monospace';
+      ctx.fillText('Get your', 600, 250);
+      
+      ctx.font = '64px monospace';  
+      ctx.fillText('Arbitrum POAP', 600, 330);
+      
+      console.log('[Frame Image] Text drawn with monospace font');
+    } catch (textError) {
+      console.error('[Frame Image] Error drawing text:', textError);
+      // If text fails, continue without it
     }
 
     // Try to load and draw POAP image
