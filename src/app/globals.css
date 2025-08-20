@@ -26,3 +26,23 @@ body {
   background: var(--background);
   font-family: 'Inter', Helvetica, Arial, sans-serif;
 }
+
+/* Override Farcaster Auth Kit modal title color */
+.fc-authkit-signin-button-modal h1,
+.fc-authkit-signin-button-modal-title,
+[data-testid="signin-button-modal"] h1,
+.fc-authkit-modal h1,
+div[role="dialog"] h1,
+.fc-auth-kit h1,
+.fc-authkit h1,
+h1:has(+ p:contains("Scan with your phone's Farcaster app")),
+h1:has(+ div svg) {
+  color: #000000 !important;
+}
+
+/* More specific selectors for Farcaster modal */
+[class*="authkit"] h1,
+[class*="signin"] h1,
+[class*="fc-"] h1 {
+  color: #000000 !important;
+}

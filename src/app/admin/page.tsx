@@ -319,7 +319,7 @@ export default function AdminPage() {
                       onClick={() => copyLink(drop.slug)}
                       className="flex-1 bg-slate-700 hover:bg-slate-600 text-white h-10 px-4 rounded-lg transition-colors duration-200 text-sm flex items-center justify-center"
                     >
-                      Copy Share Link
+                      Copy Link
                     </button>
                     <Link
                       href={`/admin/drops/${drop.id}/edit`}
