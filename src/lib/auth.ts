@@ -1,5 +1,3 @@
-import { SignInButton } from "@farcaster/auth-kit";
-
 export const FARCASTER_AUTH_CONFIG = {
   relay: "https://relay.farcaster.xyz",
   rpcUrl: "https://mainnet.optimism.io",

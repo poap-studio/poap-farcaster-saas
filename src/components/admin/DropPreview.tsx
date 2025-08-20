@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 interface DropPreviewProps {
   poapEventId: string;
@@ -28,7 +28,7 @@ export default function DropPreview({
   const [isLoadingPoap, setIsLoadingPoap] = useState(false);
 
   // Fetch POAP image when event ID changes
-  const fetchPoapImage = async () => {
+  const fetchPoapImage = useCallback(async () => {
     if (!poapEventId) return;
     
     setIsLoadingPoap(true);
@@ -43,12 +43,12 @@ export default function DropPreview({
     } finally {
       setIsLoadingPoap(false);
     }
-  };
+  }, [poapEventId]);
 
   // Fetch POAP image when component mounts or eventId changes
   useEffect(() => {
     fetchPoapImage();
-  }, [poapEventId]);
+  }, [fetchPoapImage]);
 
   return (
     <div className="bg-slate-800 rounded-lg p-6">
