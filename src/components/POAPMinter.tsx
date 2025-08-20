@@ -599,7 +599,6 @@ export default function POAPMinter() {
               </div>
             </div>
           </div>
-          <img className="background" src="/background0.svg" alt="" />
         </div>
       </div>
 
@@ -642,9 +641,7 @@ export default function POAPMinter() {
           width: 100%;
           max-width: 390px;
           min-height: 100vh;
-          background: url('/background.jpg') center;
-          background-size: cover;
-          background-repeat: no-repeat;
+          background: #0a5580;
           display: flex;
           align-items: flex-start;
           justify-content: center;
