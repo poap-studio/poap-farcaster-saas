@@ -191,13 +191,15 @@ export default function POAPSuccess({ walletAddress }: POAPSuccessProps) {
         }
 
         .logo {
-          width: 200px;
+          width: 100%;
           height: 51px;
           position: absolute;
-          left: 95px;
+          left: 0;
           top: 24px;
           overflow: hidden;
-          aspect-ratio: 200/51;
+          display: flex;
+          justify-content: center;
+          align-items: center;
         }
 
         .group {

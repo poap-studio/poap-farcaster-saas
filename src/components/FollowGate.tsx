@@ -321,10 +321,13 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
 
         .white-text-horizontal {
           flex-shrink: 0;
-          width: 200px;
+          width: 100%;
           height: 51px;
           position: relative;
           overflow: hidden;
+          display: flex;
+          justify-content: center;
+          align-items: center;
         }
 
         .group {
