@@ -7,14 +7,15 @@ interface MetadataProps {
 export async function generateMetadata({
   params,
 }: MetadataProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug: dropId } = await params;  // This is actually the drop ID, not slug
   
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_URL || 
+    // Use the correct base URL with proper fallbacks
+    const baseUrl = process.env.NEXT_PUBLIC_FRAME_URL || 
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
     
     const response = await fetch(
-      `${baseUrl}/api/drops/${slug}`,
+      `${baseUrl}/api/drops/${dropId}`,
       { cache: "no-store" }
     );
 
@@ -26,7 +27,7 @@ export async function generateMetadata({
 
     const { drop } = await response.json();
     const timestamp = Date.now();
-    const frameImageUrl = `${baseUrl}/api/frame-image?dropId=${slug}&t=${timestamp}`;
+    const frameImageUrl = `${baseUrl}/api/frame-image?dropId=${dropId}&t=${timestamp}`;
     const title = `Mint POAP #${drop.poapEventId}`;
 
     // Frame v2 structure
