@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useProfile } from "@farcaster/auth-kit";
 import Link from "next/link";
+import { Toaster, toast } from "react-hot-toast";
 import DropPreview from "~/components/admin/DropPreview";
 
 export default function NewDropPage() {
@@ -43,7 +44,7 @@ export default function NewDropPage() {
 
   const validatePOAPEvent = async () => {
     if (!formData.poapEventId || !formData.poapSecretCode) {
-      alert("Please enter both Event ID and Secret Code");
+      toast.error("Please enter both Event ID and Secret Code");
       return;
     }
 
@@ -61,13 +62,13 @@ export default function NewDropPage() {
       if (response.ok) {
         const data = await response.json();
         setEventInfo(data.event);
-        alert("POAP event validated successfully!");
+        toast.success("POAP event validated successfully!");
       } else {
-        alert("Invalid POAP event ID or secret code");
+        toast.error("Invalid POAP event ID or secret code");
       }
     } catch (error) {
       console.error("Validation error:", error);
-      alert("Failed to validate POAP event");
+      toast.error("Failed to validate POAP event");
     } finally {
       setValidating(false);
     }
@@ -77,7 +78,7 @@ export default function NewDropPage() {
     e.preventDefault();
     
     if (!eventInfo) {
-      alert("Please validate your POAP event first");
+      toast.error("Please validate your POAP event first");
       return;
     }
 
@@ -94,7 +95,7 @@ export default function NewDropPage() {
     });
 
     if (!loginResponse.ok) {
-      alert("Authentication failed");
+      toast.error("Authentication failed");
       return;
     }
 
@@ -113,21 +114,23 @@ export default function NewDropPage() {
 
       if (response.ok) {
         const { drop } = await response.json();
-        alert(`Drop created! Share this link: ${window.location.origin}/drop/${drop.slug}`);
+        toast.success("Drop created successfully!");
         router.push("/admin");
       } else {
-        alert("Failed to create drop");
+        toast.error("Failed to create drop");
       }
     } catch (error) {
       console.error("Create drop error:", error);
-      alert("Failed to create drop");
+      toast.error("Failed to create drop");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <>
+      <Toaster position="top-center" />
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Header */}
       <div className="mb-8">
         <Link
@@ -403,6 +406,7 @@ export default function NewDropPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useProfile } from "@farcaster/auth-kit";
 import Link from "next/link";
+import { Toaster, toast } from "react-hot-toast";
 import DropPreview from "~/components/admin/DropPreview";
 
 interface PageProps {
@@ -94,7 +95,7 @@ export default function EditDropPage({ params }: PageProps) {
     });
 
     if (!loginResponse.ok) {
-      alert("Authentication failed");
+      toast.error("Authentication failed");
       return;
     }
 
@@ -112,14 +113,14 @@ export default function EditDropPage({ params }: PageProps) {
       });
 
       if (response.ok) {
-        alert("Drop updated successfully!");
+        toast.success("Drop updated successfully!");
         router.push("/admin");
       } else {
-        alert("Failed to update drop");
+        toast.error("Failed to update drop");
       }
     } catch (error) {
       console.error("Update drop error:", error);
-      alert("Failed to update drop");
+      toast.error("Failed to update drop");
     } finally {
       setLoading(false);
     }
@@ -134,7 +135,9 @@ export default function EditDropPage({ params }: PageProps) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <>
+      <Toaster position="top-center" />
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Header */}
       <div className="mb-8">
         <Link
@@ -417,6 +420,7 @@ export default function EditDropPage({ params }: PageProps) {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
