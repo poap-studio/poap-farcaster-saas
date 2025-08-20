@@ -1,19 +1,6 @@
 import { Metadata } from "next";
 import DropContent from "./DropContent";
 
-interface Drop {
-  id: string;
-  slug: string;
-  poapEventId: string;
-  buttonColor: string;
-  backgroundColor: string;
-  logoUrl?: string;
-  mintMessage: string;
-  requireFollow: boolean;
-  followUsername?: string;
-  requireRecast: boolean;
-}
-
 interface MetadataProps {
   params: Promise<{ slug: string }>;
 }
