@@ -114,7 +114,10 @@ export default function AdminPage() {
               const poapResponse = await fetch(`/api/poap/validate-event?eventId=${drop.poapEventId}`);
               if (poapResponse.ok) {
                 const poapData = await poapResponse.json();
-                return { ...drop, poapName: poapData.event.name };
+                console.log(`POAP data for ${drop.poapEventId}:`, poapData);
+                return { ...drop, poapName: poapData.event?.name || null };
+              } else {
+                console.error(`Failed to fetch POAP name for event ${drop.poapEventId}: ${poapResponse.status}`);
               }
             } catch (error) {
               console.error(`Error fetching POAP name for event ${drop.poapEventId}:`, error);
