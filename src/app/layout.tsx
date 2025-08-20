@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import "~/app/globals.css";
+import "@farcaster/auth-kit/styles.css";
 import { Providers } from "~/app/providers";
 
 export const metadata: Metadata = {
