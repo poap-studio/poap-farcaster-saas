@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createCanvas, loadImage, registerFont } from "canvas";
+import { createCanvas, loadImage } from "canvas";
 import path from "path";
 
 const POAP_API_KEY = process.env.POAP_API_KEY;
