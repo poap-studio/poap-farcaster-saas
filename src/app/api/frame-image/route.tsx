@@ -31,6 +31,8 @@ export async function GET(request: NextRequest) {
     let poapImageUrl = "";
     let eventId = POAP_EVENT_ID;
     let dropBackgroundColor = "#073d5c"; // default
+    let dropLogoUrl = "";
+    let poapEventName = "POAP";
 
     // If dropId is provided, fetch drop data
     if (dropId) {
@@ -40,6 +42,7 @@ export async function GET(request: NextRequest) {
           const { drop } = await dropResponse.json();
           eventId = drop.poapEventId;
           dropBackgroundColor = drop.backgroundColor || "#073d5c";
+          dropLogoUrl = drop.logoUrl || "";
         }
       } catch (error) {
         console.error("[Frame Image] Error fetching drop data:", error);
@@ -59,6 +62,7 @@ export async function GET(request: NextRequest) {
         if (response.ok) {
           const eventData: POAPEvent = await response.json();
           poapImageUrl = eventData.image_url;
+          poapEventName = eventData.name || "POAP";
         }
       } catch (error) {
         console.error("[Frame Image] Error fetching POAP data:", error);
@@ -103,6 +107,7 @@ export async function GET(request: NextRequest) {
               display: "flex",
               flexDirection: "column",
               alignItems: "flex-start",
+              position: "relative",
             }}
           >
             <div
@@ -122,8 +127,22 @@ export async function GET(request: NextRequest) {
                 fontWeight: "bold",
               }}
             >
-              Arbitrum POAP
+              {poapEventName}
             </div>
+            {dropLogoUrl && (
+              <img
+                src={dropLogoUrl}
+                alt="Logo"
+                style={{
+                  position: "absolute",
+                  bottom: "-40px",
+                  right: "-100px",
+                  width: "80px",
+                  height: "80px",
+                  objectFit: "contain",
+                }}
+              />
+            )}
           </div>
         </div>
       ),

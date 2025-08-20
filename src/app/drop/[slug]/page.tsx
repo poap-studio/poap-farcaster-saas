@@ -24,19 +24,21 @@ export async function generateMetadata({
 
     const { drop } = await response.json();
 
-    const frameUrl = `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}/drop/${slug}`;
+    const baseUrl = `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}`;
+    const frameUrl = `${baseUrl}/drop/${slug}`;
+    const frameImageUrl = `${baseUrl}/api/frame-image?dropId=${drop.id}`;
 
     const frame = {
       version: "next",
-      imageUrl: `${frameUrl}/api/frame-image`,
+      imageUrl: frameImageUrl,
       button: {
         title: `Mint POAP #${drop.poapEventId}`,
         action: {
           type: "launch_frame",
           name: `Mint POAP #${drop.poapEventId}`,
           url: frameUrl,
-          splashImageUrl: drop.logoUrl || `${frameUrl}/group0.svg`,
-          splashBackgroundColor: "#f7f7f7",
+          splashImageUrl: drop.logoUrl || `${baseUrl}/logo.svg`,
+          splashBackgroundColor: drop.backgroundColor || "#f7f7f7",
         },
       },
     };
@@ -48,7 +50,7 @@ export async function generateMetadata({
         title: `Mint POAP #${drop.poapEventId}`,
         description: drop.mintMessage,
         images: [{
-          url: `${frameUrl}/api/frame-image`,
+          url: frameImageUrl,
           alt: `POAP #${drop.poapEventId}`
         }]
       },
