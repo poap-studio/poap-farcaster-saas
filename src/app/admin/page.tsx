@@ -20,6 +20,9 @@ interface Drop {
   isActive: boolean;
   createdAt: string;
   poapName?: string;
+  _count?: {
+    claims: number;
+  };
 }
 
 interface DeleteModalProps {
@@ -180,6 +183,32 @@ export default function AdminPage() {
     navigator.clipboard.writeText(url);
     toast.success('Enlace copiado al portapapeles');
   };
+
+  const downloadCollectors = async (dropId: string, dropName: string) => {
+    try {
+      const response = await fetch(`/api/download?dropId=${dropId}`);
+      
+      if (!response.ok) {
+        toast.error('Error al descargar los collectors');
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `collectors-${dropName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Archivo descargado correctamente');
+    } catch (error) {
+      console.error('Error downloading collectors:', error);
+      toast.error('Error al descargar los collectors');
+    }
+  };
   
   // Pagination logic
   const totalPages = Math.ceil(drops.length / ITEMS_PER_PAGE);
@@ -315,6 +344,16 @@ export default function AdminPage() {
                           Recast required
                         </p>
                       )}
+                      <a
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          downloadCollectors(drop.id, drop.poapName || `Event #${drop.poapEventId}`);
+                        }}
+                        className="text-blue-400 hover:text-blue-300 text-sm underline"
+                      >
+                        {drop._count?.claims || 0} collectors
+                      </a>
                     </div>
                   </div>
 

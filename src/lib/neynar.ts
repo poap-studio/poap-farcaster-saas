@@ -223,3 +223,51 @@ export function getRequiredFollowUsername(): string {
 export function getRequiredRecastHash(): string {
   return REQUIRED_RECAST_HASH;
 }
+
+export async function getUserUsername(userFid: number): Promise<string | null> {
+  console.log(`[User Username] Getting username for FID: ${userFid}`);
+  
+  if (!NEYNAR_API_KEY) {
+    console.error("[User Username] NEYNAR_API_KEY is not set");
+    return null;
+  }
+
+  if (!userFid) {
+    console.error("[User Username] userFid is required");
+    return null;
+  }
+
+  try {
+    const url = `https://api.neynar.com/v2/farcaster/user/bulk?fids=${userFid}`;
+    console.log(`[User Username] Making request to: ${url}`);
+    
+    const response = await fetch(url, {
+      headers: {
+        "api_key": NEYNAR_API_KEY,
+        "accept": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      console.error("[User Username] API response not OK:", response.status, response.statusText);
+      return null;
+    }
+
+    const data = await response.json();
+    console.log("[User Username] API response:", JSON.stringify(data, null, 2));
+    
+    const user = data.users?.[0];
+    if (!user) {
+      console.error("[User Username] No user data found");
+      return null;
+    }
+
+    const username = user.username;
+    console.log(`[User Username] Found username: ${username}`);
+    
+    return username || null;
+  } catch (error) {
+    console.error("[User Username] Error getting username:", error);
+    return null;
+  }
+}

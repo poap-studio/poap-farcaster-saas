@@ -38,10 +38,11 @@ export async function GET(request: Request) {
       });
     }
     
-    const csvHeader = 'FID,Drop ID,Event ID,Address,Claimed At,Transaction Hash\n';
+    const csvHeader = 'FID,Username,Drop ID,Event ID,Address,Claimed At,Transaction Hash\n';
     const csvRows = claims.map(claim => {
       return [
         escapeCSVField(claim.fid),
+        escapeCSVField(claim.username || ''),
         escapeCSVField(claim.dropId),
         escapeCSVField(claim.drop.poapEventId),
         escapeCSVField(claim.address),

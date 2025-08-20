@@ -45,6 +45,7 @@ model Claim {
   id        String   @id @default(cuid())
   dropId    String
   fid       Int
+  username  String?
   address   String
   txHash    String?
   claimedAt DateTime @default(now())

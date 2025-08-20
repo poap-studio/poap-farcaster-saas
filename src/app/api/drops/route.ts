@@ -16,6 +16,11 @@ export async function GET(request: NextRequest) {
     const drops = await prisma.drop.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
+      include: {
+        _count: {
+          select: { claims: true }
+        }
+      }
     });
 
     return NextResponse.json({ drops });

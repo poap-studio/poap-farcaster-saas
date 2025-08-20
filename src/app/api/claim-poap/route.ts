@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPOAPAuthManager } from "~/lib/poap-auth";
 import { prisma } from "~/lib/prisma";
+import { getUserUsername } from "~/lib/neynar";
 
 interface QRCode {
   qr_hash: string;
@@ -162,17 +163,27 @@ export async function POST(request: Request) {
     const claimData = await claimResponse.json();
     console.log("POAP claimed successfully:", claimData);
 
+    // Get username from Farcaster
+    let username: string | null = null;
+    try {
+      username = await getUserUsername(fid);
+      console.log(`[POAP Claim] Found username for FID ${fid}: ${username}`);
+    } catch (error) {
+      console.warn(`[POAP Claim] Failed to get username for FID ${fid}`, error);
+    }
+
     // Record the claim in database
     try {
       await prisma.claim.create({
         data: {
           dropId: dropId!,
           fid: fid,
+          username: username,
           address: address,
           txHash: txHash
         }
       });
-      console.log(`[POAP Claim] Recorded claim for FID ${fid}, Drop ${dropId}`);
+      console.log(`[POAP Claim] Recorded claim for FID ${fid}, Drop ${dropId}, Username ${username}`);
     } catch (error) {
       console.warn(`[POAP Claim] Failed to record claim in database for FID ${fid}, but POAP was claimed successfully`, error);
     }
