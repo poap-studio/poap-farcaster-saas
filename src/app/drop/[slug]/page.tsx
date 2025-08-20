@@ -25,7 +25,9 @@ export async function generateMetadata({
     const { drop } = await response.json();
 
     const baseUrl = `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}`;
-    const frameUrl = `${baseUrl}/drop/${slug}`;
+    // Add version to frame URL to ensure each drop is cached separately
+    const frameVersion = drop.updatedAt ? new Date(drop.updatedAt).getTime() : Date.now();
+    const frameUrl = `${baseUrl}/drop/${slug}?v=${frameVersion}`;
     // Add timestamp to frame image URL to bust cache
     const timestamp = Date.now();
     const frameImageUrl = `${baseUrl}/api/frame-image?dropId=${drop.id}&t=${timestamp}`;
@@ -60,6 +62,9 @@ export async function generateMetadata({
         "fc:frame": JSON.stringify(frame),
         "fc:frame:image": frameImageUrl,
         "fc:frame:post_url": frameUrl,
+        // Add unique identifier to help Farcaster differentiate between drops
+        "fc:frame:id": `${drop.id}-${frameVersion}`,
+        "fc:frame:state": JSON.stringify({ dropId: drop.id, version: frameVersion }),
       },
     };
   } catch (error) {

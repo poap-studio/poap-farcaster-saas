@@ -5,6 +5,7 @@ export function middleware(request: NextRequest) {
   // Apply no-cache headers to frame pages and API routes
   if (
     request.nextUrl.pathname.startsWith('/drop/') ||
+    request.nextUrl.pathname.startsWith('/f/') ||
     request.nextUrl.pathname.startsWith('/api/frame-image') ||
     request.nextUrl.pathname.startsWith('/api/drops/slug/')
   ) {
@@ -28,6 +29,7 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/drop/:path*',
+    '/f/:path*',
     '/api/frame-image',
     '/api/drops/slug/:path*',
   ],
