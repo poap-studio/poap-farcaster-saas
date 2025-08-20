@@ -54,8 +54,21 @@ export async function GET() {
     ctx.fillStyle = '#073d5c';
     ctx.fillRect(0, 0, 1200, 630);
 
-    // Skip text drawing for now - Vercel canvas has font issues
-    // TODO: Find alternative solution for text rendering
+    // Create SVG with text and render it
+    const svgText = `
+      <svg width="1200" height="200" xmlns="http://www.w3.org/2000/svg">
+        <text x="600" y="50" font-family="Arial, sans-serif" font-size="48" fill="white" text-anchor="middle">Get your</text>
+        <text x="600" y="120" font-family="Arial, sans-serif" font-size="64" font-weight="bold" fill="white" text-anchor="middle">Arbitrum POAP</text>
+      </svg>
+    `;
+    
+    try {
+      const textBuffer = Buffer.from(svgText);
+      const textImage = await loadImage(textBuffer);
+      ctx.drawImage(textImage, 0, 200);
+    } catch (svgError) {
+      console.error('[Frame Image] Error rendering SVG text:', svgError);
+    }
 
     // Try to load and draw POAP image
     try {
@@ -97,7 +110,7 @@ export async function GET() {
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+        'Cache-Control': 'no-cache, no-store, must-revalidate', // No cache
       },
     });
 
@@ -117,7 +130,7 @@ export async function GET() {
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=300', // Cache for 5 minutes on error
+        'Cache-Control': 'no-cache, no-store, must-revalidate', // No cache
       },
     });
   }
