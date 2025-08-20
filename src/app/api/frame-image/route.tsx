@@ -21,6 +21,32 @@ interface POAPEvent {
   supply: number;
 }
 
+// Function to split text into lines based on max width
+function splitTextIntoLines(text: string, maxCharsPerLine: number = 18): string[] {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    
+    if (testLine.length <= maxCharsPerLine) {
+      currentLine = testLine;
+    } else {
+      if (currentLine) {
+        lines.push(currentLine);
+      }
+      currentLine = word;
+    }
+  }
+  
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+  
+  return lines;
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Get dropId and slug from query params if provided
@@ -138,6 +164,7 @@ export async function GET(request: NextRequest) {
               flexDirection: "column",
               alignItems: "flex-start",
               position: "relative",
+              maxWidth: "600px",
             }}
           >
             <div
@@ -152,12 +179,24 @@ export async function GET(request: NextRequest) {
             </div>
             <div
               style={{
-                fontSize: "64px",
-                color: "white",
-                fontWeight: "bold",
+                display: "flex",
+                flexDirection: "column",
+                gap: "5px",
               }}
             >
-              {poapEventName}
+              {splitTextIntoLines(poapEventName, 16).map((line, index) => (
+                <div
+                  key={index}
+                  style={{
+                    fontSize: "64px",
+                    color: "white",
+                    fontWeight: "bold",
+                    lineHeight: "1.1",
+                  }}
+                >
+                  {line}
+                </div>
+              ))}
             </div>
             {dropLogoUrl && (
               <img
