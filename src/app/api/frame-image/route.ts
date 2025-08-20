@@ -22,20 +22,7 @@ interface POAPEvent {
 
 export async function GET() {
   try {
-    // Register fonts before creating canvas
-    try {
-      const fontPathRegular = path.join(process.cwd(), 'public/fonts/Inter-Regular.ttf');
-      const fontPathBold = path.join(process.cwd(), 'public/fonts/Inter-Bold.ttf');
-      
-      console.log('[Frame Image] Registering fonts from:', fontPathRegular, fontPathBold);
-      
-      registerFont(fontPathRegular, { family: 'Inter' });
-      registerFont(fontPathBold, { family: 'Inter', weight: 'bold' });
-      
-      console.log('[Frame Image] Fonts registered successfully');
-    } catch (fontError) {
-      console.error('[Frame Image] Error registering fonts:', fontError);
-    }
+    // Skip font registration - will draw text without custom fonts
     
     // Get POAP event data
     let poapImageUrl = '';
@@ -67,31 +54,8 @@ export async function GET() {
     ctx.fillStyle = '#073d5c';
     ctx.fillRect(0, 0, 1200, 630);
 
-    // Draw text with registered font
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    
-    // Try different font syntaxes
-    try {
-      // First try with Inter font
-      ctx.font = '48px Inter';
-      console.log('[Frame Image] Font set to:', ctx.font);
-      ctx.fillText('Get your', 600, 260);
-      
-      ctx.font = 'bold 64px Inter';
-      console.log('[Frame Image] Font set to:', ctx.font);
-      ctx.fillText('Arbitrum POAP', 600, 340);
-    } catch (textError) {
-      console.error('[Frame Image] Error drawing text with Inter font:', textError);
-      
-      // Fallback to system font
-      ctx.font = '48px sans-serif';
-      ctx.fillText('Get your', 600, 260);
-      
-      ctx.font = 'bold 64px sans-serif';
-      ctx.fillText('Arbitrum POAP', 600, 340);
-    }
+    // Skip text drawing for now - Vercel canvas has font issues
+    // TODO: Find alternative solution for text rendering
 
     // Try to load and draw POAP image
     try {
@@ -106,10 +70,10 @@ export async function GET() {
         poapImage = await loadImage(fallbackPoapPath);
       }
       
-      // Draw POAP image left of center, circular
-      const poapSize = 280;
-      const poapX = (1200 - poapSize) / 2 - 210; // Moved 210px to the left
-      const poapY = (630 - poapSize) / 2; // Vertically centered
+      // Draw POAP image centered, circular
+      const poapSize = 400;
+      const poapX = (1200 - poapSize) / 2; // Centered horizontally
+      const poapY = (630 - poapSize) / 2; // Centered vertically
       
       // Create circular clipping path
       ctx.save();
