@@ -1,10 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
-const POAPMinter = dynamic(() => import("~/components/POAPMinter"), {
-  ssr: false,
-});
+import POAPMinter from "~/components/POAPMinter";
 
 export default function Home() {
   return (
