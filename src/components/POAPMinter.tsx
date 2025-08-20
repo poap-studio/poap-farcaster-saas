@@ -294,7 +294,7 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
     if (context) {
       checkRequirements();
     }
-  }, [context]);
+  }, [context, drop?.id, dropConfig.followUsername, dropConfig.requireFollow, dropConfig.requireRecast, userHasModifiedAddress]);
 
 
   const mintPoap = async () => {
@@ -544,7 +544,7 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
                   src={poapEventData.image_url} 
                   alt="POAP"
                   crossOrigin="anonymous"
-                  onError={(e) => {
+                  onError={() => {
                     console.error('POAP image failed to load:', poapEventData.image_url);
                     setPoapEventData({ ...poapEventData, image_url: '' });
                   }}

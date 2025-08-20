@@ -98,7 +98,7 @@ export default function POAPSuccess({ walletAddress }: POAPSuccessProps) {
                   src={poapEventData.image_url} 
                   alt="POAP"
                   crossOrigin="anonymous"
-                  onError={(e) => {
+                  onError={() => {
                     console.error('POAP image failed to load in POAPSuccess:', poapEventData.image_url);
                   }}
                 />
