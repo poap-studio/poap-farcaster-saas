@@ -1,16 +1,8 @@
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
 
 interface MetadataProps {
   params: Promise<{ slug: string }>;
 }
-
-const FRAME_URL = process.env.NEXT_PUBLIC_FRAME_URL 
-  || (process.env.NODE_ENV === 'development' 
-    ? 'http://localhost:3000'
-    : process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}`
-      : '');
 
 export async function generateMetadata({
   params,
@@ -18,8 +10,11 @@ export async function generateMetadata({
   const { slug } = await params;
   
   try {
+    const baseUrl = process.env.NEXT_PUBLIC_URL || 
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+    
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}/api/drops/${slug}`,
+      `${baseUrl}/api/drops/${slug}`,
       { cache: "no-store" }
     );
 
@@ -31,9 +26,10 @@ export async function generateMetadata({
 
     const { drop } = await response.json();
     const timestamp = Date.now();
-    const frameImageUrl = `${FRAME_URL}/api/frame-image?dropId=${slug}&t=${timestamp}`;
+    const frameImageUrl = `${baseUrl}/api/frame-image?dropId=${slug}&t=${timestamp}`;
     const title = `Mint POAP #${drop.poapEventId}`;
 
+    // Frame v2 structure
     const frame = {
       version: "next",
       imageUrl: frameImageUrl,
@@ -42,8 +38,8 @@ export async function generateMetadata({
         action: {
           type: "launch_frame",
           name: title,
-          url: `${FRAME_URL}/drop/${drop.slug}`,
-          splashImageUrl: drop.logoUrl || `${FRAME_URL}/logo.svg`,
+          url: `${baseUrl}/drop/${drop.slug}`,
+          splashImageUrl: drop.logoUrl || `${baseUrl}/logo.svg`,
           splashBackgroundColor: drop.backgroundColor || "#f7f7f7",
         },
       },
@@ -57,13 +53,13 @@ export async function generateMetadata({
         description: drop.mintMessage,
         images: [{
           url: frameImageUrl,
+          width: 1200,
+          height: 630,
           alt: title
         }]
       },
       other: {
         "fc:frame": JSON.stringify(frame),
-        "fc:frame:image": frameImageUrl,
-        "fc:frame:post_url": `${FRAME_URL}/drop/${drop.slug}`,
       },
     };
   } catch (error) {
@@ -84,24 +80,7 @@ export const revalidate = 0;
 export default async function SharePage({ params }: PageProps) {
   const { slug } = await params;
   
-  // Fetch drop to get the actual slug
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}/api/drops/${slug}`,
-      { cache: "no-store" }
-    );
-
-    if (response.ok) {
-      const { drop } = await response.json();
-      const timestamp = Date.now();
-      const randomId = Math.random().toString(36).substring(7);
-      redirect(`/drop/${drop.slug}?t=${timestamp}&rid=${randomId}&src=share`);
-    }
-  } catch (error) {
-    console.error("Error fetching drop:", error);
-  }
-
-  // Fallback if redirect fails
+  // Simple page that exists just to serve frame metadata
   return (
     <div style={{ 
       width: '100vw', 
@@ -112,8 +91,8 @@ export default async function SharePage({ params }: PageProps) {
       backgroundColor: '#1e293b'
     }}>
       <div style={{ textAlign: 'center', color: 'white' }}>
-        <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Loading POAP Frame...</h1>
-        <p style={{ color: '#94a3b8' }}>Please wait while we redirect you.</p>
+        <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>POAP Frame</h1>
+        <p style={{ color: '#94a3b8' }}>Share this link on Farcaster to display the frame.</p>
       </div>
     </div>
   );
