@@ -54,26 +54,8 @@ export async function GET() {
     ctx.fillStyle = '#073d5c';
     ctx.fillRect(0, 0, 1200, 630);
 
-    // Draw text using the most basic approach possible
-    try {
-      // Set text properties
-      ctx.fillStyle = '#FFFFFF';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'alphabetic';
-      
-      // Try to draw text with different approaches
-      // Approach 1: Most basic
-      ctx.font = '48px monospace';
-      ctx.fillText('Get your', 600, 250);
-      
-      ctx.font = '64px monospace';  
-      ctx.fillText('Arbitrum POAP', 600, 330);
-      
-      console.log('[Frame Image] Text drawn with monospace font');
-    } catch (textError) {
-      console.error('[Frame Image] Error drawing text:', textError);
-      // If text fails, continue without it
-    }
+    // Text rendering is not working on Vercel - canvas font issue
+    // For now, show image without text
 
     // Try to load and draw POAP image
     try {
