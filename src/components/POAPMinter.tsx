@@ -648,7 +648,7 @@ export default function POAPMinter() {
           width: 100%;
           max-width: 390px;
           min-height: 100vh;
-          background: ${dropConfig.backgroundColor};
+          background: var(--drop-background-color, ${dropConfig.backgroundColor});
           display: flex;
           align-items: flex-start;
           justify-content: center;
@@ -975,7 +975,7 @@ export default function POAPMinter() {
           width: 100%;
           max-width: 310px;
           padding: 16px;
-          background: ${dropConfig.buttonColor};
+          background: var(--drop-button-color, ${dropConfig.buttonColor});
           border-radius: 8px;
           color: #ffffff;
           font-size: 18px;
@@ -1006,11 +1006,11 @@ export default function POAPMinter() {
         .mint-button.loading {
           background: linear-gradient(
             90deg,
-            ${dropConfig.buttonColor},
-            ${dropConfig.buttonColor}dd,
-            ${dropConfig.buttonColor}bb,
-            ${dropConfig.buttonColor}dd,
-            ${dropConfig.buttonColor}
+            var(--drop-button-color, ${dropConfig.buttonColor}),
+            var(--drop-button-color, ${dropConfig.buttonColor})dd,
+            var(--drop-button-color, ${dropConfig.buttonColor})bb,
+            var(--drop-button-color, ${dropConfig.buttonColor})dd,
+            var(--drop-button-color, ${dropConfig.buttonColor})
           );
           background-size: 200% auto;
           animation: shine 2s linear infinite;

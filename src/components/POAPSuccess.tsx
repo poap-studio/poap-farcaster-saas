@@ -164,7 +164,7 @@ export default function POAPSuccess({ walletAddress }: POAPSuccessProps) {
         }
 
         .success-page {
-          background: ${getDropConfig().backgroundColor};
+          background: var(--drop-background-color, ${getDropConfig().backgroundColor});
           background-size: cover;
           background-repeat: no-repeat;
           height: 844px;

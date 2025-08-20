@@ -267,7 +267,7 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
           width: 100%;
           max-width: 390px;
           min-height: 100vh;
-          background: ${getDropConfig().backgroundColor};
+          background: var(--drop-background-color, ${getDropConfig().backgroundColor});
           display: flex;
           align-items: flex-start;
           justify-content: center;
@@ -628,7 +628,7 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
         .claim-button:not(:disabled) {
           color: #ffffff;
           cursor: pointer;
-          background: ${getDropConfig().buttonColor};
+          background: var(--drop-button-color, ${getDropConfig().buttonColor});
         }
 
         .claim-button:not(:disabled):hover {
