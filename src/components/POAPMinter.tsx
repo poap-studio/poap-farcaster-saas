@@ -98,12 +98,17 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
         setIsLoadingPoapData(true);
         const url = drop?.id ? `/api/poap-event?dropId=${drop.id}` : '/api/poap-event';
         const response = await fetch(url);
+        
         if (response.ok) {
           const data = await response.json();
           setPoapEventData(data);
+        } else {
+          console.error('Error fetching POAP event data:', response.status, response.statusText);
+          setPoapEventData(null);
         }
       } catch (error) {
         console.error('Error fetching POAP event data:', error);
+        setPoapEventData(null);
       } finally {
         setIsLoadingPoapData(false);
       }
@@ -537,7 +542,12 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
                 <img 
                   className="poap-image" 
                   src={poapEventData.image_url} 
-                  alt="POAP" 
+                  alt="POAP"
+                  crossOrigin="anonymous"
+                  onError={(e) => {
+                    console.error('POAP image failed to load:', poapEventData.image_url);
+                    setPoapEventData({ ...poapEventData, image_url: '' });
+                  }}
                 />
               ) : (
                 <div className="poap-image-error">

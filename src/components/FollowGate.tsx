@@ -132,7 +132,11 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
                 <img 
                   className="poap-image" 
                   src={poapEventData.image_url} 
-                  alt="POAP" 
+                  alt="POAP"
+                  crossOrigin="anonymous"
+                  onError={(e) => {
+                    console.error('POAP image failed to load in FollowGate:', poapEventData.image_url);
+                  }}
                 />
               ) : (
                 <div className="poap-image-error">
