@@ -3,6 +3,7 @@ import { base } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import farcasterFrame from "@farcaster/frame-wagmi-connector";
 import { AuthKitProvider } from "@farcaster/auth-kit";
+import { FARCASTER_AUTH_CONFIG } from "~/lib/auth";
 // import { walletConnect } from "wagmi/connectors";
 
 // const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID!;
@@ -23,9 +24,8 @@ export const config = createConfig({
 const queryClient = new QueryClient();
 
 const authKitConfig = {
-  rpcUrl: rpcUrl,
-  domain: typeof window !== 'undefined' ? window.location.hostname : 'localhost',
-  siweUri: typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000',
+  ...FARCASTER_AUTH_CONFIG,
+  relay: "https://relay.farcaster.xyz",
 };
 
 export default function Provider({ children }: { children: React.ReactNode }) {
