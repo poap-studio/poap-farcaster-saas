@@ -17,7 +17,22 @@ import POAPSuccess from "./POAPSuccess";
 import { getCurrentDrop, getDropConfig } from "~/lib/drop-data";
 
 
-export default function POAPMinter() {
+interface POAPMinterProps {
+  initialDrop?: {
+    id: string;
+    slug: string;
+    poapEventId: string;
+    buttonColor: string;
+    backgroundColor: string;
+    logoUrl?: string;
+    mintMessage: string;
+    requireFollow: boolean;
+    followUsername?: string;
+    requireRecast: boolean;
+  };
+}
+
+export default function POAPMinter({ initialDrop }: POAPMinterProps) {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string>("");
   const [userHasModifiedAddress, setUserHasModifiedAddress] = useState<boolean>(false);
@@ -39,9 +54,16 @@ export default function POAPMinter() {
   const [resolvedAddress, setResolvedAddress] = useState<string>("");
   const [ensError, setEnsError] = useState<string>("");
   
-  // Get drop configuration
-  const dropConfig = getDropConfig();
-  const drop = getCurrentDrop();
+  // Get drop configuration - use initialDrop if provided, otherwise get from context
+  const drop = initialDrop || getCurrentDrop();
+  const dropConfig = drop ? {
+    buttonColor: drop.buttonColor,
+    backgroundColor: drop.backgroundColor,
+    mintMessage: drop.mintMessage,
+    requireFollow: drop.requireFollow,
+    followUsername: drop.followUsername,
+    requireRecast: drop.requireRecast
+  } : getDropConfig();
 
   const { address, isConnected } = useAccount();
   const { connect, isPending: isConnecting } = useConnect();
