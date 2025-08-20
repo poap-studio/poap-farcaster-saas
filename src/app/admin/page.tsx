@@ -174,8 +174,8 @@ export default function AdminPage() {
     window.location.reload();
   };
 
-  const copyLink = (slug: string) => {
-    const url = `${window.location.origin}/share/${slug}`;
+  const copyLink = (dropId: string) => {
+    const url = `${window.location.origin}/share/${dropId}`;
     navigator.clipboard.writeText(url);
     toast.success('Enlace copiado al portapapeles');
   };
@@ -319,7 +319,7 @@ export default function AdminPage() {
 
                   <div className="flex flex-col sm:flex-row gap-2 mt-auto">
                     <button
-                      onClick={() => copyLink(drop.slug)}
+                      onClick={() => copyLink(drop.id)}
                       className="flex-1 bg-slate-700 hover:bg-slate-600 text-white h-10 px-4 rounded-lg transition-colors duration-200 text-sm flex items-center justify-center"
                     >
                       Copy Link
