@@ -10,8 +10,10 @@ export async function GET(
   const timestamp = Date.now();
   const randomId = Math.random().toString(36).substring(7);
   
-  // Redirect to the drop URL with cache-busting parameters
-  const baseUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
+  // Get the base URL from the request to ensure it works in all environments
+  const host = request.headers.get('host');
+  const protocol = request.headers.get('x-forwarded-proto') || 'https';
+  const baseUrl = `${protocol}://${host}`;
   const dropUrl = `${baseUrl}/drop/${slug}?t=${timestamp}&rid=${randomId}&src=share`;
   
   return NextResponse.redirect(dropUrl, {
