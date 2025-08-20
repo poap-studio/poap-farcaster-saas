@@ -1,6 +1,19 @@
 import { Metadata } from "next";
 import DropContent from "./DropContent";
 
+interface Drop {
+  id: string;
+  slug: string;
+  poapEventId: string;
+  buttonColor: string;
+  backgroundColor: string;
+  logoUrl?: string;
+  mintMessage: string;
+  requireFollow: boolean;
+  followUsername?: string;
+  requireRecast: boolean;
+}
+
 interface MetadataProps {
   params: Promise<{ slug: string }>;
 }
@@ -72,5 +85,22 @@ interface PageProps {
 
 export default async function DropPage({ params }: PageProps) {
   const { slug } = await params;
-  return <DropContent slug={slug} />;
+  
+  // Fetch drop data server-side
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}/api/drops/slug/${slug}`,
+      { cache: "no-store" }
+    );
+
+    if (!response.ok) {
+      return <DropContent slug={slug} />;
+    }
+
+    const { drop } = await response.json();
+    return <DropContent slug={slug} initialDrop={drop} />;
+  } catch (error) {
+    console.error("Error fetching drop:", error);
+    return <DropContent slug={slug} />;
+  }
 }

@@ -16,12 +16,22 @@ interface Drop {
   requireRecast: boolean;
 }
 
-export default function DropContent({ slug }: { slug: string }) {
-  const [drop, setDrop] = useState<Drop | null>(null);
-  const [loading, setLoading] = useState(true);
+interface DropContentProps {
+  slug: string;
+  initialDrop?: Drop;
+}
+
+export default function DropContent({ slug, initialDrop }: DropContentProps) {
+  const [drop, setDrop] = useState<Drop | null>(initialDrop || null);
+  const [loading, setLoading] = useState(!initialDrop);
   const [error, setError] = useState<string | null>(null);
 
   const fetchDrop = useCallback(async () => {
+    // Skip fetch if we already have initial data
+    if (initialDrop) {
+      return;
+    }
+    
     try {
       const response = await fetch(`/api/drops/slug/${slug}`);
       if (!response.ok) {
@@ -42,11 +52,19 @@ export default function DropContent({ slug }: { slug: string }) {
     } finally {
       setLoading(false);
     }
-  }, [slug]);
+  }, [slug, initialDrop]);
 
   useEffect(() => {
-    fetchDrop();
-  }, [fetchDrop]);
+    if (drop) {
+      // Set drop data in localStorage and window for components to use
+      localStorage.setItem("currentDrop", JSON.stringify(drop));
+      if (typeof window !== 'undefined') {
+        (window as Window & { __DROP_DATA__?: Drop }).__DROP_DATA__ = drop;
+      }
+    } else {
+      fetchDrop();
+    }
+  }, [fetchDrop, drop]);
 
   if (loading) {
     return (
@@ -67,16 +85,51 @@ export default function DropContent({ slug }: { slug: string }) {
     );
   }
 
-  // Apply custom styles
+  // Apply custom styles with inline styles for better Farcaster compatibility
   return (
-    <>
+    <div 
+      style={{
+        backgroundColor: drop.backgroundColor,
+        minHeight: '100vh',
+        width: '100%',
+      }}
+    >
       <style jsx global>{`
         :root {
           --drop-button-color: ${drop.buttonColor};
           --drop-background-color: ${drop.backgroundColor};
         }
+        
+        /* Override component styles with important to ensure they apply */
+        .poap-minter-container {
+          background: ${drop.backgroundColor} !important;
+        }
+        
+        .follow-gate-container {
+          background: ${drop.backgroundColor} !important;
+        }
+        
+        .success-page {
+          background: ${drop.backgroundColor} !important;
+        }
+        
+        .mint-button,
+        .claim-button:not(:disabled) {
+          background: ${drop.buttonColor} !important;
+        }
+        
+        .mint-button.loading {
+          background: linear-gradient(
+            90deg,
+            ${drop.buttonColor},
+            ${drop.buttonColor}dd,
+            ${drop.buttonColor}bb,
+            ${drop.buttonColor}dd,
+            ${drop.buttonColor}
+          ) !important;
+        }
       `}</style>
       <POAPMinter />
-    </>
+    </div>
   );
 }
