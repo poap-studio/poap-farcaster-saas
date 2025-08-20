@@ -21,7 +21,8 @@ export async function GET(
     }
 
     // Don't expose sensitive data in public endpoint
-    const { poapSecretCode: _, ...publicDrop } = drop;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { poapSecretCode, ...publicDrop } = drop;
 
     return NextResponse.json({ drop: publicDrop });
   } catch (error) {

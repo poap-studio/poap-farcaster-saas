@@ -97,7 +97,7 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
     };
 
     fetchPoapEventData();
-  }, [drop]);
+  }, []);
 
   // Safety mechanism: ensure refresh button is never permanently disabled
   useEffect(() => {

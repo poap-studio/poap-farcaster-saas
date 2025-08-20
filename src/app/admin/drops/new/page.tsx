@@ -25,7 +25,13 @@ export default function NewDropPage() {
     requireRecast: true,
   });
 
-  const [eventInfo, setEventInfo] = useState<any>(null);
+  const [eventInfo, setEventInfo] = useState<{
+    id: number;
+    name: string;
+    description: string;
+    image_url: string;
+    supply: number;
+  } | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
