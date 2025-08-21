@@ -131,6 +131,21 @@ export async function GET(request: NextRequest) {
             position: "relative",
           }}
         >
+          {/* Logo in top left corner */}
+          {dropLogoUrl && (
+            <img
+              src={dropLogoUrl}
+              alt="Logo"
+              style={{
+                position: "absolute",
+                top: "40px",
+                left: "40px",
+                width: "80px",
+                height: "80px",
+                objectFit: "contain",
+              }}
+            />
+          )}
           {/* Add unique identifier to prevent cache */}
           <div
             style={{
@@ -198,20 +213,6 @@ export async function GET(request: NextRequest) {
                 </div>
               ))}
             </div>
-            {dropLogoUrl && (
-              <img
-                src={dropLogoUrl}
-                alt="Logo"
-                style={{
-                  position: "absolute",
-                  bottom: "-40px",
-                  right: "-100px",
-                  width: "80px",
-                  height: "80px",
-                  objectFit: "contain",
-                }}
-              />
-            )}
           </div>
         </div>
       ),
