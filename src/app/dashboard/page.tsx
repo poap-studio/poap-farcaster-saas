@@ -134,6 +134,7 @@ export default function DashboardPage() {
         if (response.ok) {
           const data = await response.json();
           if (data.authenticated) {
+            console.log('Session user data:', data.user);
             setSessionUser(data.user);
             setUserId(data.user.userId);
             fetchDrops(data.user.userId);
@@ -310,7 +311,7 @@ export default function DashboardPage() {
               )}
               <div>
                 <h1 className="text-2xl font-bold text-white">
-                  Welcome, {displayProfile?.displayName || displayProfile?.username}!
+                  Welcome, {displayProfile?.displayName || displayProfile?.username || 'User'}!
                 </h1>
                 <p className="text-gray-400">Manage your POAP drops</p>
               </div>
