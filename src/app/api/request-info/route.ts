@@ -12,6 +12,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if SMTP credentials are configured
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.log("Email request received from:", email);
+      console.log("SMTP not configured - email would be sent to sebastian@poap.fr");
+      
+      // In production without SMTP, we'll just log and return success
+      // This way the user experience is not broken
+      return NextResponse.json({ 
+        success: true,
+        message: "Request received. We'll contact you soon."
+      });
+    }
+
     // Create transporter - you'll need to configure this with your SMTP settings
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || "smtp.gmail.com",
@@ -66,7 +79,7 @@ export async function POST(request: NextRequest) {
             </ul>
           </div>
           
-          <p>In the meantime, you can explore our platform at <a href="${process.env.NEXT_PUBLIC_FRAME_URL || 'https://poap-drop.com'}" style="color: #7C65C1;">poap-drop.com</a></p>
+          <p>In the meantime, you can explore our platform at <a href="${process.env.NEXT_PUBLIC_FRAME_URL || 'https://social.poap.studio'}" style="color: #7C65C1;">POAP Studio</a></p>
           
           <p style="color: #666; font-size: 14px; margin-top: 30px;">
             Best regards,<br>
