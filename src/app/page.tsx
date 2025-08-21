@@ -182,7 +182,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="py-12 border-t border-slate-800">
         <div className="container mx-auto px-4 text-center text-gray-400">
-          <p>&copy; 2024 POAP Studio. All rights reserved.</p>
+          <p>&copy; 2025 POAP Studio. All rights reserved.</p>
         </div>
       </footer>
     </div>

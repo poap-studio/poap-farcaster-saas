@@ -5,8 +5,8 @@ import "@farcaster/auth-kit/styles.css";
 import { Providers } from "~/app/providers";
 
 export const metadata: Metadata = {
-  title: 'POAP Farcaster',
-  description: 'Mint POAPs on Farcaster',
+  title: 'Social POAPs',
+  description: 'Distribute POAPs through social media and collect valuable audience data. Turn your social engagement into Web3 connections with Ethereum addresses and usernames.',
   icons: {
     icon: [
       {
