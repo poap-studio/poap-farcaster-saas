@@ -421,6 +421,7 @@ export default function NewDropPage() {
                 backgroundColor={formData.backgroundColor}
                 logoUrl={formData.logoUrl}
                 mintMessage={formData.mintMessage}
+                disclaimerMessage={formData.disclaimerMessage}
                 requireFollow={formData.requireFollow}
                 followUsername={formData.followUsername}
                 requireRecast={formData.requireRecast}
