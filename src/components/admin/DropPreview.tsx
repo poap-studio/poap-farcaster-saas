@@ -53,7 +53,7 @@ export default function DropPreview({
   }, [fetchPoapImage]);
 
   return (
-    <div className="bg-slate-800 rounded-lg p-6">
+    <div className="bg-slate-800 rounded-lg p-4 sm:p-6">
       <h3 className="text-lg font-semibold text-white mb-4">Frame Preview</h3>
       
       {/* Screen Selector */}
@@ -81,7 +81,7 @@ export default function DropPreview({
       </div>
 
       {/* Preview Container */}
-      <div className="relative mx-auto" style={{ width: "390px", height: "844px" }}>
+      <div className="relative mx-auto w-full max-w-[390px]" style={{ aspectRatio: "390/844" }}>
         <div
           className="absolute inset-0 rounded-lg overflow-hidden"
           style={{ backgroundColor }}
@@ -92,7 +92,7 @@ export default function DropPreview({
           </div>
 
           {/* Card */}
-          <div className="absolute top-24 left-6 right-6 bg-black rounded-xl p-6">
+          <div className="absolute top-24 left-6 right-6 bg-black rounded-xl p-4 sm:p-6">
             {/* Header */}
             <div className="text-center mb-6">
               <h2 className="text-white text-2xl font-bold mb-4">
