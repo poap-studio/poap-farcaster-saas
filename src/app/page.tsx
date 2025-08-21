@@ -219,8 +219,18 @@ export default function AdminPage() {
   if (!isAuthenticated) {
     return (
       <>
-        <div className={`flex items-center justify-center min-h-screen p-4 bg-slate-900 ${styles.adminLogin}`}>
-          <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 max-w-md w-full">
+        <div
+          className={`flex items-center justify-center min-h-screen p-4 relative ${styles.adminLogin}`}
+          style={{
+            backgroundImage: "url('https://1bca4908975297934ec2c8250891d894.cdn.bubble.io/f1755736452898x702937902636448900/Couturier-photo17_LE_upscale_gentle.jpg')",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          {/* dimming overlay */}
+          <div className="absolute inset-0" style={{ backgroundColor: 'rgba(38,38,38,0.85)' }} />
+
+          <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 max-w-md w-full relative z-10">
             <h1 className="text-3xl font-bold text-white mb-6 text-center">
               Lucas Branch portal experimentation
             </h1>
