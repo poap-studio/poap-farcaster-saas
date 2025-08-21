@@ -106,19 +106,8 @@ export default function LoginPage() {
           Choose your preferred method to sign in
         </p>
         <div className="space-y-4">
-          <div className="flex justify-center">
-            <SignInButton />
-          </div>
           {isGoogleOAuthConfigured ? (
             <>
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-600"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-slate-800 text-gray-400">or</span>
-                </div>
-              </div>
               <div className="flex justify-center">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
@@ -131,6 +120,14 @@ export default function LoginPage() {
                   size="large"
                 />
               </div>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-600"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-slate-800 text-gray-400">or</span>
+                </div>
+              </div>
             </>
           ) : (
             <div className="mt-4 text-center text-sm text-gray-500">
@@ -138,6 +135,9 @@ export default function LoginPage() {
               <p className="text-xs mt-1">Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID</p>
             </div>
           )}
+          <div className="flex justify-center">
+            <SignInButton />
+          </div>
         </div>
       </div>
     </div>
