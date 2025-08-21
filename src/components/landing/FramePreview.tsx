@@ -1,4 +1,28 @@
+"use client";
+
+import { useCallback } from "react";
+import confetti from "canvas-confetti";
+
 export default function FramePreview() {
+  const handleClaimClick = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    // Fire confetti from the button position
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = (rect.left + rect.width / 2) / window.innerWidth;
+    const y = (rect.top + rect.height / 2) / window.innerHeight;
+    
+    confetti({
+      particleCount: 50,
+      spread: 60,
+      origin: { x, y },
+      colors: ['#8b5cf6', '#3b82f6', '#a855f7', '#6366f1'],
+      ticks: 200,
+      gravity: 1.2,
+      scalar: 0.8,
+      shapes: ['circle', 'square'],
+      disableForReducedMotion: true,
+    });
+  }, []);
+
   return (
     <div className="bg-slate-800 rounded-xl shadow-2xl p-4 max-w-md mx-auto">
       {/* Farcaster Frame Container */}
@@ -14,7 +38,10 @@ export default function FramePreview() {
         
         {/* Frame Button */}
         <div className="p-4">
-          <button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">
+          <button 
+            onClick={handleClaimClick}
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+          >
             🎁 Claim POAP
           </button>
         </div>
