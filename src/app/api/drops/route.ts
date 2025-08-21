@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "~/lib/prisma";
+import { getSessionFromRequest } from "~/lib/session";
 
 // GET all drops for a user
 export async function GET(request: NextRequest) {
   try {
-    const userId = request.headers.get("x-user-id");
+    const session = await getSessionFromRequest(request);
+    const userId = session?.userId || request.headers.get("x-user-id");
     
     if (!userId) {
       return NextResponse.json(
@@ -36,7 +38,8 @@ export async function GET(request: NextRequest) {
 // CREATE a new drop
 export async function POST(request: NextRequest) {
   try {
-    const userId = request.headers.get("x-user-id");
+    const session = await getSessionFromRequest(request);
+    const userId = session?.userId || request.headers.get("x-user-id");
     
     if (!userId) {
       return NextResponse.json(

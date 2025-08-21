@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "~/lib/prisma";
+import { createSession } from "~/lib/session";
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,6 +28,15 @@ export async function POST(request: NextRequest) {
         displayName,
         profileImage,
       },
+    });
+
+    // Create session
+    await createSession({
+      userId: user.id,
+      fid: user.fid,
+      username: user.username,
+      displayName: user.displayName || undefined,
+      profileImage: user.profileImage || undefined,
     });
 
     return NextResponse.json({ user });

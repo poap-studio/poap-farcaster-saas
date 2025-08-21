@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "~/lib/prisma";
+import { getSessionFromRequest } from "~/lib/session";
 
 // GET a single drop
 export async function GET(
@@ -36,7 +37,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = request.headers.get("x-user-id");
+    const session = await getSessionFromRequest(request);
+    const userId = session?.userId || request.headers.get("x-user-id");
     const { id } = await params;
     
     if (!userId) {
@@ -81,7 +83,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = request.headers.get("x-user-id");
+    const session = await getSessionFromRequest(request);
+    const userId = session?.userId || request.headers.get("x-user-id");
     const { id } = await params;
     
     if (!userId) {

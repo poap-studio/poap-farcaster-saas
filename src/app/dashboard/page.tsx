@@ -6,6 +6,15 @@ import Link from "next/link";
 import { Toaster, toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
+interface SessionData {
+  userId: string;
+  fid: number;
+  username: string;
+  displayName?: string;
+  profileImage?: string;
+  pfpUrl?: string;
+}
+
 interface Drop {
   id: string;
   slug: string;
@@ -76,14 +85,10 @@ export default function DashboardPage() {
     dropId: '',
     dropName: ''
   });
+  const [sessionUser, setSessionUser] = useState<SessionData | null>(null);
+  const [checkingSession, setCheckingSession] = useState(true);
   
   const ITEMS_PER_PAGE = 9;
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/');
-    }
-  }, [isAuthenticated, router]);
 
   const fetchDrops = useCallback(async (uid: string) => {
     setLoading(true);
@@ -121,9 +126,38 @@ export default function DashboardPage() {
     }
   }, []);
 
+  // Check server session first
   useEffect(() => {
-    const loadUserData = async () => {
-      if (isAuthenticated && profile) {
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/auth/session');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.authenticated) {
+            setSessionUser(data.user);
+            setUserId(data.user.userId);
+            fetchDrops(data.user.userId);
+          } else {
+            router.push('/');
+          }
+        } else {
+          router.push('/');
+        }
+      } catch (error) {
+        console.error('Session check error:', error);
+        router.push('/');
+      } finally {
+        setCheckingSession(false);
+      }
+    };
+    
+    checkSession();
+  }, [router, fetchDrops]);
+
+  // Sync with Farcaster profile if authenticated
+  useEffect(() => {
+    const syncWithFarcaster = async () => {
+      if (isAuthenticated && profile && !sessionUser) {
         try {
           const response = await fetch("/api/auth/login", {
             method: "POST",
@@ -139,6 +173,13 @@ export default function DashboardPage() {
           if (response.ok) {
             const data = await response.json();
             setUserId(data.user.id);
+            setSessionUser({
+              userId: data.user.id,
+              fid: data.user.fid,
+              username: data.user.username,
+              displayName: data.user.displayName,
+              profileImage: data.user.profileImage,
+            });
             fetchDrops(data.user.id);
           }
         } catch (error) {
@@ -147,8 +188,8 @@ export default function DashboardPage() {
       }
     };
     
-    loadUserData();
-  }, [isAuthenticated, profile, fetchDrops]);
+    syncWithFarcaster();
+  }, [isAuthenticated, profile, fetchDrops, sessionUser]);
 
   const handleDelete = async () => {
     if (!userId || !deleteModal.dropId) return;
@@ -172,9 +213,15 @@ export default function DashboardPage() {
     }
   };
   
-  const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = '/';
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      localStorage.clear();
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout error:', error);
+      window.location.href = '/';
+    }
   };
 
   const copyLink = (dropId: string) => {
@@ -215,9 +262,19 @@ export default function DashboardPage() {
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentDrops = drops.slice(startIndex, endIndex);
 
-  if (!isAuthenticated) {
+  if (checkingSession || loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-slate-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  if (!sessionUser && !isAuthenticated) {
     return null; // Will redirect in useEffect
   }
+  
+  const displayProfile = profile || sessionUser;
 
   return (
     <>
@@ -234,16 +291,26 @@ export default function DashboardPage() {
         <div className="bg-slate-800 rounded-2xl shadow-xl p-6 mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-4">
-              {profile?.pfpUrl && (
-                <img
-                  src={profile.pfpUrl}
-                  alt={profile.username}
-                  className="w-12 h-12 rounded-full"
-                />
+              {displayProfile && (
+                <>
+                  {('profileImage' in displayProfile && displayProfile.profileImage) ? (
+                    <img
+                      src={displayProfile.profileImage as string}
+                      alt={displayProfile.username}
+                      className="w-12 h-12 rounded-full"
+                    />
+                  ) : ('pfpUrl' in displayProfile && displayProfile.pfpUrl) ? (
+                    <img
+                      src={displayProfile.pfpUrl as string}
+                      alt={displayProfile.username || ''}
+                      className="w-12 h-12 rounded-full"
+                    />
+                  ) : null}
+                </>
               )}
               <div>
                 <h1 className="text-2xl font-bold text-white">
-                  Welcome, {profile?.displayName || profile?.username}!
+                  Welcome, {displayProfile?.displayName || displayProfile?.username}!
                 </h1>
                 <p className="text-gray-400">Manage your POAP drops</p>
               </div>

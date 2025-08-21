@@ -1,13 +1,24 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getSessionFromRequest } from '~/lib/session';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+  
+  // Check authentication for protected routes
+  if (path.startsWith('/dashboard') || path.startsWith('/drops')) {
+    const session = await getSessionFromRequest(request);
+    if (!session) {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+  }
+  
   // Apply no-cache headers to frame pages and API routes
   if (
-    request.nextUrl.pathname.startsWith('/drop/') ||
-    request.nextUrl.pathname.startsWith('/f/') ||
-    request.nextUrl.pathname.startsWith('/api/frame-image') ||
-    request.nextUrl.pathname.startsWith('/api/drops/slug/')
+    path.startsWith('/drop/') ||
+    path.startsWith('/f/') ||
+    path.startsWith('/api/frame-image') ||
+    path.startsWith('/api/drops/slug/')
   ) {
     const response = NextResponse.next();
     
@@ -28,6 +39,8 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/dashboard/:path*',
+    '/drops/:path*',
     '/drop/:path*',
     '/f/:path*',
     '/api/frame-image',
