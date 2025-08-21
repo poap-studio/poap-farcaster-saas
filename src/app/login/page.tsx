@@ -67,7 +67,7 @@ export default function LoginPage() {
     <div className={`flex items-center justify-center min-h-screen p-4 bg-slate-900 ${styles.adminLogin}`}>
       <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 max-w-md w-full">
         <h1 className="text-3xl font-bold text-white mb-6 text-center">
-          POAP Studio
+          Login
         </h1>
         <p className="text-gray-300 mb-8 text-center">
           Sign in with Farcaster to manage your POAP drops
