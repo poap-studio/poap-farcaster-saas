@@ -175,7 +175,8 @@ export default function DashboardPage() {
   // Sync with Farcaster profile if authenticated
   useEffect(() => {
     const syncWithFarcaster = async () => {
-      if (isAuthenticated && profile && !sessionUser) {
+      // Only sync if authenticated with Farcaster and we don't have session data yet
+      if (isAuthenticated && profile && !sessionUser && profile.fid && profile.username) {
         try {
           const response = await fetch("/api/auth/login", {
             method: "POST",
@@ -293,11 +294,12 @@ export default function DashboardPage() {
   }
   
   // Normalize profile data structure
-  const displayProfile = profile ? {
+  // Use session data if available, as it's more reliable for persistent sessions
+  const displayProfile = sessionUser || (profile ? {
     username: profile.username,
     displayName: profile.displayName,
     profileImage: profile.pfpUrl
-  } : sessionUser;
+  } : null);
 
   return (
     <>
