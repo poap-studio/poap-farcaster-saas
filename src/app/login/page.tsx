@@ -64,7 +64,7 @@ export default function LoginPage() {
     checkSession();
   }, [router]);
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
     setIsLoggingIn(true);
     try {
       const response = await fetch("/api/auth/google", {
