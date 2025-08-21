@@ -10,6 +10,10 @@ export default function LoginPage() {
   const { isAuthenticated, profile } = useProfile();
   const router = useRouter();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  
+  // Debug Google Client ID
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  console.log('Login Page - Google Client ID configured:', !!googleClientId);
 
   useEffect(() => {
     const handleLogin = async () => {

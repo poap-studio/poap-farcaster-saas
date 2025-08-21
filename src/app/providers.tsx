@@ -11,8 +11,16 @@ const WagmiProvider = dynamic(
 );
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  console.log('Google Client ID configured:', !!googleClientId);
+  
+  if (!googleClientId) {
+    console.warn('NEXT_PUBLIC_GOOGLE_CLIENT_ID is not configured');
+    return <WagmiProvider>{children}</WagmiProvider>;
+  }
+  
   return (
-    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
+    <GoogleOAuthProvider clientId={googleClientId}>
       <WagmiProvider>{children}</WagmiProvider>
     </GoogleOAuthProvider>
   );
