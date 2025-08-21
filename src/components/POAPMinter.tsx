@@ -26,6 +26,7 @@ interface POAPMinterProps {
     backgroundColor: string;
     logoUrl?: string;
     mintMessage: string;
+    disclaimerMessage: string;
     requireFollow: boolean;
     followUsername?: string;
     requireRecast: boolean;
