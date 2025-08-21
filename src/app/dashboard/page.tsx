@@ -19,6 +19,7 @@ interface Drop {
   id: string;
   slug: string;
   poapEventId: string;
+  poapSecretCode: string;
   buttonColor: string;
   backgroundColor: string;
   logoUrl?: string;
@@ -32,6 +33,11 @@ interface Drop {
   poapName?: string;
   _count?: {
     claims: number;
+  };
+  poapStats?: {
+    total: number;
+    claimed: number;
+    available: number;
   };
 }
 
@@ -99,25 +105,37 @@ export default function DashboardPage() {
       
       if (response.ok) {
         const data = await response.json();
-        // Fetch POAP names for each drop
-        const dropsWithNames = await Promise.all(
+        // Fetch POAP names and stats for each drop
+        const dropsWithDetails = await Promise.all(
           data.drops.map(async (drop: Drop) => {
+            let poapName = null;
+            let poapStats = null;
+            
             try {
+              // Fetch POAP name
               const poapResponse = await fetch(`/api/poap/validate-event?eventId=${drop.poapEventId}`);
               if (poapResponse.ok) {
                 const poapData = await poapResponse.json();
-                console.log(`POAP data for ${drop.poapEventId}:`, poapData);
-                return { ...drop, poapName: poapData.event?.name || null };
-              } else {
-                console.error(`Failed to fetch POAP name for event ${drop.poapEventId}: ${poapResponse.status}`);
+                poapName = poapData.event?.name || null;
               }
             } catch (error) {
               console.error(`Error fetching POAP name for event ${drop.poapEventId}:`, error);
             }
-            return drop;
+            
+            try {
+              // Fetch POAP stats
+              const statsResponse = await fetch(`/api/poap/stats?eventId=${drop.poapEventId}&secretCode=${encodeURIComponent(drop.poapSecretCode)}`);
+              if (statsResponse.ok) {
+                poapStats = await statsResponse.json();
+              }
+            } catch (error) {
+              console.error(`Error fetching POAP stats for event ${drop.poapEventId}:`, error);
+            }
+            
+            return { ...drop, poapName, poapStats };
           })
         );
-        setDrops(dropsWithNames);
+        setDrops(dropsWithDetails);
       }
     } catch (error) {
       console.error("Fetch drops error:", error);
@@ -402,6 +420,14 @@ export default function DashboardPage() {
                       >
                         {drop._count?.claims || 0} collectors
                       </a>
+                      {drop.poapStats && (
+                        <p className="text-gray-400 text-sm">
+                          Minted: <span className="text-white font-medium">{drop.poapStats.claimed}/{drop.poapStats.total}</span>
+                          {drop.poapStats.available === 0 && (
+                            <span className="text-red-400 ml-2">(No POAPs left)</span>
+                          )}
+                        </p>
+                      )}
                     </div>
                   </div>
 
