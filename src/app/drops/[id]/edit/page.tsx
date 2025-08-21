@@ -437,6 +437,7 @@ export default function EditDropPage({ params }: PageProps) {
                 backgroundColor={formData.backgroundColor}
                 logoUrl={formData.logoUrl}
                 mintMessage={formData.mintMessage}
+                disclaimerMessage={formData.disclaimerMessage}
                 requireFollow={formData.requireFollow}
                 followUsername={formData.followUsername}
                 requireRecast={formData.requireRecast}
