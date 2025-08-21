@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import FramePreview from "~/components/landing/FramePreview";
@@ -8,6 +8,9 @@ import SocialBubbles from "~/components/landing/SocialBubbles";
 
 export default function LandingPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   // Check for existing session
   useEffect(() => {
@@ -28,6 +31,32 @@ export default function LandingPage() {
     checkSession();
   }, [router]);
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/request-info', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        setIsSubmitted(true);
+        setEmail("");
+      } else {
+        alert('Failed to send request. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('Failed to send request. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 text-white">
       {/* Hero Section */}
@@ -37,7 +66,7 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                Drop POAPs, not bombs
+                Drop POAPs on Farcaster
               </h1>
               <p className="text-xl text-gray-300 mb-8">
                 Collect Ethereum addresses from your fans and develop engagement policies that matter. 
@@ -122,21 +151,33 @@ export default function LandingPage() {
               This application is for personal use only. If you need commercial access or represent a protocol 
               or company, please contact us for custom solutions and enterprise features.
             </p>
-            <form className="max-w-md mx-auto mb-12">
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  placeholder="your@email.com"
-                  className="flex-1 px-4 py-3 rounded-lg bg-slate-700 text-white placeholder-gray-400 border border-slate-600 focus:border-purple-500 focus:outline-none"
-                />
-                <button
-                  type="submit"
-                  className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors duration-200"
-                >
-                  Request Info
-                </button>
+            {isSubmitted ? (
+              <div className="max-w-md mx-auto mb-12 bg-green-900/30 border border-green-700 rounded-lg p-6 text-center">
+                <div className="text-3xl mb-3">✅</div>
+                <h3 className="text-xl font-semibold text-green-400 mb-2">Request Sent Successfully!</h3>
+                <p className="text-gray-300">We&apos;ll get back to you soon with information about commercial access.</p>
               </div>
-            </form>
+            ) : (
+              <form onSubmit={handleSubmit} className="max-w-md mx-auto mb-12">
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="flex-1 px-4 py-3 rounded-lg bg-slate-700 text-white placeholder-gray-400 border border-slate-600 focus:border-purple-500 focus:outline-none"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-lg transition-colors duration-200"
+                  >
+                    {isSubmitting ? 'Sending...' : 'Request Info'}
+                  </button>
+                </div>
+              </form>
+            )}
             <div className="grid md:grid-cols-3 gap-8">
               <div className="text-center">
                 <div className="text-3xl mb-2">📊</div>
@@ -161,7 +202,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="py-12 border-t border-slate-800">
         <div className="container mx-auto px-4 text-center text-gray-400">
-          <p>&copy; 2024 POAP Drop. All rights reserved.</p>
+          <p>&copy; 2024 POAP Studio. All rights reserved.</p>
         </div>
       </footer>
     </div>
