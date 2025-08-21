@@ -8,6 +8,7 @@ interface DropPreviewProps {
   backgroundColor: string;
   logoUrl?: string;
   mintMessage: string;
+  disclaimerMessage: string;
   requireFollow: boolean;
   followUsername?: string;
   requireRecast: boolean;
@@ -19,6 +20,7 @@ export default function DropPreview({
   backgroundColor,
   logoUrl,
   mintMessage,
+  disclaimerMessage,
   requireFollow,
   followUsername,
   requireRecast,
@@ -202,7 +204,7 @@ export default function DropPreview({
                   </button>
                   
                   <p className="text-gray-400 text-xs text-center">
-                    {mintMessage}
+                    {disclaimerMessage}
                   </p>
                 </div>
               </>

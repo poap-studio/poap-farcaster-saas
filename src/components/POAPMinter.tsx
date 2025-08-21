@@ -666,7 +666,7 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
                 </button>
               )}
               <div className="mint-note">
-                This POAP celebrates the Farcaster community and our journey together.
+                {dropConfig.disclaimerMessage}
               </div>
             </div>
           </div>

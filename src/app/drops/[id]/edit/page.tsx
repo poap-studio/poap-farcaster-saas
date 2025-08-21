@@ -26,6 +26,7 @@ export default function EditDropPage({ params }: PageProps) {
     backgroundColor: "#1e293b",
     logoUrl: "",
     mintMessage: "",
+    disclaimerMessage: "",
     requireFollow: true,
     followUsername: "",
     requireRecast: true,
@@ -52,6 +53,7 @@ export default function EditDropPage({ params }: PageProps) {
           backgroundColor: drop.backgroundColor,
           logoUrl: drop.logoUrl || "",
           mintMessage: drop.mintMessage,
+          disclaimerMessage: drop.disclaimerMessage || "By minting this POAP you accept these terms: https://poap.xyz/terms",
           requireFollow: drop.requireFollow,
           followUsername: drop.followUsername || "",
           requireRecast: drop.requireRecast,
@@ -262,6 +264,20 @@ export default function EditDropPage({ params }: PageProps) {
               className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:border-purple-500 focus:outline-none transition-colors resize-none"
             />
           </div>
+
+          <div className="mt-6">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Disclaimer Message
+            </label>
+            <textarea
+              name="disclaimerMessage"
+              value={formData.disclaimerMessage}
+              onChange={handleInputChange}
+              rows={2}
+              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:border-purple-500 focus:outline-none transition-colors resize-none"
+              placeholder="By minting this POAP you accept these terms..."
+            />
+          </div>
         </div>
 
         {/* Requirements */}
@@ -390,6 +406,7 @@ export default function EditDropPage({ params }: PageProps) {
               backgroundColor={formData.backgroundColor}
               logoUrl={formData.logoUrl}
               mintMessage={formData.mintMessage}
+              disclaimerMessage={formData.disclaimerMessage}
               requireFollow={formData.requireFollow}
               followUsername={formData.followUsername}
               requireRecast={formData.requireRecast}

@@ -8,6 +8,7 @@ export interface Drop {
   backgroundColor: string;
   logoUrl?: string;
   mintMessage: string;
+  disclaimerMessage: string;
   requireFollow: boolean;
   followUsername?: string;
   requireRecast: boolean;
@@ -42,6 +43,7 @@ export function getDropConfig() {
       backgroundColor: '#073d5c',
       logoUrl: undefined,
       mintMessage: 'Enter your wallet address or ENS name to claim your commemorative POAP token.',
+      disclaimerMessage: 'By minting this POAP you accept these terms: https://poap.xyz/terms',
       requireFollow: true,
       followUsername: null,
       requireRecast: true
@@ -53,6 +55,7 @@ export function getDropConfig() {
     backgroundColor: drop.backgroundColor,
     logoUrl: drop.logoUrl,
     mintMessage: drop.mintMessage,
+    disclaimerMessage: drop.disclaimerMessage,
     requireFollow: drop.requireFollow,
     followUsername: drop.followUsername,
     requireRecast: drop.requireRecast

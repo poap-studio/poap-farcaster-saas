@@ -19,23 +19,24 @@ model User {
 }
 
 model Drop {
-  id              String   @id @default(cuid())
-  slug            String   @unique @default(cuid())
-  userId          String
-  poapEventId     String
-  poapSecretCode  String
-  buttonColor     String   @default("#0a5580")
-  backgroundColor String   @default("#073d5c")
-  logoUrl         String?
-  mintMessage     String   @default("This POAP celebrates the Farcaster community and our journey together.")
-  requireFollow   Boolean  @default(true)
-  followUsername  String?
-  requireRecast   Boolean  @default(true)
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  claims          Claim[]
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String   @id @default(cuid())
+  slug             String   @unique @default(cuid())
+  userId           String
+  poapEventId      String
+  poapSecretCode   String
+  buttonColor      String   @default("#0a5580")
+  backgroundColor  String   @default("#073d5c")
+  logoUrl          String?
+  mintMessage      String   @default("This POAP celebrates the Farcaster community and our journey together.")
+  disclaimerMessage String   @default("By minting this POAP you accept these terms: https://poap.xyz/terms")
+  requireFollow    Boolean  @default(true)
+  followUsername   String?
+  requireRecast    Boolean  @default(true)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  claims           Claim[]
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([slug])
