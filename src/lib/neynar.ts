@@ -271,3 +271,53 @@ export async function getUserUsername(userFid: number): Promise<string | null> {
     return null;
   }
 }
+
+export async function getUserProfile(userFid: number): Promise<{ username: string | null; followers: number | null }> {
+  console.log(`[User Profile] Getting profile for FID: ${userFid}`);
+  
+  if (!NEYNAR_API_KEY) {
+    console.error("[User Profile] NEYNAR_API_KEY is not set");
+    return { username: null, followers: null };
+  }
+
+  if (!userFid) {
+    console.error("[User Profile] userFid is required");
+    return { username: null, followers: null };
+  }
+
+  try {
+    const url = `https://api.neynar.com/v2/farcaster/user/bulk?fids=${userFid}`;
+    console.log(`[User Profile] Making request to: ${url}`);
+    
+    const response = await fetch(url, {
+      headers: {
+        "api_key": NEYNAR_API_KEY,
+        "accept": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      console.error("[User Profile] API response not OK:", response.status, response.statusText);
+      return { username: null, followers: null };
+    }
+
+    const data = await response.json();
+    console.log("[User Profile] API response:", JSON.stringify(data, null, 2));
+    
+    const user = data.users?.[0];
+    if (!user) {
+      console.error("[User Profile] No user data found");
+      return { username: null, followers: null };
+    }
+
+    const username = user.username || null;
+    const followers = user.follower_count || 0;
+    
+    console.log(`[User Profile] Found username: ${username}, followers: ${followers}`);
+    
+    return { username, followers };
+  } catch (error) {
+    console.error("[User Profile] Error getting user profile:", error);
+    return { username: null, followers: null };
+  }
+}

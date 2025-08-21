@@ -47,6 +47,7 @@ model Claim {
   dropId    String
   fid       Int
   username  String?
+  followers Int?
   address   String
   txHash    String?
   claimedAt DateTime @default(now())
