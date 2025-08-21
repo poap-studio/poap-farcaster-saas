@@ -11,10 +11,13 @@ const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export interface SessionData {
   userId: string;
-  fid: number;
+  fid?: number;
+  googleId?: string;
+  email?: string;
   username: string;
   displayName?: string;
   profileImage?: string;
+  provider: 'farcaster' | 'google';
 }
 
 export async function createSession(data: SessionData) {

@@ -8,11 +8,14 @@ import { useRouter } from "next/navigation";
 
 interface SessionData {
   userId: string;
-  fid: number;
+  fid?: number;
+  googleId?: string;
+  email?: string;
   username: string;
   displayName?: string;
   profileImage?: string;
   pfpUrl?: string;
+  provider: 'farcaster' | 'google';
 }
 
 interface Drop {

@@ -9,10 +9,13 @@ datasource db {
 
 model User {
   id           String   @id @default(cuid())
-  fid          Int      @unique
+  fid          Int?     @unique
+  googleId     String?  @unique
+  email        String?  @unique
   username     String
   displayName  String?
   profileImage String?
+  provider     String   @default("farcaster") // "farcaster" or "google"
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   drops        Drop[]

@@ -21,22 +21,25 @@ export async function POST(request: NextRequest) {
         username,
         displayName,
         profileImage,
+        provider: 'farcaster',
       },
       create: {
         fid: parseInt(fid),
         username,
         displayName,
         profileImage,
+        provider: 'farcaster',
       },
     });
 
     // Create session
     await createSession({
       userId: user.id,
-      fid: user.fid,
+      fid: user.fid || undefined,
       username: user.username,
       displayName: user.displayName || undefined,
       profileImage: user.profileImage || undefined,
+      provider: 'farcaster',
     });
 
     return NextResponse.json({ user });
