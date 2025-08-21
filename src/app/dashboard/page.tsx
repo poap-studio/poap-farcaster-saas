@@ -436,13 +436,13 @@ export default function DashboardPage() {
                   <div className="flex flex-col sm:flex-row gap-2 mt-auto">
                     <button
                       onClick={() => copyLink(drop.id)}
-                      className="flex-1 bg-slate-700 hover:bg-slate-600 text-white h-10 px-4 rounded-lg transition-colors duration-200 text-sm flex items-center justify-center"
+                      className="flex-1 bg-slate-700 hover:bg-slate-600 text-white h-12 sm:h-10 px-4 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center justify-center"
                     >
                       Copy Link
                     </button>
                     <Link
                       href={`/drops/${drop.id}/edit`}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-10 px-4 rounded-lg transition-colors duration-200 text-sm flex items-center justify-center"
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12 sm:h-10 px-4 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center justify-center"
                     >
                       Edit
                     </Link>
@@ -452,7 +452,7 @@ export default function DashboardPage() {
                         dropId: drop.id, 
                         dropName: drop.poapName || `Event #${drop.poapEventId}` 
                       })}
-                      className="flex-1 bg-red-500 hover:bg-red-600 text-white h-10 px-4 rounded-lg transition-colors duration-200 text-sm flex items-center justify-center"
+                      className="flex-1 bg-red-500 hover:bg-red-600 text-white h-12 sm:h-10 px-4 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center justify-center"
                     >
                       Delete
                     </button>
