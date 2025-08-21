@@ -116,7 +116,7 @@ export default function EditDropPage({ params }: PageProps) {
 
       if (response.ok) {
         toast.success("Drop updated successfully!");
-        router.push("/");
+        router.push("/dashboard");
       } else {
         toast.error("Failed to update drop");
       }
@@ -143,7 +143,7 @@ export default function EditDropPage({ params }: PageProps) {
       {/* Header */}
       <div className="mb-8">
         <Link
-          href="/"
+          href="/dashboard"
           className="text-purple-400 hover:text-purple-300 mb-4 inline-block"
         >
           ← Back to Dashboard
@@ -381,7 +381,7 @@ export default function EditDropPage({ params }: PageProps) {
             Preview
           </button>
           <Link
-            href="/"
+            href="/dashboard"
             className="flex-1 text-center bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
           >
             Cancel

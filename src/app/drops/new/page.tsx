@@ -12,7 +12,7 @@ export default function NewDropPage() {
   const { profile } = useProfile();
   const [loading, setLoading] = useState(false);
   const [validating, setValidating] = useState(false);
-  const [showPreview, setShowPreview] = useState(true);
+  const [showPreview, setShowPreview] = useState(false);
   
   const [formData, setFormData] = useState({
     poapEventId: "",
@@ -79,7 +79,7 @@ export default function NewDropPage() {
     e.preventDefault();
     
     if (!eventInfo) {
-      toast.error("Please validate your POAP event first");
+      toast.error("You must validate the POAP first by clicking the Validate button in this form");
       return;
     }
 
@@ -115,7 +115,7 @@ export default function NewDropPage() {
 
       if (response.ok) {
         toast.success("Drop created successfully!");
-        router.push("/");
+        router.push("/dashboard");
       } else {
         toast.error("Failed to create drop");
       }
@@ -134,7 +134,7 @@ export default function NewDropPage() {
       {/* Header */}
       <div className="mb-8">
         <Link
-          href="/"
+          href="/dashboard"
           className="text-purple-400 hover:text-purple-300 mb-4 inline-block"
         >
           ← Back to Dashboard
@@ -370,6 +370,12 @@ export default function NewDropPage() {
           >
             Preview
           </button>
+          <Link
+            href="/dashboard"
+            className="flex-1 text-center bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+          >
+            Cancel
+          </Link>
           <button
             type="submit"
             disabled={loading || !eventInfo}
