@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import FramePreview from "~/components/landing/FramePreview";
 import SocialBubbles from "~/components/landing/SocialBubbles";
-import QRCode from "~/components/landing/QRCode";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -29,10 +28,6 @@ export default function LandingPage() {
     checkSession();
   }, [router]);
 
-  const loginUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/login` 
-    : 'https://poap-farcaster-saas.vercel.app/login';
-
   return (
     <div className="min-h-screen bg-slate-900 text-white">
       {/* Hero Section */}
@@ -55,18 +50,10 @@ export default function LandingPage() {
                 >
                   Create Your Drop
                 </Link>
-                <div className="lg:hidden">
-                  <QRCode url={loginUrl} />
-                </div>
               </div>
             </div>
             <div className="flex items-center justify-center">
-              <div className="relative">
-                <FramePreview />
-                <div className="hidden lg:block absolute -bottom-20 -right-20">
-                  <QRCode url={loginUrl} />
-                </div>
-              </div>
+              <FramePreview />
             </div>
           </div>
         </div>
