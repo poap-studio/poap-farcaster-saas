@@ -201,6 +201,7 @@ export default function DashboardPage() {
               username: data.user.username,
               displayName: data.user.displayName,
               profileImage: data.user.profileImage,
+              provider: data.user.provider || 'farcaster',
             });
             fetchDrops(data.user.id);
           }
