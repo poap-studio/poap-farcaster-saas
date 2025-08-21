@@ -236,10 +236,10 @@ export default function DashboardPage() {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
       localStorage.clear();
-      window.location.href = '/login';
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
-      window.location.href = '/login';
+      window.location.href = '/';
     }
   };
 

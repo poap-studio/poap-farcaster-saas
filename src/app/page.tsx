@@ -1,35 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import FramePreview from "~/components/landing/FramePreview";
 import SocialBubbles from "~/components/landing/SocialBubbles";
 
 export default function LandingPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // Check for existing session
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const response = await fetch('/api/auth/session');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.authenticated) {
-            router.push('/dashboard');
-          }
-        }
-      } catch (error) {
-        console.error('Session check error:', error);
-      }
-    };
-
-    checkSession();
-  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
