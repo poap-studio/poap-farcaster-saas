@@ -397,8 +397,8 @@ export default function EditDropPage({ params }: PageProps) {
       </form>
         </div>
         
-        {/* Preview Column - Always visible on desktop */}
-        <div className="order-1 xl:order-2">
+        {/* Preview Column - Only visible on desktop */}
+        <div className="hidden xl:block order-1 xl:order-2">
           <div className="sticky top-8">
             <DropPreview
               poapEventId={formData.poapEventId}
