@@ -156,14 +156,14 @@ export default function DashboardPage() {
             setUserId(data.user.userId);
             fetchDrops(data.user.userId);
           } else {
-            router.push('/');
+            router.push('/login');
           }
         } else {
-          router.push('/');
+          router.push('/login');
         }
       } catch (error) {
         console.error('Session check error:', error);
-        router.push('/');
+        router.push('/login');
       } finally {
         setCheckingSession(false);
       }
@@ -236,10 +236,10 @@ export default function DashboardPage() {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
       localStorage.clear();
-      window.location.href = '/';
+      window.location.href = '/login';
     } catch (error) {
       console.error('Logout error:', error);
-      window.location.href = '/';
+      window.location.href = '/login';
     }
   };
 
