@@ -134,7 +134,6 @@ export default function DashboardPage() {
         if (response.ok) {
           const data = await response.json();
           if (data.authenticated) {
-            console.log('Session user data:', data.user);
             setSessionUser(data.user);
             setUserId(data.user.userId);
             fetchDrops(data.user.userId);
@@ -275,7 +274,12 @@ export default function DashboardPage() {
     return null; // Will redirect in useEffect
   }
   
-  const displayProfile = profile || sessionUser;
+  // Normalize profile data structure
+  const displayProfile = profile ? {
+    username: profile.username,
+    displayName: profile.displayName,
+    profileImage: profile.pfpUrl
+  } : sessionUser;
 
   return (
     <>
@@ -292,22 +296,12 @@ export default function DashboardPage() {
         <div className="bg-slate-800 rounded-2xl shadow-xl p-6 mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-4">
-              {displayProfile && (
-                <>
-                  {('profileImage' in displayProfile && displayProfile.profileImage) ? (
-                    <img
-                      src={displayProfile.profileImage as string}
-                      alt={displayProfile.username}
-                      className="w-12 h-12 rounded-full"
-                    />
-                  ) : ('pfpUrl' in displayProfile && displayProfile.pfpUrl) ? (
-                    <img
-                      src={displayProfile.pfpUrl as string}
-                      alt={displayProfile.username || ''}
-                      className="w-12 h-12 rounded-full"
-                    />
-                  ) : null}
-                </>
+              {displayProfile?.profileImage && (
+                <img
+                  src={displayProfile.profileImage}
+                  alt={displayProfile.username || ''}
+                  className="w-12 h-12 rounded-full"
+                />
               )}
               <div>
                 <h1 className="text-2xl font-bold text-white">
