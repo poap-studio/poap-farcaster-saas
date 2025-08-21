@@ -59,7 +59,9 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
   const dropConfig = drop ? {
     buttonColor: drop.buttonColor,
     backgroundColor: drop.backgroundColor,
+    logoUrl: drop.logoUrl,
     mintMessage: drop.mintMessage,
+    disclaimerMessage: drop.disclaimerMessage,
     requireFollow: drop.requireFollow,
     followUsername: drop.followUsername,
     requireRecast: drop.requireRecast
