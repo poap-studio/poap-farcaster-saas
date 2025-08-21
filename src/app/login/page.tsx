@@ -11,9 +11,14 @@ export default function LoginPage() {
   const router = useRouter();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   
-  // Debug Google Client ID
-  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-  console.log('Login Page - Google Client ID configured:', !!googleClientId);
+  // Check if Google OAuth is configured
+  const isGoogleOAuthConfigured = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  
+  useEffect(() => {
+    console.log('Login Page mounted');
+    console.log('Google OAuth configured:', isGoogleOAuthConfigured);
+    console.log('NEXT_PUBLIC_GOOGLE_CLIENT_ID exists:', !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
+  }, [isGoogleOAuthConfigured]);
 
   useEffect(() => {
     const handleLogin = async () => {
@@ -98,32 +103,41 @@ export default function LoginPage() {
           Login
         </h1>
         <p className="text-gray-300 mb-8 text-center">
-          Sign in to manage your POAP drops
+          Choose your preferred method to sign in
         </p>
         <div className="space-y-4">
           <div className="flex justify-center">
             <SignInButton />
           </div>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-600"></div>
+          {isGoogleOAuthConfigured ? (
+            <>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-600"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-slate-800 text-gray-400">or</span>
+                </div>
+              </div>
+              <div className="flex justify-center">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => {
+                    console.log('Google Login Failed');
+                  }}
+                  text="continue_with"
+                  shape="pill"
+                  theme="filled_blue"
+                  size="large"
+                />
+              </div>
+            </>
+          ) : (
+            <div className="mt-4 text-center text-sm text-gray-500">
+              <p>Google OAuth not configured</p>
+              <p className="text-xs mt-1">Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID</p>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-slate-800 text-gray-400">or</span>
-            </div>
-          </div>
-          <div className="flex justify-center">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => {
-                console.log('Google Login Failed');
-              }}
-              text="continue_with"
-              shape="pill"
-              theme="filled_blue"
-              size="large"
-            />
-          </div>
+          )}
         </div>
       </div>
     </div>
