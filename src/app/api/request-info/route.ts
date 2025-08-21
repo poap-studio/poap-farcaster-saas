@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     // Email to Sebastian
     const sebastianMailOptions = {
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      from: process.env.SMTP_USER, // Gmail requires using the authenticated email
       to: "sebastian@poap.fr",
       subject: "New Commercial Access Request - POAP Studio",
       html: `
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
 
     // Email to the requester
     const requesterMailOptions = {
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      from: process.env.SMTP_USER, // Gmail requires using the authenticated email
       to: email,
       subject: "We've received your request - POAP Studio",
       html: `
@@ -90,12 +90,22 @@ export async function POST(request: NextRequest) {
     };
 
     // Send both emails
-    await Promise.all([
-      transporter.sendMail(sebastianMailOptions),
-      transporter.sendMail(requesterMailOptions),
-    ]);
-
-    return NextResponse.json({ success: true });
+    try {
+      console.log("Attempting to send emails...");
+      console.log("To Sebastian:", sebastianMailOptions.to);
+      console.log("To Requester:", requesterMailOptions.to);
+      
+      const results = await Promise.all([
+        transporter.sendMail(sebastianMailOptions),
+        transporter.sendMail(requesterMailOptions),
+      ]);
+      
+      console.log("Emails sent successfully:", results);
+      return NextResponse.json({ success: true });
+    } catch (emailError) {
+      console.error("Error sending emails with SMTP:", emailError);
+      throw emailError;
+    }
   } catch (error) {
     console.error("Error sending emails:", error);
     return NextResponse.json(
