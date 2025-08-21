@@ -16,12 +16,14 @@ export default function SocialBubbles() {
           key={social.name}
           className="relative group"
         >
-          <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${social.color} flex items-center justify-center shadow-lg transform transition-all duration-300 hover:scale-110 cursor-pointer p-4`}>
-            <img 
-              src={social.icon} 
-              alt={social.name}
-              className="w-full h-full object-contain filter brightness-0 invert"
-            />
+          <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${social.color} flex items-center justify-center shadow-lg transform transition-all duration-300 hover:scale-110 cursor-pointer p-1`}>
+            <div className="w-full h-full rounded-full bg-white flex items-center justify-center p-3">
+              <img 
+                src={social.icon} 
+                alt={social.name}
+                className="w-full h-full object-contain"
+              />
+            </div>
           </div>
           <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <span className="text-xs text-gray-400 whitespace-nowrap">{social.name}</span>
