@@ -295,29 +295,85 @@ export async function checkIfUserQuoted(userFid: number, castHash?: string): Pro
   }
 
   try {
-    const url = `https://api.neynar.com/v2/farcaster/cast/quotes?hash=${hashToCheck}`;
-    console.log(`[Quote Check] Making request to: ${url}`);
+    // First, let's try to get the user's recent casts to check for quotes
+    const userCastsUrl = `https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${userFid}&limit=100`;
+    console.log(`[Quote Check] Fetching user's recent casts from: ${userCastsUrl}`);
     
-    const response = await fetch(url, {
+    const userCastsResponse = await fetch(userCastsUrl, {
       headers: {
         "api_key": NEYNAR_API_KEY,
         "accept": "application/json"
       }
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[Quote Check] Neynar API error: ${response.status} ${response.statusText}`, errorText);
+    if (!userCastsResponse.ok) {
+      const errorText = await userCastsResponse.text();
+      console.error(`[Quote Check] Error fetching user casts: ${userCastsResponse.status}`, errorText);
       return false;
     }
 
-    const data = await response.json();
-    console.log("[Quote Check] API response:", JSON.stringify(data, null, 2));
+    const userCastsData = await userCastsResponse.json();
+    console.log(`[Quote Check] Found ${userCastsData.casts?.length || 0} recent casts from user`);
     
-    // Check if the user has quoted this cast
-    const hasQuoted = data.casts?.some((cast: { author: { fid: number } }) => cast.author.fid === userFid) || false;
-    console.log(`[Quote Check] Quote status result: ${hasQuoted}`);
+    // Check if any of the user's casts have the original cast embedded (which indicates a quote)
+    let hasQuoted = false;
     
+    if (userCastsData.casts) {
+      for (const cast of userCastsData.casts) {
+        // Check if this cast has embeds
+        if (cast.embeds && Array.isArray(cast.embeds)) {
+          // Look for an embed that references our cast
+          for (const embed of cast.embeds) {
+            // Check if the embed is a cast embed with our hash
+            if (embed.cast_id && embed.cast_id.hash === hashToCheck) {
+              console.log(`[Quote Check] Found quote in cast ${cast.hash} with cast_id embed`);
+              hasQuoted = true;
+              break;
+            }
+            // Also check for cast object embed
+            if (embed.cast && embed.cast.hash === hashToCheck) {
+              console.log(`[Quote Check] Found quote in cast ${cast.hash} with cast embed`);
+              hasQuoted = true;
+              break;
+            }
+            // Check URL embeds that might reference the cast
+            if (embed.url) {
+              // Check if URL contains the hash or a Warpcast URL with the hash
+              if (embed.url.includes(hashToCheck) || 
+                  (embed.url.includes('warpcast.com') && embed.url.includes(hashToCheck.substring(0, 10)))) {
+                console.log(`[Quote Check] Found quote reference in URL embed: ${embed.url}`);
+                hasQuoted = true;
+                break;
+              }
+            }
+          }
+          if (hasQuoted) break;
+        }
+      }
+    }
+    
+    // If not found in recent casts, also try the quotes endpoint as a fallback
+    if (!hasQuoted) {
+      console.log("[Quote Check] Not found in recent casts, trying quotes endpoint...");
+      
+      const quotesUrl = `https://api.neynar.com/v2/farcaster/cast/quotes?hash=${hashToCheck}&limit=100`;
+      const quotesResponse = await fetch(quotesUrl, {
+        headers: {
+          "api_key": NEYNAR_API_KEY,
+          "accept": "application/json"
+        }
+      });
+
+      if (quotesResponse.ok) {
+        const quotesData = await quotesResponse.json();
+        hasQuoted = quotesData.casts?.some((cast: { author: { fid: number } }) => cast.author.fid === userFid) || false;
+        if (hasQuoted) {
+          console.log(`[Quote Check] Found quote in quotes endpoint`);
+        }
+      }
+    }
+    
+    console.log(`[Quote Check] Final quote status: ${hasQuoted}`);
     return hasQuoted;
   } catch (error) {
     console.error("[Quote Check] Error checking quote status:", error);
