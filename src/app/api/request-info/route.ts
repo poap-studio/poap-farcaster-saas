@@ -71,7 +71,14 @@ export async function POST(request: NextRequest) {
           <p>We've received your request for commercial access to POAP Studio.</p>
           
           <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <p>Our team will review your request and get back to you soon with information about:</p>
+            <p><strong>Let's schedule a meeting!</strong></p>
+            <p>We'd love to discuss how POAP Studio can help your organization. Click the button below to book a time that works for you:</p>
+            
+            <div style="text-align: center; margin: 20px 0;">
+              <a href="https://calendar.app.google/EJzeu3NaBszEM6QM9" style="display: inline-block; background-color: #7C65C1; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">Schedule a Meeting</a>
+            </div>
+            
+            <p>During our call, we'll discuss:</p>
             <ul>
               <li>Enterprise features and capabilities</li>
               <li>Custom solutions for your needs</li>
