@@ -7,7 +7,7 @@ export default function SocialBubbles() {
     { name: 'Instagram', icon: '/icons/instagram.png', color: 'from-pink-500 to-orange-500' },
     { name: 'Lens', icon: '/icons/lens.png', color: 'from-green-500 to-green-700' },
     { name: 'X', icon: '/icons/x.png', color: 'from-gray-700 to-gray-900' },
-    { name: 'Luma', icon: '/icons/luma.png', color: 'from-orange-400 to-red-500' },
+    { name: 'Luma', icon: '/icons/luma.svg', color: 'from-orange-400 to-red-500' },
   ];
 
   return (
