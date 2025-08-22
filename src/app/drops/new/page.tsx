@@ -88,23 +88,25 @@ export default function NewDropPage() {
     let user;
     
     // Try to get current session first
+    console.log("Checking session...");
     const sessionResponse = await fetch("/api/auth/session");
+    console.log("Session response status:", sessionResponse.status);
+    
     if (sessionResponse.ok) {
       const sessionData = await sessionResponse.json();
-      if (sessionData.user) {
-        // Map session user to expected format
-        user = {
-          id: sessionData.user.userId,
-          fid: sessionData.user.fid,
-          username: sessionData.user.username,
-          displayName: sessionData.user.displayName,
-          profileImage: sessionData.user.profileImage,
-        };
+      console.log("Session data:", sessionData);
+      
+      if (sessionData.authenticated && sessionData.user) {
+        // Use session user directly
+        user = sessionData.user;
+        console.log("User from session:", user);
       }
     }
     
     // If no session, try Farcaster authentication
+    console.log("Profile from Farcaster:", profile);
     if (!user && profile?.fid) {
+      console.log("Attempting Farcaster login...");
       const loginResponse = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -116,7 +118,10 @@ export default function NewDropPage() {
         }),
       });
 
+      console.log("Login response status:", loginResponse.status);
       if (!loginResponse.ok) {
+        const errorText = await loginResponse.text();
+        console.error("Login error:", errorText);
         toast.error("Authentication failed");
         return;
       }

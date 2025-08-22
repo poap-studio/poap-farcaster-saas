@@ -30,7 +30,8 @@ export async function GET() {
     return NextResponse.json({ 
       authenticated: true,
       user: {
-        userId: user.id,
+        id: user.id,  // Changed from userId to id for consistency
+        userId: user.id,  // Keep both for backward compatibility
         fid: user.fid,
         username: user.username,
         displayName: user.displayName,

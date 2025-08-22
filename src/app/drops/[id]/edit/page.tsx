@@ -93,15 +93,9 @@ export default function EditDropPage({ params }: PageProps) {
     const sessionResponse = await fetch("/api/auth/session");
     if (sessionResponse.ok) {
       const sessionData = await sessionResponse.json();
-      if (sessionData.user) {
-        // Map session user to expected format
-        user = {
-          id: sessionData.user.userId,
-          fid: sessionData.user.fid,
-          username: sessionData.user.username,
-          displayName: sessionData.user.displayName,
-          profileImage: sessionData.user.profileImage,
-        };
+      if (sessionData.authenticated && sessionData.user) {
+        // Use session user directly
+        user = sessionData.user;
       }
     }
     
