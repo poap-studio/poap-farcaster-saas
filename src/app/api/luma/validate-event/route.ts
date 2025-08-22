@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { fetchLumaEvent } from "@/lib/luma-cookie";
+import { getSession } from "~/lib/session";
+import { fetchLumaEvent } from "~/lib/luma-cookie";
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -37,14 +36,14 @@ export async function POST(request: Request) {
           guests_count: eventData.guests_count
         }
       });
-    } catch (error: any) {
-      if (error.message.includes('owner or co-host')) {
+    } catch (error) {
+      if ((error as Error).message.includes('owner or co-host')) {
         return NextResponse.json({ 
           error: "You don't have access to this event. Make sure admin@poap.fr is a co-host." 
         }, { status: 403 });
       }
       
-      if (error.message.includes('No Luma cookie')) {
+      if ((error as Error).message.includes('No Luma cookie')) {
         return NextResponse.json({ 
           error: "Luma authentication expired. Please contact admin." 
         }, { status: 503 });

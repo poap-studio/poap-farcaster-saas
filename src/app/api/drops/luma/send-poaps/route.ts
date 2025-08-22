@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { fetchLumaGuests } from "@/lib/luma-cookie";
+import { getSession } from "~/lib/session";
+import { prisma } from "~/lib/prisma";
+import { fetchLumaGuests } from "~/lib/luma-cookie";
 import nodemailer from "nodemailer";
 
 interface SendPOAPsRequest {
@@ -13,8 +12,8 @@ interface SendPOAPsRequest {
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -25,7 +24,7 @@ export async function POST(request: Request) {
     const drop = await prisma.drop.findFirst({
       where: {
         id: dropId,
-        userId: session.user.id,
+        userId: session.userId,
         platform: 'luma'
       }
     });
@@ -167,10 +166,10 @@ export async function POST(request: Request) {
       total: guestsToSend.length
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error sending POAPs:", error);
     
-    if (error.message.includes('No Luma cookie')) {
+    if ((error as Error).message.includes('No Luma cookie')) {
       return NextResponse.json({ 
         error: "Luma authentication expired. Please contact admin." 
       }, { status: 503 });

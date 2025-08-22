@@ -9,7 +9,11 @@ export default function NewLumaDropPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [validating, setValidating] = useState(false);
-  const [eventData, setEventData] = useState<any>(null);
+  const [eventData, setEventData] = useState<{
+    name: string;
+    start_at: string;
+    guests_count: number;
+  } | null>(null);
   
   const [formData, setFormData] = useState({
     eventUrl: "",
@@ -66,8 +70,8 @@ The {{eventName}} Team`,
 
       setEventData(data.event);
       toast.success("Event validated successfully!");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error((error as Error).message);
       setEventData(null);
     } finally {
       setValidating(false);
@@ -122,8 +126,8 @@ The {{eventName}} Team`,
 
       toast.success("Luma drop created successfully!");
       router.push("/dashboard");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error((error as Error).message);
     } finally {
       setLoading(false);
     }

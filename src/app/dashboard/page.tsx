@@ -5,7 +5,7 @@ import { useProfile } from "@farcaster/auth-kit";
 import Link from "next/link";
 import { Toaster, toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import PlatformSelector from "@/components/PlatformSelector";
+import PlatformSelector from "~/components/PlatformSelector";
 
 interface SessionData {
   userId: string;

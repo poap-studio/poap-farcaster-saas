@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { LumaCookieManager } from "@/lib/luma-cookie";
+import { LumaCookieManager } from "~/lib/luma-cookie";
 
 export async function POST(request: Request) {
   try {

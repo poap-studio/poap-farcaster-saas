@@ -1,16 +1,20 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { fetchLumaGuests } from "@/lib/luma-cookie";
-import { prisma } from "@/lib/prisma";
+import { getSession } from "~/lib/session";
+import { fetchLumaGuests } from "~/lib/luma-cookie";
+import { prisma } from "~/lib/prisma";
+
+interface RouteParams {
+  params: Promise<{ eventId: string }>;
+}
 
 export async function GET(
   request: Request,
-  { params }: { params: { eventId: string } }
+  { params }: RouteParams
 ) {
+  const { eventId } = await params;
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -23,7 +27,7 @@ export async function GET(
       const drop = await prisma.drop.findFirst({
         where: {
           id: dropId,
-          userId: session.user.id,
+          userId: session.userId,
           platform: 'luma'
         }
       });
@@ -33,7 +37,7 @@ export async function GET(
       }
     }
 
-    const guests = await fetchLumaGuests(params.eventId);
+    const guests = await fetchLumaGuests(eventId);
 
     // Filter by check-in status if requested
     let filteredGuests = guests;
@@ -64,10 +68,10 @@ export async function GET(
       delivered: deliveredGuests.size
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error fetching Luma guests:", error);
     
-    if (error.message.includes('No Luma cookie')) {
+    if ((error as Error).message.includes('No Luma cookie')) {
       return NextResponse.json({ 
         error: "Luma authentication expired. Please contact admin." 
       }, { status: 503 });

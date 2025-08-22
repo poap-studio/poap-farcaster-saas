@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
 
 export default function LumaCookiePage() {
-  const router = useRouter();
   const [cookie, setCookie] = useState("");
   const [isValid, setIsValid] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
@@ -58,8 +56,8 @@ export default function LumaCookiePage() {
       toast.success("Cookie updated successfully!");
       setCookie("");
       await checkCurrentCookie();
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error((error as Error).message);
     } finally {
       setLoading(false);
     }
