@@ -378,19 +378,8 @@ export default function DashboardPage() {
             {currentDrops.map((drop) => (
               <div
                 key={drop.id}
-                className="bg-slate-800 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-200 flex flex-col h-[320px] relative"
+                className="bg-slate-800 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-200 flex flex-col h-[320px]"
               >
-                {/* Farcaster Icon */}
-                <div className="absolute top-4 left-4 z-10">
-                  <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                    <img 
-                      src="/icons/farcaster.png" 
-                      alt="Farcaster"
-                      className="w-5 h-5 object-contain"
-                    />
-                  </div>
-                </div>
-                
                 {/* Color Preview Bar */}
                 <div
                   className="h-2"
@@ -398,10 +387,15 @@ export default function DashboardPage() {
                 />
                 
                 <div className="p-6 flex flex-col flex-1">
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-lg font-semibold text-white truncate pr-2 pl-10">
-                      {drop.poapName || `Event #${drop.poapEventId}`}
-                    </h3>
+                  {/* Top row with Farcaster icon and status chip */}
+                  <div className="flex justify-between items-center mb-3">
+                    <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                      <img 
+                        src="/icons/farcaster.png" 
+                        alt="Farcaster"
+                        className="w-5 h-5 object-contain"
+                      />
+                    </div>
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
                         drop.isActive
@@ -412,6 +406,11 @@ export default function DashboardPage() {
                       {drop.isActive ? "Active" : "Inactive"}
                     </span>
                   </div>
+                  
+                  {/* Title on its own line */}
+                  <h3 className="text-lg font-semibold text-white truncate mb-4">
+                    {drop.poapName || `Event #${drop.poapEventId}`}
+                  </h3>
 
                   <div className="flex-1">
                     <div className="space-y-2 mb-6">
