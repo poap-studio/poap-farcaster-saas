@@ -84,24 +84,51 @@ export default function NewDropPage() {
       return;
     }
 
-    // Get user ID from profile
-    const loginResponse = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        fid: profile?.fid,
-        username: profile?.username,
-        displayName: profile?.displayName,
-        profileImage: profile?.pfpUrl,
-      }),
-    });
+    // Get user ID - first try session, then Farcaster profile
+    let user;
+    
+    // Try to get current session first
+    const sessionResponse = await fetch("/api/auth/session");
+    if (sessionResponse.ok) {
+      const sessionData = await sessionResponse.json();
+      if (sessionData.user) {
+        // Map session user to expected format
+        user = {
+          id: sessionData.user.userId,
+          fid: sessionData.user.fid,
+          username: sessionData.user.username,
+          displayName: sessionData.user.displayName,
+          profileImage: sessionData.user.profileImage,
+        };
+      }
+    }
+    
+    // If no session, try Farcaster authentication
+    if (!user && profile?.fid) {
+      const loginResponse = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fid: profile.fid,
+          username: profile.username,
+          displayName: profile.displayName,
+          profileImage: profile.pfpUrl,
+        }),
+      });
 
-    if (!loginResponse.ok) {
-      toast.error("Authentication failed");
+      if (!loginResponse.ok) {
+        toast.error("Authentication failed");
+        return;
+      }
+
+      const loginData = await loginResponse.json();
+      user = loginData.user;
+    }
+    
+    if (!user) {
+      toast.error("Please login to continue");
       return;
     }
-
-    const { user } = await loginResponse.json();
 
     setLoading(true);
     try {

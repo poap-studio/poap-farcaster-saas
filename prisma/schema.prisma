@@ -10,37 +10,37 @@ datasource db {
 model User {
   id           String   @id @default(cuid())
   fid          Int?     @unique
-  googleId     String?  @unique
-  email        String?  @unique
   username     String
   displayName  String?
   profileImage String?
-  provider     String   @default("farcaster") // "farcaster" or "google"
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  email        String?  @unique
+  googleId     String?  @unique
+  provider     String   @default("farcaster")
   drops        Drop[]
 }
 
 model Drop {
-  id               String   @id @default(cuid())
-  slug             String   @unique @default(cuid())
-  userId           String
-  poapEventId      String
-  poapSecretCode   String
-  buttonColor      String   @default("#0a5580")
-  backgroundColor  String   @default("#073d5c")
-  logoUrl          String?
-  mintMessage      String   @default("This POAP celebrates the Farcaster community and our journey together.")
+  id                String   @id @default(cuid())
+  slug              String   @unique @default(cuid())
+  userId            String
+  poapEventId       String
+  poapSecretCode    String
+  buttonColor       String   @default("#0a5580")
+  backgroundColor   String   @default("#073d5c")
+  logoUrl           String?
+  mintMessage       String   @default("This POAP celebrates the Farcaster community and our journey together.")
+  requireFollow     Boolean  @default(true)
+  followUsername    String?
+  requireRecast     Boolean  @default(true)
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
   disclaimerMessage String   @default("By minting this POAP you accept these terms: https://poap.xyz/terms")
-  requireFollow    Boolean  @default(true)
-  followUsername   String?
-  requireRecast    Boolean  @default(true)
-  requireQuote     Boolean  @default(false)
-  isActive         Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  claims           Claim[]
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  requireQuote      Boolean  @default(false)
+  claims            Claim[]
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([slug])
@@ -50,11 +50,11 @@ model Claim {
   id        String   @id @default(cuid())
   dropId    String
   fid       Int
-  username  String?
-  followers Int?
   address   String
   txHash    String?
   claimedAt DateTime @default(now())
+  username  String?
+  followers Int?
   drop      Drop     @relation(fields: [dropId], references: [id], onDelete: Cascade)
 
   @@unique([dropId, fid])
