@@ -12,6 +12,8 @@ export interface Drop {
   requireFollow: boolean;
   followUsername?: string;
   requireRecast: boolean;
+  requireQuote: boolean;
+  isActive: boolean;
 }
 
 export function getCurrentDrop(): Drop | null {
@@ -46,7 +48,8 @@ export function getDropConfig() {
       disclaimerMessage: 'By minting this POAP you accept these terms: https://poap.xyz/terms',
       requireFollow: true,
       followUsername: null,
-      requireRecast: true
+      requireRecast: true,
+      requireQuote: false
     };
   }
   
@@ -58,6 +61,7 @@ export function getDropConfig() {
     disclaimerMessage: drop.disclaimerMessage,
     requireFollow: drop.requireFollow,
     followUsername: drop.followUsername,
-    requireRecast: drop.requireRecast
+    requireRecast: drop.requireRecast,
+    requireQuote: drop.requireQuote
   };
 }

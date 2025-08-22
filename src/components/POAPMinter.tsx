@@ -9,7 +9,7 @@ import {
 } from "wagmi";
 import { base } from "viem/chains";
 import { config } from "./providers/WagmiProvider";
-import { checkIfUserFollows, getRequiredFollowUsername, verifyNeynarAPI, getUserEthAddress, checkIfUserRecasted, getRequiredRecastHash } from "~/lib/neynar";
+import { checkIfUserFollows, getRequiredFollowUsername, verifyNeynarAPI, getUserEthAddress, checkIfUserRecasted, checkIfUserQuoted, getRequiredRecastHash } from "~/lib/neynar";
 import { resolveAddressOrENS } from "~/lib/ens";
 import { isSpamUser, isSpamValidationEnabled } from "~/lib/spam-validation";
 import FollowGate from "./FollowGate";
@@ -22,6 +22,7 @@ interface POAPMinterProps {
     id: string;
     slug: string;
     poapEventId: string;
+    poapSecretCode: string;
     buttonColor: string;
     backgroundColor: string;
     logoUrl?: string;
@@ -30,6 +31,8 @@ interface POAPMinterProps {
     requireFollow: boolean;
     followUsername?: string;
     requireRecast: boolean;
+    requireQuote: boolean;
+    isActive: boolean;
   };
 }
 
@@ -42,8 +45,10 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
   const [context, setContext] = useState<Context.FrameContext | null>(null);
   const [isFollowing, setIsFollowing] = useState<boolean | null>(null);
   const [hasRecasted, setHasRecasted] = useState<boolean | null>(null);
+  const [hasQuoted, setHasQuoted] = useState<boolean | null>(null);
   const [checkingFollow, setCheckingFollow] = useState(true);
   const [checkingRecast, setCheckingRecast] = useState(true);
+  const [checkingQuote, setCheckingQuote] = useState(true);
   const [castAuthor, setCastAuthor] = useState<string | null>(null);
   const [hasAlreadyClaimed, setHasAlreadyClaimed] = useState<boolean | null>(null);
   const [checkingClaim, setCheckingClaim] = useState(true);
@@ -65,7 +70,8 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
     disclaimerMessage: drop.disclaimerMessage,
     requireFollow: drop.requireFollow,
     followUsername: drop.followUsername,
-    requireRecast: drop.requireRecast
+    requireRecast: drop.requireRecast,
+    requireQuote: drop.requireQuote
   } : getDropConfig();
 
   const { address, isConnected } = useAccount();
@@ -234,9 +240,11 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
         console.log("[POAPMinter] No context or user found, skipping requirements check");
         setCheckingFollow(false);
         setCheckingRecast(false);
+        setCheckingQuote(false);
         setCheckingClaim(false);
         setIsFollowing(null);
         setHasRecasted(null);
+        setHasQuoted(null);
         setHasAlreadyClaimed(null);
         return;
       }
@@ -250,12 +258,15 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
           ? context.location.cast.hash 
           : undefined;
         
-        const [follows, recastResult, claimResponse] = await Promise.all([
+        const [follows, recastResult, quoted, claimResponse] = await Promise.all([
           dropConfig.requireFollow 
             ? checkIfUserFollows(context.user.fid, dropConfig.followUsername || getRequiredFollowUsername())
             : Promise.resolve(true),
           dropConfig.requireRecast
             ? checkIfUserRecasted(context.user.fid, castHash)
+            : Promise.resolve(true),
+          dropConfig.requireQuote
+            ? checkIfUserQuoted(context.user.fid, castHash)
             : Promise.resolve(true),
           fetch("/api/poap-claim", {
             method: "POST",
@@ -290,19 +301,23 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
         
         console.log(`[POAPMinter] Follow check result: ${follows}`);
         console.log(`[POAPMinter] Recast check result: ${typeof recastResult === 'boolean' ? recastResult : recastResult.recasted}`);
+        console.log(`[POAPMinter] Quote check result: ${quoted}`);
         console.log(`[POAPMinter] Already claimed check result: ${hasClaimedThisEvent}`);
         
         setIsFollowing(follows);
         setHasRecasted(typeof recastResult === 'boolean' ? recastResult : recastResult.recasted);
+        setHasQuoted(quoted);
         setHasAlreadyClaimed(hasClaimedThisEvent);
       } catch (error) {
         console.error("[POAPMinter] Error checking requirements:", error);
         setIsFollowing(false);
         setHasRecasted(false);
+        setHasQuoted(false);
         setHasAlreadyClaimed(false);
       } finally {
         setCheckingFollow(false);
         setCheckingRecast(false);
+        setCheckingQuote(false);
         setCheckingClaim(false);
       }
     };
@@ -310,7 +325,7 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
     if (context) {
       checkRequirements();
     }
-  }, [context, drop?.id, dropConfig.followUsername, dropConfig.requireFollow, dropConfig.requireRecast, userHasModifiedAddress]);
+  }, [context, drop?.id, dropConfig.followUsername, dropConfig.requireFollow, dropConfig.requireRecast, dropConfig.requireQuote, userHasModifiedAddress]);
 
 
   const mintPoap = async () => {
@@ -393,6 +408,7 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
     if (context?.user) {
       setCheckingFollow(true);
       setCheckingRecast(true);
+      setCheckingQuote(true);
       setCheckingClaim(true);
       try {
         // Use the cast hash from the frame context if available
@@ -400,12 +416,15 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
           ? context.location.cast.hash 
           : undefined;
         
-        const [follows, recastResult, claimResponse] = await Promise.all([
+        const [follows, recastResult, quoted, claimResponse] = await Promise.all([
           dropConfig.requireFollow 
             ? checkIfUserFollows(context.user.fid, dropConfig.followUsername || getRequiredFollowUsername())
             : Promise.resolve(true),
           dropConfig.requireRecast
             ? checkIfUserRecasted(context.user.fid, castHash)
+            : Promise.resolve(true),
+          dropConfig.requireQuote
+            ? checkIfUserQuoted(context.user.fid, castHash)
             : Promise.resolve(true),
           fetch("/api/poap-claim", {
             method: "POST",
@@ -433,9 +452,10 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
           }
         }
         
-        console.log(`[POAPMinter] Manual recheck - Follow: ${follows}, Recast: ${recasted}, Claimed: ${hasClaimedThisEvent}`);
+        console.log(`[POAPMinter] Manual recheck - Follow: ${follows}, Recast: ${recasted}, Quote: ${quoted}, Claimed: ${hasClaimedThisEvent}`);
         setIsFollowing(follows);
         setHasRecasted(recasted);
+        setHasQuoted(quoted);
         setHasAlreadyClaimed(hasClaimedThisEvent);
         
         // Update cast author if available
@@ -455,10 +475,12 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
         console.error("[POAPMinter] Error in manual recheck:", error);
         setIsFollowing(false);
         setHasRecasted(false);
+        setHasQuoted(false);
         setHasAlreadyClaimed(false);
       } finally {
         setCheckingFollow(false);
         setCheckingRecast(false);
+        setCheckingQuote(false);
         setCheckingClaim(false);
       }
     }
@@ -470,7 +492,7 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
   };
 
   // Show loading while checking requirements
-  if (checkingFollow || checkingRecast || checkingClaim) {
+  if (checkingFollow || checkingRecast || checkingQuote || checkingClaim) {
     return (
       <div className="loading-container">
         <div className="spinner-large" />
@@ -520,8 +542,10 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
         castAuthor={castAuthor}
         isFollowing={isFollowing}
         hasRecasted={hasRecasted}
+        hasQuoted={hasQuoted}
         requireFollow={dropConfig.requireFollow}
         requireRecast={dropConfig.requireRecast}
+        requireQuote={dropConfig.requireQuote}
         onFollowComplete={handleFollowComplete}
         onClaimPoapClick={handleClaimPoapClick}
       />

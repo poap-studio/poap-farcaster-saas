@@ -8,15 +8,18 @@ interface FollowGateProps {
   castAuthor?: string | null;
   isFollowing?: boolean | null;
   hasRecasted?: boolean | null;
+  hasQuoted?: boolean | null;
   requireFollow?: boolean;
   requireRecast?: boolean;
+  requireQuote?: boolean;
   onFollowComplete?: () => void;
   onClaimPoapClick?: () => void;
 }
 
-export default function FollowGate({ username, castHash, castAuthor, isFollowing, hasRecasted, requireFollow = true, requireRecast = true, onFollowComplete, onClaimPoapClick }: FollowGateProps) {
+export default function FollowGate({ username, castHash, castAuthor, isFollowing, hasRecasted, hasQuoted, requireFollow = true, requireRecast = true, requireQuote = false, onFollowComplete, onClaimPoapClick }: FollowGateProps) {
   const [isOpeningProfile, setIsOpeningProfile] = useState(false);
   const [isOpeningCast, setIsOpeningCast] = useState(false);
+  const [isOpeningQuote, setIsOpeningQuote] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [poapEventData, setPoapEventData] = useState<{name: string, image_url: string} | null>(null);
   const [isLoadingPoapData, setIsLoadingPoapData] = useState(true);
@@ -61,6 +64,35 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
     } catch (error) {
       console.error("Error opening cast:", error);
       setIsOpeningCast(false);
+    }
+  };
+
+  const handleQuoteClick = async () => {
+    if (!castHash) return;
+    
+    // Extract the short hash (first 10 characters after 0x)
+    const shortHash = castHash.startsWith('0x') 
+      ? castHash.substring(0, 10) 
+      : `0x${castHash.substring(0, 8)}`;
+    
+    // Use the author username from the cast if available
+    const castUrl = castAuthor 
+      ? `https://warpcast.com/${castAuthor}/${shortHash}`
+      : `https://warpcast.com/~/conversations/${castHash}`;
+    
+    setIsOpeningQuote(true);
+    try {
+      // Open compose with the cast embedded for quote
+      const quoteUrl = `https://warpcast.com/~/compose?embeds[]=${encodeURIComponent(castUrl)}`;
+      await sdk.actions.openUrl(quoteUrl);
+      
+      // After a delay, reset the state
+      setTimeout(() => {
+        setIsOpeningQuote(false);
+      }, 1000);
+    } catch (error) {
+      console.error("Error opening quote composer:", error);
+      setIsOpeningQuote(false);
     }
   };
 
@@ -189,9 +221,13 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
                   </button>
                 </div>
                 <div className="complete-both-steps-to-unlock-your-poap">
-                  {requireFollow && requireRecast ? 'Complete both steps to unlock your POAP:' :
-                   requireFollow || requireRecast ? 'Complete the step to unlock your POAP:' :
-                   'Your POAP is ready to claim!'}
+                  {(() => {
+                    const requirements = [requireFollow, requireRecast, requireQuote].filter(Boolean).length;
+                    if (requirements === 0) return 'Your POAP is ready to claim!';
+                    if (requirements === 1) return 'Complete the step to unlock your POAP:';
+                    if (requirements === 2) return 'Complete both steps to unlock your POAP:';
+                    return 'Complete all steps to unlock your POAP:';
+                  })()}
                 </div>
               </div>
               <div className="requirements-container">
@@ -246,12 +282,37 @@ export default function FollowGate({ username, castHash, castAuthor, isFollowing
                     </button>
                   </div>
                 )}
+                {requireQuote && (
+                  <div className="requirement-item">
+                    <div className="requirement-text">
+                      <span className="requirement-main">Quote the original cast</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleQuoteClick}
+                      disabled={isOpeningQuote || !!hasQuoted || !castHash}
+                      className={`action-button ${hasQuoted ? 'completed' : ''}`}
+                    >
+                      {hasQuoted ? (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M13.3334 4L6.00008 11.3333L2.66675 8" stroke="#CAF2BF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      ) : null}
+                      <span>{hasQuoted ? 'Done' : 'Quote'}</span>
+                      {!hasQuoted ? (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M4 12L12 4M12 4H6M12 4V10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      ) : null}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
             <div className="cta">
               <button
                 type="button"
-                disabled={(requireFollow && !isFollowing) || (requireRecast && !hasRecasted)}
+                disabled={(requireFollow && !isFollowing) || (requireRecast && !hasRecasted) || (requireQuote && !hasQuoted)}
                 className="claim-button"
                 onClick={onClaimPoapClick}
               >

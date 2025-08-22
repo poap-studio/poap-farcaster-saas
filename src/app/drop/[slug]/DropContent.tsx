@@ -8,6 +8,7 @@ interface Drop {
   id: string;
   slug: string;
   poapEventId: string;
+  poapSecretCode: string;
   buttonColor: string;
   backgroundColor: string;
   logoUrl?: string;
@@ -16,6 +17,8 @@ interface Drop {
   requireFollow: boolean;
   followUsername?: string;
   requireRecast: boolean;
+  requireQuote: boolean;
+  isActive: boolean;
 }
 
 interface DropContentProps {

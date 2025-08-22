@@ -12,6 +12,7 @@ interface DropPreviewProps {
   requireFollow: boolean;
   followUsername?: string;
   requireRecast: boolean;
+  requireQuote: boolean;
 }
 
 export default function DropPreview({
@@ -24,6 +25,7 @@ export default function DropPreview({
   requireFollow,
   followUsername,
   requireRecast,
+  requireQuote,
 }: DropPreviewProps) {
   const [activeScreen, setActiveScreen] = useState<"requirements" | "mint">("requirements");
   const [poapImage, setPoapImage] = useState<string>("/poap-image0.png");
@@ -128,9 +130,13 @@ export default function DropPreview({
                   </div>
                   
                   <p className="text-gray-400 text-sm">
-                    {requireFollow && requireRecast ? "Complete both steps to unlock your POAP:" :
-                     requireFollow || requireRecast ? "Complete the step to unlock your POAP:" :
-                     "Your POAP is ready to claim!"}
+                    {(() => {
+                      const requirements = [requireFollow, requireRecast, requireQuote].filter(Boolean).length;
+                      if (requirements === 0) return 'Your POAP is ready to claim!';
+                      if (requirements === 1) return 'Complete the step to unlock your POAP:';
+                      if (requirements === 2) return 'Complete both steps to unlock your POAP:';
+                      return 'Complete all steps to unlock your POAP:';
+                    })()}
                   </p>
 
                   <div className="space-y-3">
@@ -162,12 +168,26 @@ export default function DropPreview({
                         </button>
                       </div>
                     )}
+                    
+                    {requireQuote && (
+                      <div className="flex justify-between items-center bg-slate-900 rounded-lg p-4">
+                        <div>
+                          <p className="text-white font-medium">Quote the original cast</p>
+                        </div>
+                        <button className="px-4 py-2 bg-slate-700 text-white rounded-lg text-sm font-medium flex items-center gap-2">
+                          Quote
+                          <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
+                            <path d="M4 12L12 4M12 4H6M12 4V10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <button
                     className="w-full py-4 rounded-lg text-white font-bold text-lg mt-6"
                     style={{ backgroundColor: buttonColor }}
-                    disabled={requireFollow || requireRecast}
+                    disabled={requireFollow || requireRecast || requireQuote}
                   >
                     Claim POAP
                   </button>

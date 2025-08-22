@@ -272,6 +272,59 @@ export async function getUserUsername(userFid: number): Promise<string | null> {
   }
 }
 
+export async function checkIfUserQuoted(userFid: number, castHash?: string): Promise<boolean> {
+  console.log(`[Quote Check] Checking quote for FID: ${userFid}, hash: ${castHash}`);
+  
+  const hashToCheck = castHash || REQUIRED_RECAST_HASH;
+  
+  if (!hashToCheck) {
+    console.error("[Quote Check] No cast hash provided");
+    return false;
+  }
+  
+  console.log(`[Quote Check] Using cast hash: ${hashToCheck}`);
+  
+  if (!NEYNAR_API_KEY) {
+    console.error("[Quote Check] NEYNAR_API_KEY is not set");
+    return false;
+  }
+
+  if (!userFid) {
+    console.error("[Quote Check] userFid is required");
+    return false;
+  }
+
+  try {
+    const url = `https://api.neynar.com/v2/farcaster/cast/quotes?hash=${hashToCheck}`;
+    console.log(`[Quote Check] Making request to: ${url}`);
+    
+    const response = await fetch(url, {
+      headers: {
+        "api_key": NEYNAR_API_KEY,
+        "accept": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[Quote Check] Neynar API error: ${response.status} ${response.statusText}`, errorText);
+      return false;
+    }
+
+    const data = await response.json();
+    console.log("[Quote Check] API response:", JSON.stringify(data, null, 2));
+    
+    // Check if the user has quoted this cast
+    const hasQuoted = data.casts?.some((cast: { author: { fid: number } }) => cast.author.fid === userFid) || false;
+    console.log(`[Quote Check] Quote status result: ${hasQuoted}`);
+    
+    return hasQuoted;
+  } catch (error) {
+    console.error("[Quote Check] Error checking quote status:", error);
+    return false;
+  }
+}
+
 export async function getUserProfile(userFid: number): Promise<{ username: string | null; followers: number | null }> {
   console.log(`[User Profile] Getting profile for FID: ${userFid}`);
   

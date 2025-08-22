@@ -25,6 +25,7 @@ export default function NewDropPage() {
     requireFollow: true,
     followUsername: "",
     requireRecast: true,
+    requireQuote: false,
   });
 
   const [eventInfo, setEventInfo] = useState<{
@@ -357,6 +358,28 @@ export default function NewDropPage() {
                 className="w-5 h-5 text-purple-600 bg-slate-600 border-slate-500 rounded focus:ring-purple-500"
               />
             </div>
+
+            <div 
+              className="flex items-center justify-between p-4 bg-slate-700 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors"
+              onClick={() => setFormData(prev => ({ ...prev, requireQuote: !prev.requireQuote }))}
+            >
+              <div>
+                <label className="text-white font-medium cursor-pointer">
+                  Require Quote
+                </label>
+                <p className="text-gray-400 text-sm">
+                  Users must quote the original cast
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                name="requireQuote"
+                checked={formData.requireQuote}
+                onChange={handleInputChange}
+                onClick={(e) => e.stopPropagation()}
+                className="w-5 h-5 text-purple-600 bg-slate-600 border-slate-500 rounded focus:ring-purple-500"
+              />
+            </div>
           </div>
         </div>
 
@@ -400,6 +423,7 @@ export default function NewDropPage() {
               requireFollow={formData.requireFollow}
               followUsername={formData.followUsername}
               requireRecast={formData.requireRecast}
+              requireQuote={formData.requireQuote}
             />
           </div>
         </div>
@@ -431,6 +455,7 @@ export default function NewDropPage() {
                 requireFollow={formData.requireFollow}
                 followUsername={formData.followUsername}
                 requireRecast={formData.requireRecast}
+                requireQuote={formData.requireQuote}
               />
             </div>
           </div>

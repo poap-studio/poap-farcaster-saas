@@ -31,6 +31,7 @@ interface Drop {
   requireFollow: boolean;
   followUsername?: string;
   requireRecast: boolean;
+  requireQuote: boolean;
   isActive: boolean;
   createdAt: string;
   poapName?: string;
