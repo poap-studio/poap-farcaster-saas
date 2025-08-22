@@ -59,23 +59,23 @@ const DeleteModal = ({ isOpen, onClose, onConfirm, dropName }: DeleteModalProps)
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose} />
       <div className="relative bg-slate-800 rounded-2xl shadow-2xl p-6 max-w-md w-full">
-        <h3 className="text-xl font-semibold text-white mb-4">Confirmar eliminación</h3>
+        <h3 className="text-xl font-semibold text-white mb-4">Confirm Deletion</h3>
         <p className="text-gray-300 mb-6">
-          ¿Estás seguro que quieres eliminar el drop <span className="font-semibold">{dropName}</span>? 
-          Esta acción no se puede deshacer.
+          Are you sure you want to delete the drop <span className="font-semibold">{dropName}</span>? 
+          This action cannot be undone.
         </p>
         <div className="flex gap-3 justify-end">
           <button
             onClick={onClose}
             className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition-colors"
           >
-            Cancelar
+            Cancel
           </button>
           <button
             onClick={onConfirm}
             className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors"
           >
-            Eliminar
+            Delete
           </button>
         </div>
       </div>
@@ -226,14 +226,14 @@ export default function DashboardPage() {
 
       if (response.ok) {
         setDrops(drops.filter(d => d.id !== deleteModal.dropId));
-        toast.success('Drop eliminado correctamente');
+        toast.success('Drop deleted successfully');
         setDeleteModal({ isOpen: false, dropId: '', dropName: '' });
       } else {
-        toast.error('Error al eliminar el drop');
+        toast.error('Failed to delete drop');
       }
     } catch (error) {
       console.error("Delete error:", error);
-      toast.error('Error al eliminar el drop');
+      toast.error('Failed to delete drop');
     }
   };
   
@@ -251,7 +251,7 @@ export default function DashboardPage() {
   const copyLink = (dropId: string) => {
     const url = `${window.location.origin}/share/${dropId}`;
     navigator.clipboard.writeText(url);
-    toast.success('Enlace copiado al portapapeles');
+    toast.success('Link copied to clipboard');
   };
 
   const downloadCollectors = async (dropId: string, dropName: string) => {
@@ -259,7 +259,7 @@ export default function DashboardPage() {
       const response = await fetch(`/api/download?dropId=${dropId}`);
       
       if (!response.ok) {
-        toast.error('Error al descargar los collectors');
+        toast.error('Failed to download collectors');
         return;
       }
 
@@ -273,10 +273,10 @@ export default function DashboardPage() {
       link.remove();
       window.URL.revokeObjectURL(url);
       
-      toast.success('Archivo descargado correctamente');
+      toast.success('File downloaded successfully');
     } catch (error) {
       console.error('Error downloading collectors:', error);
-      toast.error('Error al descargar los collectors');
+      toast.error('Failed to download collectors');
     }
   };
   
