@@ -82,7 +82,7 @@ cp .env.local.example .env.local
 
 4. Set up the database:
 ```bash
-npx prisma db push
+npx prisma migrate deploy
 ```
 
 5. Run the development server:
