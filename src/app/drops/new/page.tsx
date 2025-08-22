@@ -11,7 +11,6 @@ export default function NewDropPage() {
   const router = useRouter();
   const { profile } = useProfile();
   const [loading, setLoading] = useState(false);
-  const [validating, setValidating] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -28,14 +27,6 @@ export default function NewDropPage() {
     requireQuote: false,
   });
 
-  const [eventInfo, setEventInfo] = useState<{
-    id: number;
-    name: string;
-    description: string;
-    image_url: string;
-    supply: number;
-  } | null>(null);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     setFormData(prev => ({
@@ -44,15 +35,26 @@ export default function NewDropPage() {
     }));
   };
 
-  const validatePOAPEvent = async () => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate required fields
     if (!formData.poapEventId || !formData.poapSecretCode) {
       toast.error("Please enter both Event ID and Secret Code");
       return;
     }
 
-    setValidating(true);
+    if (formData.requireFollow && !formData.followUsername) {
+      toast.error("Please enter a username to follow");
+      return;
+    }
+
+    setLoading(true);
+    
     try {
-      const response = await fetch("/api/poap/validate-event", {
+      // First validate the POAP event
+      const validateResponse = await fetch("/api/poap/validate-event", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -61,82 +63,69 @@ export default function NewDropPage() {
         }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setEventInfo(data.event);
-        toast.success("POAP event validated successfully!");
-      } else {
-        toast.error("Invalid POAP event ID or secret code");
-      }
-    } catch (error) {
-      console.error("Validation error:", error);
-      toast.error("Failed to validate POAP event");
-    } finally {
-      setValidating(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!eventInfo) {
-      toast.error("You must validate the POAP first by clicking the Validate button in this form");
-      return;
-    }
-
-    // Get user ID - first try session, then Farcaster profile
-    let user;
-    
-    // Try to get current session first
-    console.log("Checking session...");
-    const sessionResponse = await fetch("/api/auth/session");
-    console.log("Session response status:", sessionResponse.status);
-    
-    if (sessionResponse.ok) {
-      const sessionData = await sessionResponse.json();
-      console.log("Session data:", sessionData);
-      
-      if (sessionData.authenticated && sessionData.user) {
-        // Use session user directly
-        user = sessionData.user;
-        console.log("User from session:", user);
-      }
-    }
-    
-    // If no session, try Farcaster authentication
-    console.log("Profile from Farcaster:", profile);
-    if (!user && profile?.fid) {
-      console.log("Attempting Farcaster login...");
-      const loginResponse = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fid: profile.fid,
-          username: profile.username,
-          displayName: profile.displayName,
-          profileImage: profile.pfpUrl,
-        }),
-      });
-
-      console.log("Login response status:", loginResponse.status);
-      if (!loginResponse.ok) {
-        const errorText = await loginResponse.text();
-        console.error("Login error:", errorText);
-        toast.error("Authentication failed");
+      if (!validateResponse.ok) {
+        const errorData = await validateResponse.text();
+        toast.error(`Invalid POAP Event: ${errorData || "Event ID or Secret Code is incorrect"}`);
+        setLoading(false);
         return;
       }
 
-      const loginData = await loginResponse.json();
-      user = loginData.user;
-    }
-    
-    if (!user) {
-      toast.error("Please login to continue");
-      return;
-    }
+      // Validation successful, continue with creation
 
-    setLoading(true);
-    try {
+      // Get user ID - first try session, then Farcaster profile
+      let user;
+      
+      // Try to get current session first
+      console.log("Checking session...");
+      const sessionResponse = await fetch("/api/auth/session");
+      console.log("Session response status:", sessionResponse.status);
+      
+      if (sessionResponse.ok) {
+        const sessionData = await sessionResponse.json();
+        console.log("Session data:", sessionData);
+        
+        if (sessionData.authenticated && sessionData.user) {
+          // Use session user directly
+          user = sessionData.user;
+          console.log("User from session:", user);
+        }
+      }
+      
+      // If no session, try Farcaster authentication
+      console.log("Profile from Farcaster:", profile);
+      if (!user && profile?.fid) {
+        console.log("Attempting Farcaster login...");
+        const loginResponse = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fid: profile.fid,
+            username: profile.username,
+            displayName: profile.displayName,
+            profileImage: profile.pfpUrl,
+          }),
+        });
+
+        console.log("Login response status:", loginResponse.status);
+        if (!loginResponse.ok) {
+          const errorText = await loginResponse.text();
+          console.error("Login error:", errorText);
+          toast.error("Authentication failed");
+          setLoading(false);
+          return;
+        }
+
+        const loginData = await loginResponse.json();
+        user = loginData.user;
+      }
+      
+      if (!user) {
+        toast.error("Please login to continue");
+        setLoading(false);
+        return;
+      }
+
+      // Create the drop
       const response = await fetch("/api/drops", {
         method: "POST",
         headers: {
@@ -150,11 +139,12 @@ export default function NewDropPage() {
         toast.success("Drop created successfully!");
         router.push("/dashboard");
       } else {
-        toast.error("Failed to create drop");
+        const errorText = await response.text();
+        toast.error(`Failed to create drop: ${errorText || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Create drop error:", error);
-      toast.error("Failed to create drop");
+      toast.error("Failed to create drop. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -215,21 +205,6 @@ export default function NewDropPage() {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={validatePOAPEvent}
-            disabled={validating}
-            className="mt-4 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200"
-          >
-            {validating ? "Validating..." : "Validate Event"}
-          </button>
-
-          {eventInfo && (
-            <div className="mt-4 p-4 bg-slate-700 rounded-lg">
-              <p className="text-green-400 font-medium">✓ Event validated</p>
-              <p className="text-gray-300 mt-1">{eventInfo.name}</p>
-            </div>
-          )}
         </div>
 
         {/* Customization */}
@@ -421,7 +396,6 @@ export default function NewDropPage() {
             type="button"
             onClick={() => setShowPreview(true)}
             className="xl:hidden flex-1 bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
-            disabled={!eventInfo}
           >
             Preview
           </button>
@@ -433,7 +407,7 @@ export default function NewDropPage() {
           </Link>
           <button
             type="submit"
-            disabled={loading || !eventInfo}
+            disabled={loading}
             className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
           >
             {loading ? "Creating..." : "Create Drop"}
