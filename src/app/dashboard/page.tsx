@@ -378,8 +378,19 @@ export default function DashboardPage() {
             {currentDrops.map((drop) => (
               <div
                 key={drop.id}
-                className="bg-slate-800 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-200 flex flex-col h-[320px]"
+                className="bg-slate-800 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-200 flex flex-col h-[320px] relative"
               >
+                {/* Farcaster Icon */}
+                <div className="absolute top-4 left-4 z-10">
+                  <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                    <img 
+                      src="/icons/farcaster.png" 
+                      alt="Farcaster"
+                      className="w-5 h-5 object-contain"
+                    />
+                  </div>
+                </div>
+                
                 {/* Color Preview Bar */}
                 <div
                   className="h-2"
@@ -388,7 +399,7 @@ export default function DashboardPage() {
                 
                 <div className="p-6 flex flex-col flex-1">
                   <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-lg font-semibold text-white truncate pr-2">
+                    <h3 className="text-lg font-semibold text-white truncate pr-2 pl-10">
                       {drop.poapName || `Event #${drop.poapEventId}`}
                     </h3>
                     <span
