@@ -16,7 +16,7 @@ const platforms: Platform[] = [
     id: "farcaster",
     name: "Farcaster",
     icon: "⟠",
-    href: "/dashboard/drops/new",
+    href: "/dashboard/drops/farcaster/new",
     color: "bg-purple-600 hover:bg-purple-700"
   },
   {
