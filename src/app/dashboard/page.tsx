@@ -383,7 +383,7 @@ export default function DashboardPage() {
                 {/* Color Preview Bar */}
                 <div
                   className="h-2"
-                  style={{ backgroundColor: drop.buttonColor }}
+                  style={{ backgroundColor: "#8b5cf6" }}
                 />
                 
                 <div className="p-6 flex flex-col flex-1">
