@@ -5,6 +5,7 @@ import { useProfile } from "@farcaster/auth-kit";
 import Link from "next/link";
 import { Toaster, toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import PlatformSelector from "@/components/PlatformSelector";
 
 interface SessionData {
   userId: string;
@@ -34,9 +35,14 @@ interface Drop {
   requireQuote: boolean;
   isActive: boolean;
   createdAt: string;
+  platform: string;
+  lumaEventId?: string;
+  deliveryMethod?: string;
+  lumaEventUrl?: string;
   poapName?: string;
   _count?: {
     claims: number;
+    lumaDeliveries?: number;
   };
   poapStats?: {
     total: number;
@@ -342,12 +348,7 @@ export default function DashboardPage() {
               >
                 Logout
               </button>
-              <Link
-                href="/drops/new"
-                className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 shadow-lg"
-              >
-                Create New Drop
-              </Link>
+              <PlatformSelector />
             </div>
           </div>
         </div>
@@ -383,18 +384,27 @@ export default function DashboardPage() {
                 {/* Color Preview Bar */}
                 <div
                   className="h-2"
-                  style={{ backgroundColor: "#8b5cf6" }}
+                  style={{ backgroundColor: drop.platform === 'luma' ? "#db2777" : "#8b5cf6" }}
                 />
                 
                 <div className="p-6 flex flex-col flex-1">
-                  {/* Top row with Farcaster icon and status chip */}
+                  {/* Top row with platform icon and status chip */}
                   <div className="flex justify-between items-center mb-3">
-                    <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                      <img 
-                        src="/icons/farcaster.png" 
-                        alt="Farcaster"
-                        className="w-5 h-5 object-contain"
-                      />
+                    <div className="flex items-center gap-2">
+                      <div className={`w-8 h-8 rounded-full ${drop.platform === 'luma' ? 'bg-pink-500/20' : 'bg-white/10'} backdrop-blur-sm flex items-center justify-center`}>
+                        {drop.platform === 'luma' ? (
+                          <span className="text-lg">🌟</span>
+                        ) : (
+                          <img 
+                            src="/icons/farcaster.png" 
+                            alt="Farcaster"
+                            className="w-5 h-5 object-contain"
+                          />
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-400">
+                        {drop.platform === 'luma' ? 'Luma' : 'Farcaster'}
+                      </span>
                     </div>
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
@@ -435,7 +445,9 @@ export default function DashboardPage() {
                         }}
                         className="text-blue-400 hover:text-blue-300 text-sm underline"
                       >
-                        {drop._count?.claims || 0} collectors
+                        {drop.platform === 'luma' 
+                          ? `${drop._count?.lumaDeliveries || 0} deliveries` 
+                          : `${drop._count?.claims || 0} collectors`}
                       </a>
                       {drop.poapStats && (
                         <p className="text-gray-400 text-sm">

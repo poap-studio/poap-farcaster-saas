@@ -1,0 +1,11 @@
+{
+  "cookie": "luma.auth-session-key=usr-dZDAMCB9vdfjlvs.oef4cc7j5z56gsatekat",
+  "name": "luma.auth-session-key",
+  "value": "usr-dZDAMCB9vdfjlvs.oef4cc7j5z56gsatekat",
+  "domain": ".lu.ma",
+  "path": "/",
+  "expires": 1761067488.860798,
+  "httpOnly": true,
+  "secure": true,
+  "obtained_at": "2025-08-22T17:24:53.221Z"
+}

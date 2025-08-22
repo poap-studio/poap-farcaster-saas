@@ -39,11 +39,19 @@ model Drop {
   updatedAt         DateTime @updatedAt
   disclaimerMessage String   @default("By minting this POAP you accept these terms: https://poap.xyz/terms")
   requireQuote      Boolean  @default(false)
+  platform          String   @default("farcaster")
+  lumaEventId       String?
+  deliveryMethod    String?
+  lumaEventUrl      String?
+  emailSubject      String?
+  emailBody         String?
   claims            Claim[]
+  lumaDeliveries    LumaDelivery[]
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([slug])
+  @@index([platform])
 }
 
 model Claim {
@@ -60,4 +68,20 @@ model Claim {
   @@unique([dropId, fid])
   @@index([dropId])
   @@index([fid])
+}
+
+model LumaDelivery {
+  id          String   @id @default(cuid())
+  dropId      String
+  guestId     String
+  email       String
+  name        String
+  poapLink    String
+  sentAt      DateTime @default(now())
+  checkedInAt DateTime?
+  drop        Drop     @relation(fields: [dropId], references: [id], onDelete: Cascade)
+
+  @@unique([dropId, guestId])
+  @@index([dropId])
+  @@index([email])
 }

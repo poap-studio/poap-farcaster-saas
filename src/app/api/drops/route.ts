@@ -20,7 +20,10 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
       include: {
         _count: {
-          select: { claims: true }
+          select: { 
+            claims: true,
+            lumaDeliveries: true
+          }
         }
       }
     });
@@ -60,6 +63,13 @@ export async function POST(request: NextRequest) {
       requireFollow,
       followUsername,
       requireRecast,
+      requireQuote,
+      platform,
+      lumaEventId,
+      lumaEventUrl,
+      deliveryMethod,
+      emailSubject,
+      emailBody,
     } = body;
 
     // Validate required fields
@@ -83,6 +93,13 @@ export async function POST(request: NextRequest) {
         requireFollow: requireFollow ?? true,
         followUsername,
         requireRecast: requireRecast ?? true,
+        requireQuote: requireQuote ?? false,
+        platform: platform || "farcaster",
+        lumaEventId,
+        lumaEventUrl,
+        deliveryMethod,
+        emailSubject,
+        emailBody,
       },
     });
 
