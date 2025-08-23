@@ -24,6 +24,7 @@ export default function EditLumaDropPage({ params }: PageProps) {
     name: string;
     description: string;
     image_url: string;
+    expiry_date?: string;
     stats: {
       total: number;
       claimed: number;
@@ -36,6 +37,7 @@ export default function EditLumaDropPage({ params }: PageProps) {
   const [eventData, setEventData] = useState<{
     name: string;
     start_at: string;
+    end_at?: string;
     guests_count: number;
     guestStats?: {
       total: number;
@@ -242,11 +244,23 @@ The {{eventName}} Team`,
         name: poapEventData.event.name,
         description: poapEventData.event.description || "",
         image_url: poapEventData.event.image_url,
+        expiry_date: poapEventData.event.expiry_date,
         stats: statsData
       };
 
       setPoapData(poapInfo);
       setImageLoading(true); // Reset image loading state for new POAP
+
+      // Check POAP expiry date vs event end date
+      if (eventData && poapInfo.expiry_date && eventData.end_at) {
+        const poapExpiryDate = new Date(poapInfo.expiry_date);
+        const eventEndDate = new Date(eventData.end_at);
+        
+        if (poapExpiryDate < eventEndDate) {
+          setPoapError(`POAP expires before event ends! POAP expires on ${poapExpiryDate.toLocaleDateString()} but event ends on ${eventEndDate.toLocaleDateString()}. Please use a POAP with a later expiry date.`);
+          return;
+        }
+      }
 
       // Check if there are enough POAPs
       if (eventData && eventData.guestStats) {

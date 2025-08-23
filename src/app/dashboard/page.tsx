@@ -498,7 +498,7 @@ export default function DashboardPage() {
                 {/* Color Preview Bar */}
                 <div
                   className="h-2"
-                  style={{ backgroundColor: drop.platform === 'luma' ? "#db2777" : "#8b5cf6" }}
+                  style={{ backgroundColor: drop.platform === 'luma' ? "#000000" : "#8b5cf6" }}
                 />
                 
                 <div className="p-6 flex flex-col flex-1">
