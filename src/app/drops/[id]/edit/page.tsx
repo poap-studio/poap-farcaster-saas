@@ -160,7 +160,7 @@ export default function EditDropPage({ params }: PageProps) {
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <Toaster position="top-center" />
       <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Header */}
@@ -473,6 +473,6 @@ export default function EditDropPage({ params }: PageProps) {
         </div>
       )}
       </div>
-    </>
+    </div>
   );
 }

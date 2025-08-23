@@ -8,6 +8,7 @@ import { Toaster, toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import PlatformSelector from "~/components/PlatformSelector";
 import EmailPreviewModal from "~/components/EmailPreviewModal";
+import PlatformSelectorModal from "~/components/PlatformSelectorModal";
 
 interface SessionData {
   userId: string;
@@ -130,6 +131,7 @@ export default function DashboardPage() {
     emailSubject: undefined,
     emailBody: undefined
   });
+  const [showPlatformModal, setShowPlatformModal] = useState(false);
   
   const ITEMS_PER_PAGE = 9;
 
@@ -463,7 +465,7 @@ export default function DashboardPage() {
               >
                 Logout
               </button>
-              <PlatformSelector />
+              {drops.length > 0 && <PlatformSelector />}
             </div>
           </div>
         </div>
@@ -481,12 +483,12 @@ export default function DashboardPage() {
           <p className="text-gray-400 mb-6">
             Create your first POAP drop to get started
           </p>
-          <Link
-            href="/drops/new"
+          <button
+            onClick={() => setShowPlatformModal(true)}
             className="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
           >
             Create Drop
-          </Link>
+          </button>
         </div>
       ) : (
         <>
@@ -745,6 +747,12 @@ export default function DashboardPage() {
       )}
       </div>
       </div>
+      
+      {/* Platform Selector Modal */}
+      <PlatformSelectorModal
+        isOpen={showPlatformModal}
+        onClose={() => setShowPlatformModal(false)}
+      />
     </>
   );
 }

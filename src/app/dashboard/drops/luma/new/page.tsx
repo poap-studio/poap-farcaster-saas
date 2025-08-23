@@ -304,14 +304,11 @@ The {{eventName}} Team`,
           <div className="mb-8">
             <Link
               href="/dashboard"
-              className="text-gray-400 hover:text-white transition-colors duration-200"
+              className="text-purple-400 hover:text-purple-300 mb-4 inline-block"
             >
               ← Back to Dashboard
             </Link>
-          </div>
-
-          <div className="bg-slate-800 rounded-2xl shadow-2xl p-8">
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3">
               <Image 
                 src="/icons/luma.svg" 
                 alt="Luma" 
@@ -321,6 +318,9 @@ The {{eventName}} Team`,
               />
               <h1 className="text-3xl font-bold text-white">Create Luma Drop</h1>
             </div>
+          </div>
+
+          <div className="bg-slate-800 rounded-2xl shadow-2xl p-8">
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Event URL */}
