@@ -289,7 +289,7 @@ The {{eventName}} Team`,
                       onChange={(e) => setFormData({ ...formData, deliveryMethod: e.target.value })}
                       className="mr-2 text-pink-600"
                     />
-                    <span className="text-white">Manual - Send POAPs after the event</span>
+                    <span className="text-white">Automatic - Send POAPs after the event</span>
                   </label>
                   <label className="flex items-center opacity-50">
                     <input
@@ -298,7 +298,7 @@ The {{eventName}} Team`,
                       disabled
                       className="mr-2"
                     />
-                    <span className="text-gray-400">Automatic - Send on check-in (Coming soon)</span>
+                    <span className="text-gray-400">In Real Time - Send on check-in (Coming soon)</span>
                   </label>
                 </div>
               </div>
