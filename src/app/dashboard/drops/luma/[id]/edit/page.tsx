@@ -33,7 +33,7 @@ export default function EditLumaDropPage({ params }: PageProps) {
   } | null>(null);
   const [poapWarning, setPoapWarning] = useState<string | null>(null);
   const [poapError, setPoapError] = useState<string | null>(null);
-  const [imageLoading, setImageLoading] = useState(true);
+  const [imageLoading, setImageLoading] = useState(false);
   const [eventData, setEventData] = useState<{
     name: string;
     start_at: string;
@@ -249,7 +249,10 @@ The {{eventName}} Team`,
       };
 
       setPoapData(poapInfo);
-      setImageLoading(true); // Reset image loading state for new POAP
+      // Only set image loading if we're not already showing this POAP
+      if (!poapData || poapData.image_url !== poapInfo.image_url) {
+        setImageLoading(true);
+      }
 
       // Check POAP expiry date vs event end date
       if (eventData && poapInfo.expiry_date && eventData.end_at) {
@@ -487,6 +490,7 @@ The {{eventName}} Team`,
                           <div className="absolute inset-0 bg-slate-600 rounded-lg animate-pulse z-10" />
                         )}
                         <Image 
+                          key={poapData.image_url}
                           src={poapData.image_url} 
                           alt={poapData.name}
                           width={96}
