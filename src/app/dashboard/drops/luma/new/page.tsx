@@ -26,6 +26,7 @@ export default function NewLumaDropPage() {
   } | null>(null);
   const [poapWarning, setPoapWarning] = useState<string | null>(null);
   const [poapError, setPoapError] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(true);
   const [eventData, setEventData] = useState<{
     name: string;
     start_at: string;
@@ -182,6 +183,7 @@ The {{eventName}} Team`,
       };
 
       setPoapData(poapInfo);
+      setImageLoading(true); // Reset image loading state for new POAP
 
       // Check if there are enough POAPs
       if (eventData && eventData.guestStats) {
@@ -408,13 +410,20 @@ The {{eventName}} Team`,
                 {poapData && (
                   <div className="bg-slate-700 rounded-lg p-4 space-y-4">
                     <div className="flex items-start gap-4">
-                      <Image 
-                        src={poapData.image_url} 
-                        alt={poapData.name}
-                        width={96}
-                        height={96}
-                        className="w-24 h-24 rounded-lg object-cover"
-                      />
+                      <div className="relative w-24 h-24">
+                        {imageLoading && (
+                          <div className="absolute inset-0 bg-slate-600 rounded-lg animate-pulse" />
+                        )}
+                        <Image 
+                          src={poapData.image_url} 
+                          alt={poapData.name}
+                          width={96}
+                          height={96}
+                          className="w-24 h-24 rounded-lg object-cover"
+                          onLoad={() => setImageLoading(false)}
+                          onError={() => setImageLoading(false)}
+                        />
+                      </div>
                       <div className="flex-1">
                         <h4 className="font-semibold text-white">{poapData.name}</h4>
                         {poapData.description && (
