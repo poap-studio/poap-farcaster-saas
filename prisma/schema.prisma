@@ -47,6 +47,7 @@ model Drop {
   emailBody         String?
   claims            Claim[]
   lumaDeliveries    LumaDelivery[]
+  lumaGuests        LumaGuest[]
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -84,6 +85,38 @@ model LumaDelivery {
   @@unique([dropId, guestId])
   @@index([dropId])
   @@index([email])
+}
+
+model LumaGuest {
+  id               String   @id @default(cuid())
+  dropId           String
+  guestId          String
+  email            String
+  name             String
+  firstName        String?
+  lastName         String?
+  registeredAt     DateTime
+  checkedInAt      DateTime?
+  ethAddress       String?
+  solanaAddress    String?
+  phoneNumber      String?
+  geoCity          String?
+  geoCountry       String?
+  avatarUrl        String?
+  twitterHandle    String?
+  instagramHandle  String?
+  linkedinHandle   String?
+  website          String?
+  approvalStatus   String?
+  lastSyncedAt     DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  drop             Drop     @relation(fields: [dropId], references: [id], onDelete: Cascade)
+
+  @@unique([dropId, guestId])
+  @@index([dropId])
+  @@index([email])
+  @@index([checkedInAt])
 }
 
 model LumaCookie {

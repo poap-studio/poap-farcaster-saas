@@ -50,6 +50,14 @@ interface Drop {
     claimed: number;
     available: number;
   };
+  lumaEventData?: {
+    start_at: string;
+    end_at: string;
+  };
+  lumaGuestStats?: {
+    total: number;
+    checkedIn: number;
+  };
 }
 
 interface DeleteModalProps {
@@ -143,10 +151,56 @@ export default function DashboardPage() {
               console.error(`Error fetching POAP stats for event ${drop.poapEventId}:`, error);
             }
             
-            return { ...drop, poapName, poapStats };
+            // For Luma drops, fetch event data and guest stats
+            let lumaEventData = null;
+            let lumaGuestStats = null;
+            
+            if (drop.platform === 'luma' && drop.lumaEventId) {
+              try {
+                const lumaResponse = await fetch('/api/luma/validate-event', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ eventId: drop.lumaEventId })
+                });
+                
+                if (lumaResponse.ok) {
+                  const lumaData = await lumaResponse.json();
+                  lumaEventData = {
+                    start_at: lumaData.event.start_at,
+                    end_at: lumaData.event.end_at
+                  };
+                  
+                  if (lumaData.event.guestStats) {
+                    lumaGuestStats = {
+                      total: lumaData.event.guestStats.total,
+                      checkedIn: lumaData.event.guestStats.checkedIn
+                    };
+                  }
+                }
+              } catch (error) {
+                console.error(`Error fetching Luma data for event ${drop.lumaEventId}:`, error);
+              }
+            }
+            
+            return { ...drop, poapName, poapStats, lumaEventData, lumaGuestStats };
           })
         );
         setDrops(dropsWithDetails);
+        
+        // Sync Luma guests in the background
+        const lumaDropIds = data.drops
+          .filter((d: Drop) => d.platform === 'luma' && d.lumaEventId)
+          .map((d: Drop) => d.id);
+        
+        if (lumaDropIds.length > 0) {
+          fetch('/api/drops/sync-luma-guests', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dropIds: lumaDropIds })
+          }).catch(error => {
+            console.error('Error syncing Luma guests:', error);
+          });
+        }
       }
     } catch (error) {
       console.error("Fetch drops error:", error);
@@ -286,6 +340,32 @@ export default function DashboardPage() {
       toast.error('Failed to download collectors');
     }
   };
+
+  const downloadLumaGuests = async (dropId: string, type: 'all' | 'checkedin') => {
+    try {
+      const response = await fetch(`/api/drops/${dropId}/download-guests?type=${type}`);
+      
+      if (!response.ok) {
+        toast.error('Failed to download guest list');
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `luma-guests-${type}-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Guest list downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading guests:', error);
+      toast.error('Failed to download guest list');
+    }
+  };
   
   // Pagination logic
   const totalPages = Math.ceil(drops.length / ITEMS_PER_PAGE);
@@ -415,15 +495,33 @@ export default function DashboardPage() {
                         {drop.platform === 'luma' ? 'Luma' : 'Farcaster'}
                       </span>
                     </div>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-                        drop.isActive
-                          ? "bg-green-900 text-green-300"
-                          : "bg-red-900 text-red-300"
-                      }`}
-                    >
-                      {drop.isActive ? "Active" : "Inactive"}
-                    </span>
+                    {drop.platform === 'luma' && drop.lumaEventData ? (
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+                          new Date(drop.lumaEventData.end_at) < new Date()
+                            ? "bg-gray-900 text-gray-300"
+                            : drop.isActive
+                            ? "bg-green-900 text-green-300"
+                            : "bg-red-900 text-red-300"
+                        }`}
+                      >
+                        {new Date(drop.lumaEventData.end_at) < new Date()
+                          ? "Event Ended"
+                          : drop.isActive
+                          ? "Active"
+                          : "Inactive"}
+                      </span>
+                    ) : (
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+                          drop.isActive
+                            ? "bg-green-900 text-green-300"
+                            : "bg-red-900 text-red-300"
+                        }`}
+                      >
+                        {drop.isActive ? "Active" : "Inactive"}
+                      </span>
+                    )}
                   </div>
                   
                   {/* Title on its own line */}
@@ -446,18 +544,45 @@ export default function DashboardPage() {
                           Recast required
                         </p>
                       )}
-                      <a
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          downloadCollectors(drop.id, drop.poapName || `Event #${drop.poapEventId}`);
-                        }}
-                        className="text-blue-400 hover:text-blue-300 text-sm underline"
-                      >
-                        {drop.platform === 'luma' 
-                          ? `${drop._count?.lumaDeliveries || 0} deliveries` 
-                          : `${drop._count?.claims || 0} collectors`}
-                      </a>
+                      {drop.platform === 'luma' ? (
+                        <div className="space-y-1">
+                          {drop.lumaGuestStats && (
+                            <>
+                              <a
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  downloadLumaGuests(drop.id, 'checkedin');
+                                }}
+                                className="block text-blue-400 hover:text-blue-300 text-sm underline"
+                              >
+                                {drop.lumaGuestStats.checkedIn} checked-in guests
+                              </a>
+                              <a
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  downloadLumaGuests(drop.id, 'all');
+                                }}
+                                className="block text-gray-400 hover:text-gray-300 text-sm underline"
+                              >
+                                {drop.lumaGuestStats.total} total registered
+                              </a>
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        <a
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            downloadCollectors(drop.id, drop.poapName || `Event #${drop.poapEventId}`);
+                          }}
+                          className="text-blue-400 hover:text-blue-300 text-sm underline"
+                        >
+                          {drop._count?.claims || 0} collectors
+                        </a>
+                      )}
                       {drop.poapStats && (
                         <p className="text-gray-400 text-sm">
                           Minted: <span className="text-white font-medium">{drop.poapStats.claimed}/{drop.poapStats.total}</span>
