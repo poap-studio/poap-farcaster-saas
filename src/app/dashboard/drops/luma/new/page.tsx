@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 import LumaGuideModal from "~/components/LumaGuideModal";
+import { fetchEventIdFromShortUrl } from "~/lib/luma-scraper";
 
 export default function NewLumaDropPage() {
   const router = useRouter();
@@ -37,14 +38,18 @@ The {{eventName}} Team`,
     poapSecretCode: ""
   });
 
-  const extractEventId = (url: string): string | null => {
+  const extractEventId = async (url: string): Promise<string | null> => {
     // Handle format: https://lu.ma/event/manage/evt-XXX
     const manageMatch = url.match(/\/event\/manage\/(evt-[a-zA-Z0-9]+)/);
     if (manageMatch) return manageMatch[1];
     
-    // Handle format: https://lu.ma/XXX
+    // Handle format: https://lu.ma/XXX (short URL - needs scraping)
     const shortMatch = url.match(/lu\.ma\/([a-zA-Z0-9]+)$/);
-    if (shortMatch) return shortMatch[1];
+    if (shortMatch) {
+      // This is a short URL, we need to scrape it
+      const eventId = await fetchEventIdFromShortUrl(url);
+      return eventId;
+    }
     
     return null;
   };
@@ -68,10 +73,10 @@ The {{eventName}} Team`,
       return;
     }
 
-    const eventId = extractEventId(url);
+    const eventId = await extractEventId(url);
     if (!eventId) {
       setEventData(null);
-      toast.error("Invalid Luma event URL format. Expected: https://lu.ma/event/manage/evt-XXX or https://lu.ma/XXX");
+      toast.error("Could not extract event ID from URL. Please check the URL and try again.");
       return;
     }
 
@@ -125,7 +130,7 @@ The {{eventName}} Team`,
       return;
     }
 
-    const eventId = extractEventId(formData.eventUrl);
+    const eventId = await extractEventId(formData.eventUrl);
     if (!eventId) {
       toast.error("Invalid event URL");
       return;
