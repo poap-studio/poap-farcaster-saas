@@ -3,10 +3,14 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+<<<<<<< HEAD
 import Image from "next/image";
 import { toast } from "react-hot-toast";
 import LumaGuideModal from "~/components/LumaGuideModal";
 import { fetchEventIdFromShortUrl } from "~/lib/luma-scraper";
+=======
+import { toast, Toaster } from "react-hot-toast";
+>>>>>>> d5d8fc5 (feat: add support for Luma URLs with event ID in query parameter)
 
 export default function NewLumaDropPage() {
   const router = useRouter();
@@ -179,8 +183,10 @@ The {{eventName}} Team`,
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="container mx-auto px-4 py-8">
+    <>
+      <Toaster position="top-center" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-8">
             <Link
@@ -367,5 +373,6 @@ The {{eventName}} Team`,
         onClose={() => setShowLumaGuide(false)} 
       />
     </div>
+    </>
   );
 }
