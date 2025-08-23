@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
@@ -49,10 +49,10 @@ The {{eventName}} Team`,
     return null;
   };
 
-  const validateEvent = async () => {
-    const eventId = extractEventId(formData.eventUrl);
+  const validateEvent = async (url: string) => {
+    const eventId = extractEventId(url);
     if (!eventId) {
-      toast.error("Invalid Luma event URL format");
+      setEventData(null);
       return;
     }
 
@@ -82,6 +82,18 @@ The {{eventName}} Team`,
       setValidating(false);
     }
   };
+
+  // Auto-validate when URL changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (formData.eventUrl) {
+        validateEvent(formData.eventUrl);
+      }
+    }, 500); // Debounce for 500ms
+
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.eventUrl]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -163,26 +175,23 @@ The {{eventName}} Team`,
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Luma Event URL
                 </label>
-                <div className="flex gap-2">
+                <div className="relative">
                   <input
                     type="url"
                     value={formData.eventUrl}
                     onChange={(e) => setFormData({ ...formData, eventUrl: e.target.value })}
                     placeholder="https://lu.ma/event/manage/evt-XXX or https://lu.ma/XXX"
-                    className="flex-1 px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500"
+                    className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 pr-12"
                     required
                   />
-                  <button
-                    type="button"
-                    onClick={validateEvent}
-                    disabled={!formData.eventUrl || validating}
-                    className="px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
-                  >
-                    {validating ? "Validating..." : "Validate"}
-                  </button>
+                  {validating && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-pink-600"></div>
+                    </div>
+                  )}
                 </div>
                 <p className="text-xs text-gray-400 mt-1">
-                  Enter the URL from your Luma event page
+                  {validating ? "Validating event..." : "Enter the URL from your Luma event page"}
                 </p>
               </div>
 
