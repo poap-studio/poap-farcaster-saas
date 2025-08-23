@@ -533,16 +533,12 @@ export default function DashboardPage() {
                         className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
                           new Date(drop.lumaEventData.end_at) < new Date()
                             ? "bg-gray-900 text-gray-300"
-                            : drop.isActive
-                            ? "bg-green-900 text-green-300"
-                            : "bg-red-900 text-red-300"
+                            : "bg-green-900 text-green-300"
                         }`}
                       >
                         {new Date(drop.lumaEventData.end_at) < new Date()
                           ? "Event Ended"
-                          : drop.isActive
-                          ? "Active"
-                          : "Inactive"}
+                          : "Active"}
                       </span>
                     ) : drop.platform === 'farcaster' && drop.poapEventData?.expiry_date ? (
                       <span

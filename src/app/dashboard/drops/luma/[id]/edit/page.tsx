@@ -62,8 +62,7 @@ This POAP is a digital collectible that proves your attendance and becomes part 
 Best regards,
 The {{eventName}} Team`,
     poapEventId: "",
-    poapSecretCode: "",
-    isActive: true
+    poapSecretCode: ""
   });
 
   useEffect(() => {
@@ -93,8 +92,7 @@ The {{eventName}} Team`,
           emailSubject: drop.emailSubject || "Your POAP for {{eventName}}",
           emailBody: drop.emailBody || formData.emailBody,
           poapEventId: drop.poapEventId,
-          poapSecretCode: drop.poapSecretCode,
-          isActive: drop.isActive
+          poapSecretCode: drop.poapSecretCode
         });
 
         // Validate the event URL to get event data
@@ -316,8 +314,7 @@ The {{eventName}} Team`,
           emailSubject: formData.emailSubject,
           emailBody: formData.emailBody,
           poapEventId: formData.poapEventId,
-          poapSecretCode: formData.poapSecretCode,
-          isActive: formData.isActive
+          poapSecretCode: formData.poapSecretCode
         })
       });
 
@@ -592,26 +589,6 @@ The {{eventName}} Team`,
                 </div>
               </div>
 
-              {/* Status */}
-              <div className="bg-slate-700 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">Drop Status</h3>
-                    <p className="text-sm text-gray-400 mt-1">
-                      Inactive drops cannot be accessed
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.isActive}
-                      onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
-                  </label>
-                </div>
-              </div>
 
               {/* Submit Button */}
               <div className="flex gap-4">
