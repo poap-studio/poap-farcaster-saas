@@ -270,7 +270,7 @@ The {{eventName}} Team`,
                       </div>
                       {eventData.guestStats.checkedIn > 0 && (
                         <div className="mt-2 p-2 bg-blue-900/30 rounded text-xs text-blue-300">
-                          POAPs will be sent to {eventData.guestStats.checkedIn} checked-in attendees
+                          POAPs will be sent to {eventData.guestStats.checkedIn} checked-in attendees after the event ends
                         </div>
                       )}
                     </div>
