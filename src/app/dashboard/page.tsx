@@ -583,9 +583,14 @@ export default function DashboardPage() {
                         Created: {new Date(drop.createdAt).toLocaleDateString()}
                       </p>
                       {drop.platform === 'luma' && drop.lumaEventData && (
-                        <p className="text-gray-400 text-sm">
-                          Event ends: {new Date(drop.lumaEventData.end_at).toLocaleDateString()} at {new Date(drop.lumaEventData.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </p>
+                        <>
+                          <p className="text-gray-400 text-sm">
+                            Event ends: {new Date(drop.lumaEventData.end_at).toLocaleDateString()} at {new Date(drop.lumaEventData.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                          <p className="text-gray-400 text-sm">
+                            Delivery: {drop.deliveryTarget === 'ethereum' ? 'ETH Address' : 'Email'}
+                          </p>
+                        </>
                       )}
                       {drop.platform === 'farcaster' && drop.poapEventData?.expiry_date && (
                         <p className="text-gray-400 text-sm">
