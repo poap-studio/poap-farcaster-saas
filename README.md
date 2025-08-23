@@ -195,17 +195,56 @@ The application uses PostgreSQL with Prisma ORM. Tables:
 
 ### Luma Integration
 
-The application includes a Luma integration for event management:
+The application includes a Luma integration for event management with automatic cookie synchronization:
 
-1. **Cookie Management**: The app receives Luma authentication cookies via webhook from an external service
-2. **Automatic Updates**: The Luma Cookie Service (running on AWS EC2) automatically renews cookies daily
-3. **Webhook Endpoint**: `/api/admin/cookie-webhook` receives cookie updates
-4. **Admin Interface**: View cookie status at `/admin/luma-cookie`
+#### How Cookie Updates Work
 
-To set up Luma integration:
+1. **AWS EC2 Service** (54.226.204.33:3001)
+   - Runs a cron job every 4 hours (`0 */4 * * *`)
+   - Uses Puppeteer to authenticate with Luma
+   - Extracts the `luma.auth-session-key` cookie
+   - Sends cookie to Vercel webhook
+
+2. **Webhook Reception** (`POST /api/admin/cookie-webhook`)
+   - **URL**: `https://social.poap.studio/api/admin/cookie-webhook`
+   - **Authentication**: `X-Webhook-Secret` header
+   - **Payload**:
+     ```json
+     {
+       "cookie": "luma.auth-session-key=usr-xxxxx",
+       "expiresAt": "2024-12-31T23:59:59Z" // optional
+     }
+     ```
+
+3. **Cookie Storage & Usage**
+   - Stored in PostgreSQL `LumaCookie` table
+   - 5-minute in-memory cache for performance
+   - Priority order when retrieving:
+     1. Environment variable `LUMA_SESSION_COOKIE`
+     2. Memory cache (if valid)
+     3. Database (latest valid cookie)
+
+4. **Using the Cookie in Your Code**
+   ```typescript
+   import { LumaCookieManager } from '@/lib/luma-cookie';
+   
+   const manager = LumaCookieManager.getInstance();
+   const cookie = await manager.getCookie();
+   
+   // Use in HTTP requests to Luma API
+   const response = await fetch('https://api.lu.ma/...', {
+     headers: {
+       'Cookie': cookie // "luma.auth-session-key=usr-xxxxx"
+     }
+   });
+   ```
+
+#### Setup Instructions
+
 1. Deploy the [Luma Cookie Service](https://github.com/poap-studio/luma-cookie-service) on AWS
-2. Configure the webhook URL in the cookie service to point to your app
+2. Configure webhook URL in cookie service: `https://social.poap.studio/api/admin/cookie-webhook`
 3. Ensure `WEBHOOK_SECRET` matches in both services
+4. Admin interface available at `/admin/luma-cookie` to view cookie status
 
 ## API Endpoints
 
