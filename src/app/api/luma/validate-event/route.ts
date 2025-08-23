@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "~/lib/session";
-import { fetchLumaEvent } from "~/lib/luma-cookie";
+import { fetchLumaEvent, fetchLumaGuests } from "~/lib/luma-cookie";
 
 export async function POST(request: Request) {
   try {
@@ -43,11 +43,30 @@ export async function POST(request: Request) {
         }, { status: 403 });
       }
 
+      // Fetch guest details
+      const guestStats = {
+        total: 0,
+        going: 0,
+        checkedIn: 0,
+        registered: 0
+      };
+
+      try {
+        const guests = await fetchLumaGuests(eventId);
+        guestStats.total = guests.length;
+        guestStats.going = guests.length; // All fetched guests are "going"
+        guestStats.checkedIn = guests.filter(g => g.checked_in_at !== null).length;
+        guestStats.registered = guests.filter(g => g.registered_at).length;
+      } catch (error) {
+        console.error("Error fetching guest details:", error);
+      }
+
       return NextResponse.json({ 
         success: true,
         event: {
           ...eventData.event,
-          guests_count: eventData.guests_count
+          guests_count: eventData.guests_count,
+          guestStats
         }
       });
     } catch (error) {

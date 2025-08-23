@@ -17,6 +17,12 @@ export default function NewLumaDropPage() {
     name: string;
     start_at: string;
     guests_count: number;
+    guestStats?: {
+      total: number;
+      going: number;
+      checkedIn: number;
+      registered: number;
+    };
   } | null>(null);
   
   const [formData, setFormData] = useState({
@@ -242,14 +248,37 @@ The {{eventName}} Team`,
 
               {/* Event Info */}
               {eventData && (
-                <div className="bg-slate-700 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-white mb-2">{eventData.name}</h3>
+                <div className="bg-slate-700 rounded-lg p-4 space-y-3">
+                  <h3 className="text-lg font-semibold text-white">{eventData.name}</h3>
                   <p className="text-sm text-gray-300">
                     Date: {new Date(eventData.start_at).toLocaleDateString()}
                   </p>
-                  <p className="text-sm text-gray-300">
-                    Total guests: {eventData.guests_count || 0}
-                  </p>
+                  
+                  {eventData.guestStats ? (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Total guests:</span>
+                        <span className="text-white font-medium">{eventData.guestStats.total}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Going:</span>
+                        <span className="text-green-400 font-medium">{eventData.guestStats.going}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Checked in:</span>
+                        <span className="text-blue-400 font-medium">{eventData.guestStats.checkedIn}</span>
+                      </div>
+                      {eventData.guestStats.checkedIn > 0 && (
+                        <div className="mt-2 p-2 bg-blue-900/30 rounded text-xs text-blue-300">
+                          POAPs will be sent to {eventData.guestStats.checkedIn} checked-in attendees
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-300">
+                      Total guests: {eventData.guests_count || 0}
+                    </p>
+                  )}
                 </div>
               )}
 
