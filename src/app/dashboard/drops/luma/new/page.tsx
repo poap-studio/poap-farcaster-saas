@@ -53,6 +53,9 @@ The {{eventName}} Team`,
     const eventId = extractEventId(url);
     if (!eventId) {
       setEventData(null);
+      if (url.includes("lu.ma")) {
+        toast.error("Invalid Luma event URL format");
+      }
       return;
     }
 
@@ -67,16 +70,19 @@ The {{eventName}} Team`,
       const data = await response.json();
 
       if (!response.ok) {
-        if (data.showLumaGuide) {
+        // Always show the guide modal if showLumaGuide is true
+        if (data.showLumaGuide === true) {
           setShowLumaGuide(true);
         }
-        throw new Error(data.error || "Failed to validate event");
+        toast.error(data.error || "Failed to validate event");
+        setEventData(null);
+        return;
       }
 
       setEventData(data.event);
       toast.success("Event validated successfully!");
     } catch (error) {
-      toast.error((error as Error).message);
+      toast.error((error as Error).message || "Failed to validate event");
       setEventData(null);
     } finally {
       setValidating(false);
