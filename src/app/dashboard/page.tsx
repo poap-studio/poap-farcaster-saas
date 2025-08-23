@@ -681,7 +681,7 @@ export default function DashboardPage() {
                       </button>
                     )}
                     <Link
-                      href={`/drops/${drop.id}/edit`}
+                      href={drop.platform === 'luma' ? `/dashboard/drops/luma/${drop.id}/edit` : `/drops/${drop.id}/edit`}
                       className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12 sm:h-10 px-4 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center justify-center"
                     >
                       Edit
