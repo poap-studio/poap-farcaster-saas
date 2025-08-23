@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       }
 
       // Fetch guest details
-      const guestStats = {
+      let guestStats = {
         total: 0,
         going: 0,
         checkedIn: 0,
@@ -53,10 +53,14 @@ export async function POST(request: Request) {
 
       try {
         const guests = await fetchLumaGuests(eventId);
-        guestStats.total = guests.length;
-        guestStats.going = guests.length; // All fetched guests are "going"
-        guestStats.checkedIn = guests.filter(g => g.checked_in_at !== null).length;
-        guestStats.registered = guests.filter(g => g.registered_at).length;
+        console.log(`Fetched ${guests.length} guests for event ${eventId}`);
+        guestStats = {
+          total: guests.length,
+          going: guests.length, // All fetched guests are "going"
+          checkedIn: guests.filter(g => g.checked_in_at !== null).length,
+          registered: guests.filter(g => g.registered_at).length
+        };
+        console.log('Guest stats:', guestStats);
       } catch (error) {
         console.error("Error fetching guest details:", error);
       }
