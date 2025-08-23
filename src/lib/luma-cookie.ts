@@ -1,6 +1,10 @@
+import { prisma } from "~/lib/prisma";
+
 export class LumaCookieManager {
   private static instance: LumaCookieManager;
   private cookie: string | null = null;
+  private lastFetch: Date | null = null;
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
   static getInstance() {
     if (!this.instance) {
@@ -9,23 +13,73 @@ export class LumaCookieManager {
     return this.instance;
   }
 
-  getCookie(): string {
+  async getCookie(): Promise<string> {
     // First try environment variable
     const envCookie = process.env.LUMA_SESSION_COOKIE;
     if (envCookie) {
       return envCookie;
     }
 
-    // Fallback to stored cookie
+    // Check if we have a cached cookie that's still fresh
+    if (this.cookie && this.lastFetch) {
+      const age = Date.now() - this.lastFetch.getTime();
+      if (age < this.CACHE_DURATION) {
+        return this.cookie;
+      }
+    }
+
+    // Fetch from database
+    try {
+      const latestCookie = await prisma.lumaCookie.findFirst({
+        where: {
+          isValid: true,
+          OR: [
+            { expiresAt: null },
+            { expiresAt: { gt: new Date() } }
+          ]
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      if (latestCookie) {
+        this.cookie = latestCookie.cookie;
+        this.lastFetch = new Date();
+        return latestCookie.cookie;
+      }
+    } catch (error) {
+      console.error('Failed to fetch cookie from database:', error);
+    }
+
+    // Fallback to memory cookie
     return this.cookie || '';
   }
 
-  setCookie(cookie: string) {
+  async setCookie(cookie: string, expiresAt?: Date) {
     this.cookie = cookie;
+    this.lastFetch = new Date();
+
+    try {
+      // Invalidate old cookies
+      await prisma.lumaCookie.updateMany({
+        where: { isValid: true },
+        data: { isValid: false }
+      });
+
+      // Save new cookie
+      await prisma.lumaCookie.create({
+        data: {
+          cookie,
+          expiresAt,
+          isValid: true
+        }
+      });
+    } catch (error) {
+      console.error('Failed to save cookie to database:', error);
+    }
   }
 
   async validateCookie(): Promise<boolean> {
-    const cookie = this.getCookie();
+    const cookie = await this.getCookie();
     if (!cookie) return false;
 
     try {
@@ -41,7 +95,17 @@ export class LumaCookieManager {
         }
       );
       
-      return response.ok;
+      const isValid = response.ok;
+      
+      // Update validity in database if changed
+      if (!isValid && this.cookie === cookie) {
+        await prisma.lumaCookie.updateMany({
+          where: { cookie, isValid: true },
+          data: { isValid: false }
+        });
+      }
+      
+      return isValid;
     } catch {
       return false;
     }
@@ -74,7 +138,7 @@ export interface LumaGuest {
 
 export async function fetchLumaEvent(eventId: string): Promise<LumaEvent> {
   const manager = LumaCookieManager.getInstance();
-  const cookie = manager.getCookie();
+  const cookie = await manager.getCookie();
 
   if (!cookie) {
     throw new Error('No Luma cookie available. Please contact admin.');
@@ -104,7 +168,7 @@ export async function fetchLumaEvent(eventId: string): Promise<LumaEvent> {
 
 export async function fetchLumaGuests(eventId: string): Promise<LumaGuest[]> {
   const manager = LumaCookieManager.getInstance();
-  const cookie = manager.getCookie();
+  const cookie = await manager.getCookie();
 
   if (!cookie) {
     throw new Error('No Luma cookie available. Please contact admin.');

@@ -4,7 +4,7 @@ import { LumaCookieManager } from "~/lib/luma-cookie";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { secret, cookie, status, error } = body;
+    const { secret, cookie, status, error, expiresAt, timestamp } = body;
 
     // Validate webhook secret
     if (secret !== process.env.WEBHOOK_SECRET) {
@@ -14,14 +14,20 @@ export async function POST(request: Request) {
     const manager = LumaCookieManager.getInstance();
 
     if (status === 'success' && cookie) {
-      // Update cookie in memory
-      manager.setCookie(cookie);
+      // Parse expiration date if provided
+      const expirationDate = expiresAt ? new Date(expiresAt) : undefined;
+      
+      // Update cookie in database and memory
+      await manager.setCookie(cookie, expirationDate);
       
       console.log("Luma cookie updated successfully via webhook");
+      console.log("Cookie expires at:", expirationDate);
+      console.log("Webhook timestamp:", timestamp);
       
       return NextResponse.json({ 
         success: true,
-        message: "Cookie updated"
+        message: "Cookie updated",
+        expiresAt: expirationDate
       });
     } else if (status === 'error') {
       console.error("Cookie update failed:", error);
@@ -30,7 +36,8 @@ export async function POST(request: Request) {
       
       return NextResponse.json({ 
         success: false,
-        message: "Cookie update failed"
+        message: "Cookie update failed",
+        error: error
       });
     }
 

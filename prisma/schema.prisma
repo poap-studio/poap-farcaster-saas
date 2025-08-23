@@ -85,3 +85,14 @@ model LumaDelivery {
   @@index([dropId])
   @@index([email])
 }
+
+model LumaCookie {
+  id        String   @id @default(cuid())
+  cookie    String   @db.Text
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isValid   Boolean  @default(true)
+  
+  @@index([createdAt])
+}

@@ -21,6 +21,59 @@ A production-ready Farcaster Frame v2 SaaS application for creating and managing
 - **Wallet Integration**: Connect and interact with wallets using Wagmi v2
 - **Frame v2 SDK**: Built with the latest Farcaster Frame v2 SDK
 
+## Setup Instructions
+
+### Prerequisites
+- Node.js 18+ or Bun
+- PostgreSQL database
+- POAP API credentials
+- Neynar API key
+
+### Installation
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/poap-studio/poap-farcaster-saas.git
+cd poap-farcaster-saas
+```
+
+2. **Install dependencies**
+```bash
+npm install
+# or
+bun install
+```
+
+3. **Set up environment variables**
+Copy `.env.example` to `.env.local` and fill in your values:
+```bash
+cp .env.example .env.local
+```
+
+4. **Set up the database**
+```bash
+# Create the database (if not exists)
+createdb poap-farcaster-saas
+
+# Generate Prisma client
+npx prisma generate
+
+# Apply migrations
+npx prisma migrate deploy
+
+# Optional: Seed with sample data
+npx prisma db seed
+```
+
+5. **Run the development server**
+```bash
+npm run dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to see the application.
+
 ## Environment Variables
 
 Set up the following environment variables in your `.env.local` file or deployment platform:
@@ -44,6 +97,9 @@ NEXT_PUBLIC_URL=https://your-domain.vercel.app
 
 # Base RPC
 BASE_RPC_URL=https://mainnet.base.org
+
+# Luma Cookie Service (for Luma integration)
+WEBHOOK_SECRET=37c860512fe98aafe08b3042dc03fb28a33612df70ed79518db1119f9ebc1021
 ```
 
 ### Getting API Keys
@@ -134,6 +190,22 @@ The application uses PostgreSQL with Prisma ORM. Tables:
 - `User`: Stores Farcaster user data
 - `Drop`: Stores drop configurations
 - `Claim`: Tracks POAP claims per drop
+- `LumaDelivery`: Tracks Luma event deliveries
+- `LumaCookie`: Stores Luma authentication cookies
+
+### Luma Integration
+
+The application includes a Luma integration for event management:
+
+1. **Cookie Management**: The app receives Luma authentication cookies via webhook from an external service
+2. **Automatic Updates**: The Luma Cookie Service (running on AWS EC2) automatically renews cookies daily
+3. **Webhook Endpoint**: `/api/admin/cookie-webhook` receives cookie updates
+4. **Admin Interface**: View cookie status at `/admin/luma-cookie`
+
+To set up Luma integration:
+1. Deploy the [Luma Cookie Service](https://github.com/poap-studio/luma-cookie-service) on AWS
+2. Configure the webhook URL in the cookie service to point to your app
+3. Ensure `WEBHOOK_SECRET` matches in both services
 
 ## API Endpoints
 
