@@ -10,7 +10,7 @@ export async function GET() {
     }
 
     const manager = LumaCookieManager.getInstance();
-    const cookie = manager.getCookie();
+    const cookie = await manager.getCookie();
     const hasEnvCookie = !!process.env.LUMA_SESSION_COOKIE;
     
     let isValid = false;
