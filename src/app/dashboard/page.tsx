@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Toaster, toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import PlatformSelector from "~/components/PlatformSelector";
+import EmailPreviewModal from "~/components/EmailPreviewModal";
 
 interface SessionData {
   userId: string;
@@ -112,6 +113,10 @@ export default function DashboardPage() {
   });
   const [sessionUser, setSessionUser] = useState<SessionData | null>(null);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [emailPreviewModal, setEmailPreviewModal] = useState<{ isOpen: boolean; eventName: string }>({
+    isOpen: false,
+    eventName: ''
+  });
   
   const ITEMS_PER_PAGE = 9;
 
@@ -402,6 +407,11 @@ export default function DashboardPage() {
         onConfirm={handleDelete}
         dropName={deleteModal.dropName}
       />
+      <EmailPreviewModal
+        isOpen={emailPreviewModal.isOpen}
+        onClose={() => setEmailPreviewModal({ isOpen: false, eventName: '' })}
+        eventName={emailPreviewModal.eventName}
+      />
       <div className="min-h-screen bg-slate-900">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
@@ -534,6 +544,11 @@ export default function DashboardPage() {
                       <p className="text-gray-400 text-sm">
                         Created: {new Date(drop.createdAt).toLocaleDateString()}
                       </p>
+                      {drop.platform === 'luma' && drop.lumaEventData && (
+                        <p className="text-gray-400 text-sm">
+                          Event ends: {new Date(drop.lumaEventData.end_at).toLocaleDateString()} at {new Date(drop.lumaEventData.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      )}
                       {drop.requireFollow && (
                         <p className="text-gray-400 text-sm">
                           Follow: @{drop.followUsername}
@@ -584,23 +599,41 @@ export default function DashboardPage() {
                         </a>
                       )}
                       {drop.poapStats && (
-                        <p className="text-gray-400 text-sm">
-                          Minted: <span className="text-white font-medium">{drop.poapStats.claimed}/{drop.poapStats.total}</span>
-                          {drop.poapStats.available === 0 && (
-                            <span className="text-red-400 ml-2">(No POAPs left)</span>
+                        <>
+                          <p className="text-gray-400 text-sm">
+                            POAPs available: <span className="text-white font-medium">{drop.poapStats.available}</span>
+                          </p>
+                          {drop.platform === 'luma' && drop.lumaGuestStats && drop.poapStats.available < drop.lumaGuestStats.checkedIn && (
+                            <div className="mt-2 p-2 bg-red-900/20 border border-red-800 rounded-lg">
+                              <p className="text-red-400 text-xs">
+                                ⚠️ Not enough POAPs! You need {drop.lumaGuestStats.checkedIn - drop.poapStats.available} more mint links.
+                              </p>
+                            </div>
                           )}
-                        </p>
+                        </>
                       )}
                     </div>
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-2 mt-auto">
-                    <button
-                      onClick={() => copyLink(drop.id)}
-                      className="flex-1 bg-slate-700 hover:bg-slate-600 text-white h-12 sm:h-10 px-4 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center justify-center"
-                    >
-                      Copy Link
-                    </button>
+                    {drop.platform === 'luma' ? (
+                      <button
+                        onClick={() => setEmailPreviewModal({ 
+                          isOpen: true, 
+                          eventName: drop.poapName || `Event #${drop.poapEventId}` 
+                        })}
+                        className="flex-1 bg-slate-700 hover:bg-slate-600 text-white h-12 sm:h-10 px-4 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center justify-center"
+                      >
+                        Preview Email
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => copyLink(drop.id)}
+                        className="flex-1 bg-slate-700 hover:bg-slate-600 text-white h-12 sm:h-10 px-4 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center justify-center"
+                      >
+                        Copy Link
+                      </button>
+                    )}
                     <Link
                       href={`/drops/${drop.id}/edit`}
                       className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12 sm:h-10 px-4 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center justify-center"
