@@ -353,11 +353,12 @@ The {{eventName}} Team`,
                         <span className="text-gray-400">Checked in:</span>
                         <span className="text-blue-400 font-medium">{eventData.guestStats.checkedIn}</span>
                       </div>
-                      {eventData.guestStats.checkedIn > 0 && (
-                        <div className="mt-2 p-2 bg-blue-900/30 rounded text-xs text-blue-300">
-                          POAPs will be sent to {eventData.guestStats.checkedIn} checked-in attendees after the event ends
-                        </div>
-                      )}
+                      <div className="mt-2 p-2 bg-blue-900/30 rounded text-xs text-blue-300">
+                        {eventData.guestStats.checkedIn > 0 
+                          ? `POAPs will be sent to ${eventData.guestStats.checkedIn} checked-in attendees after the event ends`
+                          : "POAPs will be sent only to checked-in attendees after the event ends"
+                        }
+                      </div>
                     </div>
                   ) : (
                     <p className="text-sm text-gray-300">
