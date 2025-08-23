@@ -413,14 +413,16 @@ The {{eventName}} Team`,
                     <div className="flex items-start gap-4">
                       <div className="relative w-24 h-24">
                         {imageLoading && (
-                          <div className="absolute inset-0 bg-slate-600 rounded-lg animate-pulse" />
+                          <div className="absolute inset-0 bg-slate-600 rounded-lg animate-pulse z-10" />
                         )}
                         <Image 
                           src={poapData.image_url} 
                           alt={poapData.name}
                           width={96}
                           height={96}
-                          className="w-24 h-24 rounded-lg object-cover"
+                          className={`w-24 h-24 rounded-lg object-cover transition-opacity duration-300 ${
+                            imageLoading ? 'opacity-0' : 'opacity-100'
+                          }`}
                           onLoad={() => setImageLoading(false)}
                           onError={() => setImageLoading(false)}
                         />
