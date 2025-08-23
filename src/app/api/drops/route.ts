@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
         lumaEventId,
         lumaEventUrl,
         deliveryMethod,
-        deliveryTarget,
+        ...(deliveryTarget ? { deliveryTarget } : {}),
         emailSubject,
         emailBody,
         isActive: isActive ?? true,
