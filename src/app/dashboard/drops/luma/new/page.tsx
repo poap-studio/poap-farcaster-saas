@@ -118,6 +118,7 @@ The {{eventName}} Team`,
         return;
       }
 
+      console.log('Event data from server:', JSON.stringify(data.event, null, 2));
       setEventData(data.event);
       toast.success("Event validated successfully!");
     } catch (error) {
