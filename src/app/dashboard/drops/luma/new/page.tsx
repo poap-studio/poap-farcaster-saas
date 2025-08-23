@@ -4,11 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
+import LumaGuideModal from "~/components/LumaGuideModal";
 
 export default function NewLumaDropPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [validating, setValidating] = useState(false);
+  const [showLumaGuide, setShowLumaGuide] = useState(false);
   const [eventData, setEventData] = useState<{
     name: string;
     start_at: string;
@@ -65,6 +67,9 @@ The {{eventName}} Team`,
       const data = await response.json();
 
       if (!response.ok) {
+        if (data.showLumaGuide) {
+          setShowLumaGuide(true);
+        }
         throw new Error(data.error || "Failed to validate event");
       }
 
@@ -312,6 +317,12 @@ The {{eventName}} Team`,
           </div>
         </div>
       </div>
+      
+      {/* Luma Guide Modal */}
+      <LumaGuideModal 
+        isOpen={showLumaGuide} 
+        onClose={() => setShowLumaGuide(false)} 
+      />
     </div>
   );
 }

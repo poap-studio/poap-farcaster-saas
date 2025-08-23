@@ -25,7 +25,21 @@ export async function POST(request: Request) {
 
       if (!isHost) {
         return NextResponse.json({ 
-          error: "admin@poap.fr must be a co-host of this event" 
+          error: "POAP Studio (admin@poap.fr) must be added as a Manager to this event",
+          showLumaGuide: true
+        }, { status: 403 });
+      }
+      
+      // Check if admin@poap.fr has manager access
+      const hasManagerAccess = eventData.hosts.some(host => 
+        host.host_info?.email === 'admin@poap.fr' && 
+        host.host_info?.is_manager === true
+      );
+      
+      if (!hasManagerAccess) {
+        return NextResponse.json({ 
+          error: "POAP Studio (admin@poap.fr) must have Manager access level",
+          showLumaGuide: true
         }, { status: 403 });
       }
 
@@ -39,7 +53,8 @@ export async function POST(request: Request) {
     } catch (error) {
       if ((error as Error).message.includes('owner or co-host')) {
         return NextResponse.json({ 
-          error: "You don't have access to this event. Make sure admin@poap.fr is a co-host." 
+          error: "You don't have access to this event. Make sure POAP Studio (admin@poap.fr) is added as a Manager.",
+          showLumaGuide: true
         }, { status: 403 });
       }
       
