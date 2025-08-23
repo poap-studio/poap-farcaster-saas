@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useProfile } from "@farcaster/auth-kit";
 import Link from "next/link";
+import Image from "next/image";
 import { Toaster, toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import PlatformSelector from "~/components/PlatformSelector";
@@ -393,12 +394,20 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2">
                       <div className={`w-8 h-8 rounded-full ${drop.platform === 'luma' ? 'bg-pink-500/20' : 'bg-white/10'} backdrop-blur-sm flex items-center justify-center`}>
                         {drop.platform === 'luma' ? (
-                          <span className="text-lg">🌟</span>
+                          <Image 
+                            src="/icons/luma.svg" 
+                            alt="Luma" 
+                            width={20} 
+                            height={20}
+                            className="w-5 h-5"
+                          />
                         ) : (
-                          <img 
+                          <Image 
                             src="/icons/farcaster.png" 
-                            alt="Farcaster"
-                            className="w-5 h-5 object-contain"
+                            alt="Farcaster" 
+                            width={20} 
+                            height={20}
+                            className="w-5 h-5"
                           />
                         )}
                       </div>

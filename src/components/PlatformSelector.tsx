@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 interface Platform {
   id: string;
@@ -15,14 +16,14 @@ const platforms: Platform[] = [
   {
     id: "farcaster",
     name: "Farcaster",
-    icon: "⟠",
+    icon: "/icons/farcaster.png",
     href: "/dashboard/drops/farcaster/new",
     color: "bg-purple-600 hover:bg-purple-700"
   },
   {
     id: "luma",
     name: "Luma",
-    icon: "🌟",
+    icon: "/icons/luma.svg",
     href: "/dashboard/drops/luma/new",
     color: "bg-pink-600 hover:bg-pink-700"
   }
@@ -70,7 +71,13 @@ export default function PlatformSelector() {
                 className="flex items-center gap-3 px-4 py-3 hover:bg-slate-700 transition-colors duration-150"
                 onClick={() => setIsOpen(false)}
               >
-                <span className="text-2xl">{platform.icon}</span>
+                <Image 
+                  src={platform.icon} 
+                  alt={platform.name}
+                  width={32}
+                  height={32}
+                  className="w-8 h-8"
+                />
                 <div>
                   <div className="text-white font-medium">{platform.name}</div>
                   <div className="text-gray-400 text-sm">Create {platform.name} drop</div>

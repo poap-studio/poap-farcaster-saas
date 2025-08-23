@@ -46,7 +46,7 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent text-center sm:text-left">
-                Drop POAPs on Farcaster
+                Drop POAPs on Social Apps
               </h1>
               <p className="text-xl text-gray-300 mb-8 text-center sm:text-left">
                 Collect Ethereum addresses from your fans and develop engagement policies that matter. 

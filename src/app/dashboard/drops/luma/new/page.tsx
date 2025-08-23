@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { toast } from "react-hot-toast";
 import LumaGuideModal from "~/components/LumaGuideModal";
 import { fetchEventIdFromShortUrl } from "~/lib/luma-scraper";
@@ -192,7 +193,13 @@ The {{eventName}} Team`,
 
           <div className="bg-slate-800 rounded-2xl shadow-2xl p-8">
             <div className="flex items-center gap-3 mb-6">
-              <span className="text-3xl">🌟</span>
+              <Image 
+                src="/icons/luma.svg" 
+                alt="Luma" 
+                width={32} 
+                height={32}
+                className="w-8 h-8"
+              />
               <h1 className="text-3xl font-bold text-white">Create Luma Drop</h1>
             </div>
 
