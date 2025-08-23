@@ -17,6 +17,11 @@ export async function POST(request: Request) {
 
     try {
       const eventData = await fetchLumaEvent(eventId);
+      console.log('Event data from Luma:', {
+        eventName: eventData.event?.name,
+        guestsCount: eventData.guests_count,
+        eventId: eventId
+      });
       
       // Check if admin@poap.fr is a host
       const isHost = eventData.hosts.some(host => 
@@ -65,14 +70,18 @@ export async function POST(request: Request) {
         console.error("Error fetching guest details:", error);
       }
 
-      return NextResponse.json({ 
+      // Log the final data being sent
+      const responseData = {
         success: true,
         event: {
           ...eventData.event,
           guests_count: eventData.guests_count,
           guestStats
         }
-      });
+      };
+      console.log('Sending response:', responseData);
+      
+      return NextResponse.json(responseData);
     } catch (error) {
       if ((error as Error).message.includes('owner or co-host')) {
         return NextResponse.json({ 
