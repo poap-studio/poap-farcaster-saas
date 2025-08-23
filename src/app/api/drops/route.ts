@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
       deliveryTarget,
       emailSubject,
       emailBody,
+      isActive,
     } = body;
 
     // Validate required fields
@@ -102,14 +103,19 @@ export async function POST(request: NextRequest) {
         deliveryTarget,
         emailSubject,
         emailBody,
+        isActive: isActive ?? true,
       },
     });
 
     return NextResponse.json({ drop });
   } catch (error) {
     console.error("[Drops POST] Error:", error);
+    console.error("[Drops POST] Error details:", {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return NextResponse.json(
-      { error: "Failed to create drop" },
+      { error: error instanceof Error ? error.message : "Failed to create drop" },
       { status: 500 }
     );
   }
