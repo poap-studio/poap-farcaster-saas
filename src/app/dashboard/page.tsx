@@ -496,7 +496,7 @@ export default function DashboardPage() {
             {currentDrops.map((drop) => (
               <div
                 key={drop.id}
-                className="bg-slate-800 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-200 flex flex-col h-[320px]"
+                className="bg-slate-800 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-200 flex flex-col h-[360px]"
               >
                 {/* Color Preview Bar */}
                 <div
@@ -578,7 +578,7 @@ export default function DashboardPage() {
                   </h3>
 
                   <div className="flex-1">
-                    <div className="space-y-2 mb-6">
+                    <div className="space-y-2 mb-4">
                       <p className="text-gray-400 text-sm">
                         Created: {new Date(drop.createdAt).toLocaleDateString()}
                       </p>
