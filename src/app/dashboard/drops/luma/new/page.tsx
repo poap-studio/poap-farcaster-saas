@@ -13,6 +13,19 @@ export default function NewLumaDropPage() {
   const [loading, setLoading] = useState(false);
   const [validating, setValidating] = useState(false);
   const [showLumaGuide, setShowLumaGuide] = useState(false);
+  const [validatingPoap, setValidatingPoap] = useState(false);
+  const [poapData, setPoapData] = useState<{
+    name: string;
+    description: string;
+    image_url: string;
+    stats: {
+      total: number;
+      claimed: number;
+      available: number;
+    };
+  } | null>(null);
+  const [poapWarning, setPoapWarning] = useState<string | null>(null);
+  const [poapError, setPoapError] = useState<string | null>(null);
   const [eventData, setEventData] = useState<{
     name: string;
     start_at: string;
@@ -128,6 +141,64 @@ The {{eventName}} Team`,
     }
   };
 
+  const validatePoap = async () => {
+    if (!formData.poapEventId || !formData.poapSecretCode) {
+      setPoapData(null);
+      setPoapWarning(null);
+      setPoapError(null);
+      return;
+    }
+
+    setValidatingPoap(true);
+    setPoapWarning(null);
+    setPoapError(null);
+
+    try {
+      // Validate POAP event
+      const eventResponse = await fetch(`/api/poap/validate-event?eventId=${formData.poapEventId}`);
+      const poapEventData = await eventResponse.json();
+
+      if (!eventResponse.ok) {
+        setPoapData(null);
+        setPoapError(poapEventData.error || "Invalid POAP event");
+        return;
+      }
+
+      // Get POAP stats
+      const statsResponse = await fetch(`/api/poap/stats?eventId=${formData.poapEventId}&secretCode=${encodeURIComponent(formData.poapSecretCode)}`);
+      const statsData = await statsResponse.json();
+
+      if (!statsResponse.ok) {
+        setPoapData(null);
+        setPoapError(statsData.error || "Invalid secret code");
+        return;
+      }
+
+      const poapInfo = {
+        name: poapEventData.event.name,
+        description: poapEventData.event.description || "",
+        image_url: poapEventData.event.image_url,
+        stats: statsData
+      };
+
+      setPoapData(poapInfo);
+
+      // Check if there are enough POAPs
+      if (eventData && eventData.guestStats) {
+        if (poapInfo.stats.available < eventData.guestStats.checkedIn) {
+          setPoapError(`Not enough POAPs! You have ${poapInfo.stats.available} available but ${eventData.guestStats.checkedIn} checked-in guests.`);
+        } else if (poapInfo.stats.available < eventData.guestStats.going) {
+          setPoapWarning(`Warning: You have ${poapInfo.stats.available} POAPs available but ${eventData.guestStats.going} guests are going. Consider requesting more POAPs to ensure everyone receives one.`);
+        }
+      }
+    } catch {
+      setPoapData(null);
+      setPoapError("Failed to validate POAP");
+    } finally {
+      setValidatingPoap(false);
+    }
+  };
+
   // Auto-validate when URL changes
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -139,6 +210,18 @@ The {{eventName}} Team`,
     return () => clearTimeout(timeoutId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.eventUrl]);
+
+  // Auto-validate POAP when event ID or secret code changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (formData.poapEventId && formData.poapSecretCode) {
+        validatePoap();
+      }
+    }, 500); // Debounce for 500ms
+
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.poapEventId, formData.poapSecretCode, eventData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -313,6 +396,60 @@ The {{eventName}} Team`,
                     required
                   />
                 </div>
+
+                {/* POAP Validation Info */}
+                {validatingPoap && (
+                  <div className="flex items-center justify-center p-4 bg-slate-700 rounded-lg">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-pink-600 mr-3"></div>
+                    <span className="text-gray-300">Validating POAP...</span>
+                  </div>
+                )}
+
+                {poapData && (
+                  <div className="bg-slate-700 rounded-lg p-4 space-y-4">
+                    <div className="flex items-start gap-4">
+                      <Image 
+                        src={poapData.image_url} 
+                        alt={poapData.name}
+                        width={96}
+                        height={96}
+                        className="w-24 h-24 rounded-lg object-cover"
+                      />
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-white">{poapData.name}</h4>
+                        {poapData.description && (
+                          <p className="text-sm text-gray-300 mt-1">{poapData.description}</p>
+                        )}
+                        <div className="mt-3 space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">Total POAPs:</span>
+                            <span className="text-white font-medium">{poapData.stats.total}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">Already claimed:</span>
+                            <span className="text-yellow-400 font-medium">{poapData.stats.claimed}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">Available:</span>
+                            <span className="text-green-400 font-medium">{poapData.stats.available}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {poapError && (
+                  <div className="p-3 bg-red-900/20 border border-red-500 rounded-lg">
+                    <p className="text-sm text-red-400">{poapError}</p>
+                  </div>
+                )}
+
+                {poapWarning && !poapError && (
+                  <div className="p-3 bg-yellow-900/20 border border-yellow-500 rounded-lg">
+                    <p className="text-sm text-yellow-400">{poapWarning}</p>
+                  </div>
+                )}
               </div>
 
               {/* Delivery Method */}
@@ -387,7 +524,7 @@ The {{eventName}} Team`,
               <div className="flex gap-4">
                 <button
                   type="submit"
-                  disabled={loading || !eventData || !formData.poapEventId || !formData.poapSecretCode}
+                  disabled={loading || !eventData || !formData.poapEventId || !formData.poapSecretCode || !!poapError}
                   className="flex-1 bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 disabled:opacity-50"
                 >
                   {loading ? "Creating..." : "Create Luma Drop"}
