@@ -34,6 +34,7 @@ export default function EditLumaDropPage({ params }: PageProps) {
   const [poapWarning, setPoapWarning] = useState<string | null>(null);
   const [poapError, setPoapError] = useState<string | null>(null);
   const [imageLoading, setImageLoading] = useState(false);
+  const [shouldValidateEvent, setShouldValidateEvent] = useState(false);
   const [eventData, setEventData] = useState<{
     name: string;
     start_at: string;
@@ -97,14 +98,14 @@ The {{eventName}} Team`,
           poapSecretCode: drop.poapSecretCode
         });
 
-        // Validate the event URL to get event data
-        if (drop.lumaEventUrl) {
-          validateEvent(drop.lumaEventUrl);
-        }
-        
-        // Validate POAP to show the image
+        // Validate POAP to show the image first
         if (drop.poapEventId && drop.poapSecretCode) {
           validatePoap(drop.poapEventId, drop.poapSecretCode);
+        }
+        
+        // Validate the event URL to get event data after POAP is loaded
+        if (drop.lumaEventUrl) {
+          setShouldValidateEvent(true);
         }
       }
     } catch (error) {
@@ -281,29 +282,28 @@ The {{eventName}} Team`,
     }
   };
 
-  // Auto-validate when URL changes
+  // Auto-validate when URL changes (but not on initial load)
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (formData.eventUrl) {
-        validateEvent(formData.eventUrl);
-      }
-    }, 500); // Debounce for 500ms
+    if (!fetching && !shouldValidateEvent) {
+      const timeoutId = setTimeout(() => {
+        if (formData.eventUrl) {
+          validateEvent(formData.eventUrl);
+        }
+      }, 500); // Debounce for 500ms
 
-    return () => clearTimeout(timeoutId);
+      return () => clearTimeout(timeoutId);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.eventUrl]);
+  }, [formData.eventUrl, fetching]);
 
-  // Auto-validate POAP when event ID or secret code changes
+  // Validate event after POAP is loaded
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (formData.poapEventId && formData.poapSecretCode) {
-        validatePoap();
-      }
-    }, 500); // Debounce for 500ms
-
-    return () => clearTimeout(timeoutId);
+    if (shouldValidateEvent && formData.eventUrl) {
+      validateEvent(formData.eventUrl);
+      setShouldValidateEvent(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.poapEventId, formData.poapSecretCode, eventData]);
+  }, [shouldValidateEvent, formData.eventUrl]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

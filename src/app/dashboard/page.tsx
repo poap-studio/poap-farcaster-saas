@@ -545,16 +545,16 @@ export default function DashboardPage() {
                         className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
                           new Date(drop.poapEventData.expiry_date) < new Date()
                             ? "bg-gray-900 text-gray-300"
-                            : drop.isActive
-                            ? "bg-green-900 text-green-300"
-                            : "bg-red-900 text-red-300"
+                            : drop.poapStats && drop.poapStats.available === 0
+                            ? "bg-red-900 text-red-300"
+                            : "bg-green-900 text-green-300"
                         }`}
                       >
                         {new Date(drop.poapEventData.expiry_date) < new Date()
                           ? "Event Ended"
-                          : drop.isActive
-                          ? "Active"
-                          : "Inactive"}
+                          : drop.poapStats && drop.poapStats.available === 0
+                          ? "No POAPs"
+                          : "Active"}
                       </span>
                     ) : (
                       <span

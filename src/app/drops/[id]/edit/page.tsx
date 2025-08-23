@@ -31,7 +31,6 @@ export default function EditDropPage({ params }: PageProps) {
     followUsername: "",
     requireRecast: true,
     requireQuote: false,
-    isActive: true,
   });
 
   useEffect(() => {
@@ -61,7 +60,6 @@ export default function EditDropPage({ params }: PageProps) {
           followUsername: drop.followUsername || "",
           requireRecast: drop.requireRecast,
           requireQuote: drop.requireQuote,
-          isActive: drop.isActive,
         });
       }
     } catch (error) {
@@ -396,27 +394,6 @@ export default function EditDropPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Status */}
-        <div className="bg-slate-800 rounded-xl shadow-xl p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-white">Status</h2>
-              <p className="text-gray-400 text-sm mt-1">
-                Inactive drops cannot be accessed
-              </p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                name="isActive"
-                checked={formData.isActive}
-                onChange={handleInputChange}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-            </label>
-          </div>
-        </div>
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-4">
