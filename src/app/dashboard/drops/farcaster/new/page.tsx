@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useProfile } from "@farcaster/auth-kit";
 import Link from "next/link";
+import Image from "next/image";
 import { Toaster, toast } from "react-hot-toast";
 import DropPreview from "~/components/admin/DropPreview";
 
@@ -162,7 +163,16 @@ export default function NewDropPage() {
         >
           ← Back to Dashboard
         </Link>
-        <h1 className="text-3xl font-bold text-white">Create New Drop</h1>
+        <div className="flex items-center gap-3">
+          <Image 
+            src="/icons/farcaster.png" 
+            alt="Farcaster" 
+            width={32} 
+            height={32}
+            className="w-8 h-8"
+          />
+          <h1 className="text-3xl font-bold text-white">Create Farcaster Drop</h1>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
