@@ -17,11 +17,6 @@ export async function POST(request: Request) {
 
     try {
       const eventData = await fetchLumaEvent(eventId);
-      console.log('Event data from Luma:', {
-        eventName: eventData.event?.name,
-        guestsCount: eventData.guests_count,
-        eventId: eventId
-      });
       
       // Check if admin@poap.fr is a host
       const isHost = eventData.hosts.some(host => 
@@ -58,14 +53,12 @@ export async function POST(request: Request) {
 
       try {
         const guests = await fetchLumaGuests(eventId);
-        console.log(`Fetched ${guests.length} guests for event ${eventId}`);
         guestStats = {
           total: guests.length,
           going: guests.length, // All fetched guests are "going"
           checkedIn: guests.filter(g => g.checked_in_at !== null).length,
           registered: guests.filter(g => g.registered_at).length
         };
-        console.log('Guest stats:', guestStats);
       } catch (error) {
         console.error("Error fetching guest details:", error);
       }
@@ -75,11 +68,10 @@ export async function POST(request: Request) {
         success: true,
         event: {
           ...eventData.event,
-          guests_count: eventData.guests_count,
+          guests_count: guestStats.total || eventData.guests_count || 0,
           guestStats
         }
       };
-      console.log('Sending response:', responseData);
       
       return NextResponse.json(responseData);
     } catch (error) {

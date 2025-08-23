@@ -118,7 +118,6 @@ The {{eventName}} Team`,
         return;
       }
 
-      console.log('Event data received:', data.event);
       setEventData(data.event);
       toast.success("Event validated successfully!");
     } catch (error) {

@@ -212,11 +212,6 @@ export async function fetchLumaGuests(eventId: string): Promise<LumaGuest[]> {
     }
 
     const data = await response.json();
-    console.log(`Luma API response for ${eventId}:`, {
-      entriesCount: data.entries?.length || 0,
-      hasMore: data.has_more,
-      nextCursor: data.next_cursor
-    });
     
     if (data.entries && data.entries.length > 0) {
       allGuests.push(...data.entries);
