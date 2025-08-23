@@ -305,7 +305,10 @@ The {{eventName}} Team`,
 
               {/* Email Configuration */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-white">Email Configuration</h3>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">This is the email your attendees will receive</h3>
+                  <p className="text-sm text-gray-400 mt-1">The POAP link will be included where you place {"{{poapLink}}"}</p>
+                </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
