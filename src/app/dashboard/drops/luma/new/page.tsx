@@ -44,6 +44,17 @@ The {{eventName}} Team`,
     const manageMatch = url.match(/\/event\/manage\/(evt-[a-zA-Z0-9]+)/);
     if (manageMatch) return manageMatch[1];
     
+    // Handle format: https://lu.ma/user/usr-XXX?e=evt-XXX
+    try {
+      const urlObj = new URL(url);
+      const eventParam = urlObj.searchParams.get('e');
+      if (eventParam && eventParam.startsWith('evt-')) {
+        return eventParam;
+      }
+    } catch {
+      // Not a valid URL, continue with other patterns
+    }
+    
     // Handle format: https://lu.ma/XXX (short URL - needs scraping)
     const shortMatch = url.match(/lu\.ma\/([a-zA-Z0-9]+)$/);
     if (shortMatch) {
