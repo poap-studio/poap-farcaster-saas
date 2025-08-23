@@ -68,6 +68,7 @@ export async function POST(request: NextRequest) {
       lumaEventId,
       lumaEventUrl,
       deliveryMethod,
+      deliveryTarget,
       emailSubject,
       emailBody,
     } = body;
@@ -98,6 +99,7 @@ export async function POST(request: NextRequest) {
         lumaEventId,
         lumaEventUrl,
         deliveryMethod,
+        deliveryTarget,
         emailSubject,
         emailBody,
       },

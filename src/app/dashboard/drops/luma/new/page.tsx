@@ -584,21 +584,13 @@ The {{eventName}} Team`,
               )}
 
               {/* Submit Button */}
-              <div className="flex gap-4">
-                <button
-                  type="submit"
-                  disabled={loading || !eventData || !formData.poapEventId || !formData.poapSecretCode || !!poapError}
-                  className="flex-1 bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 disabled:opacity-50"
-                >
-                  {loading ? "Creating..." : "Create Luma Drop"}
-                </button>
-                <Link
-                  href="/dashboard"
-                  className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors duration-200"
-                >
-                  Cancel
-                </Link>
-              </div>
+              <button
+                type="submit"
+                disabled={loading || !eventData || !formData.poapEventId || !formData.poapSecretCode || !!poapError}
+                className="w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 disabled:opacity-50"
+              >
+                {loading ? "Creating..." : "Create Luma Drop"}
+              </button>
             </form>
           </div>
         </div>
