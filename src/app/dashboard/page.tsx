@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import PlatformSelector from "~/components/PlatformSelector";
 import EmailPreviewModal from "~/components/EmailPreviewModal";
 import PlatformSelectorModal from "~/components/PlatformSelectorModal";
+import CardSkeleton from "~/components/dashboard/CardSkeleton";
 
 interface SessionData {
   userId: string;
@@ -110,7 +111,7 @@ export default function DashboardPage() {
   const { isAuthenticated, profile } = useProfile();
   const router = useRouter();
   const [drops, setDrops] = useState<Drop[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; dropId: string; dropName: string }>({
@@ -136,7 +137,6 @@ export default function DashboardPage() {
   const ITEMS_PER_PAGE = 9;
 
   const fetchDrops = useCallback(async (uid: string) => {
-    setLoading(true);
     try {
       const response = await fetch("/api/drops", {
         headers: { "x-user-id": uid },
@@ -229,7 +229,7 @@ export default function DashboardPage() {
     } catch (error) {
       console.error("Fetch drops error:", error);
     } finally {
-      setLoading(false);
+      setInitialLoad(false);
     }
   }, []);
 
@@ -397,7 +397,7 @@ export default function DashboardPage() {
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentDrops = drops.slice(startIndex, endIndex);
 
-  if (checkingSession || loading) {
+  if (checkingSession) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-slate-900">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
@@ -471,9 +471,11 @@ export default function DashboardPage() {
         </div>
 
       {/* Drops Grid */}
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      {initialLoad ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, index) => (
+            <CardSkeleton key={index} />
+          ))}
         </div>
       ) : drops.length === 0 ? (
         <div className="bg-slate-800 rounded-2xl shadow-xl p-12 text-center">
