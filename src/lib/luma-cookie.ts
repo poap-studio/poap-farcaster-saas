@@ -122,8 +122,23 @@ export interface LumaEvent {
     location_display_name?: string;
   };
   hosts: Array<{
-    name: string;
-    email: string;
+    host_info: {
+      email: string;
+      created_at: string;
+      user_api_id: string;
+      is_manager: boolean;
+      is_creator: boolean;
+      access_level: string;
+      is_visible: boolean;
+      position?: string;
+    };
+    user: {
+      api_id: string;
+      name: string;
+      username?: string;
+      avatar_url?: string;
+      bio_short?: string;
+    };
   }>;
   guests_count: number;
 }

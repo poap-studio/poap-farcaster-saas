@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       
       // Check if admin@poap.fr is a host
       const isHost = eventData.hosts.some(host => 
-        host.email === 'admin@poap.fr'
+        host.host_info?.email === 'admin@poap.fr'
       );
 
       if (!isHost) {
