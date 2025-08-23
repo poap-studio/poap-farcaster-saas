@@ -158,7 +158,7 @@ export default function LumaGuideModal({ isOpen, onClose }: LumaGuideModalProps)
                   <button className="flex-1 bg-white text-black font-medium py-3 px-4 rounded-lg hover:bg-gray-100 transition-colors">
                     Update
                   </button>
-                  <button className="flex-1 bg-transparent border border-red-500 text-red-500 font-medium py-3 px-4 rounded-lg hover:bg-red-500 hover:text-white transition-colors">
+                  <button className="flex-1 bg-transparent border border-red-500 text-red-500 font-medium py-3 px-4 rounded-lg">
                     Remove
                   </button>
                 </div>
