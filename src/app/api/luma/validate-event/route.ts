@@ -48,7 +48,8 @@ export async function POST(request: Request) {
         total: 0,
         going: 0,
         checkedIn: 0,
-        registered: 0
+        registered: 0,
+        hasEthAddresses: false
       };
 
       try {
@@ -57,7 +58,8 @@ export async function POST(request: Request) {
           total: guests.length,
           going: guests.length, // All fetched guests are "going"
           checkedIn: guests.filter(g => g.checked_in_at !== null).length,
-          registered: guests.filter(g => g.registered_at).length
+          registered: guests.filter(g => g.registered_at).length,
+          hasEthAddresses: guests.some(g => g.eth_address !== null && g.eth_address !== '')
         };
       } catch (error) {
         console.error("Error fetching guest details:", error);

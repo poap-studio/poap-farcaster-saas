@@ -38,12 +38,14 @@ export default function NewLumaDropPage() {
       going: number;
       checkedIn: number;
       registered: number;
+      hasEthAddresses?: boolean;
     };
   } | null>(null);
   
   const [formData, setFormData] = useState({
     eventUrl: "",
     deliveryMethod: "manual",
+    deliveryTarget: "email",
     emailSubject: "Your POAP for {{eventName}}",
     emailBody: `Hi {{name}},
 
@@ -263,6 +265,7 @@ The {{eventName}} Team`,
           lumaEventId: eventId,
           lumaEventUrl: formData.eventUrl,
           deliveryMethod: formData.deliveryMethod,
+          deliveryTarget: formData.deliveryTarget,
           emailSubject: formData.emailSubject,
           emailBody: formData.emailBody,
           poapEventId: formData.poapEventId,
@@ -506,12 +509,45 @@ The {{eventName}} Team`,
                 </div>
               </div>
 
-              {/* Email Configuration */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-white">This is the email your attendees will receive</h3>
-                  <p className="text-sm text-gray-400 mt-1">The POAP link will be included where you place {"{{poapLink}}"}</p>
+              {/* Delivery Target */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Delivery Target
+                </label>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="email"
+                      checked={formData.deliveryTarget === "email"}
+                      onChange={(e) => setFormData({ ...formData, deliveryTarget: e.target.value })}
+                      className="mr-2 text-pink-600"
+                    />
+                    <span className="text-white">Email Address</span>
+                  </label>
+                  <label className={`flex items-center ${eventData?.guestStats?.hasEthAddresses ? '' : 'opacity-50'}`}>
+                    <input
+                      type="radio"
+                      value="ethereum"
+                      checked={formData.deliveryTarget === "ethereum"}
+                      onChange={(e) => setFormData({ ...formData, deliveryTarget: e.target.value })}
+                      disabled={!eventData?.guestStats?.hasEthAddresses}
+                      className="mr-2 text-pink-600"
+                    />
+                    <span className={eventData?.guestStats?.hasEthAddresses ? "text-white" : "text-gray-400"}>
+                      Ethereum Address {!eventData?.guestStats?.hasEthAddresses && "(No ETH addresses found in guest list)"}
+                    </span>
+                  </label>
                 </div>
+              </div>
+
+              {/* Email Configuration - Only show if delivery target is email */}
+              {formData.deliveryTarget === 'email' && (
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">This is the email your attendees will receive</h3>
+                    <p className="text-sm text-gray-400 mt-1">The POAP link will be included where you place {"{{poapLink}}"}</p>
+                  </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -545,6 +581,7 @@ The {{eventName}} Team`,
                   </p>
                 </div>
               </div>
+              )}
 
               {/* Submit Button */}
               <div className="flex gap-4">

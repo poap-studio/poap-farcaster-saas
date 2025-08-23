@@ -45,6 +45,7 @@ model Drop {
   lumaEventUrl      String?
   emailSubject      String?
   emailBody         String?
+  deliveryTarget    String   @default("email")
   claims            Claim[]
   lumaDeliveries    LumaDelivery[]
   lumaGuests        LumaGuest[]

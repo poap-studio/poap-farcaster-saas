@@ -40,6 +40,7 @@ interface Drop {
   platform: string;
   lumaEventId?: string;
   deliveryMethod?: string;
+  deliveryTarget?: string;
   lumaEventUrl?: string;
   poapName?: string;
   emailSubject?: string;
@@ -656,7 +657,7 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-2 mt-auto">
-                    {drop.platform === 'luma' ? (
+                    {drop.platform === 'luma' && drop.deliveryTarget !== 'ethereum' ? (
                       <button
                         onClick={() => setEmailPreviewModal({ 
                           isOpen: true, 
@@ -668,14 +669,14 @@ export default function DashboardPage() {
                       >
                         Preview Email
                       </button>
-                    ) : (
+                    ) : drop.platform === 'farcaster' ? (
                       <button
                         onClick={() => copyLink(drop.id)}
                         className="flex-1 bg-slate-700 hover:bg-slate-600 text-white h-12 sm:h-10 px-4 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center justify-center"
                       >
                         Copy Link
                       </button>
-                    )}
+                    ) : null}
                     <Link
                       href={drop.platform === 'luma' ? `/dashboard/drops/luma/${drop.id}/edit` : `/drops/${drop.id}/edit`}
                       className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12 sm:h-10 px-4 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center justify-center"

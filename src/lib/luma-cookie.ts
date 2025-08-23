@@ -149,6 +149,7 @@ export interface LumaGuest {
   email: string;
   checked_in_at: string | null;
   registered_at: string;
+  eth_address?: string | null;
 }
 
 export async function fetchLumaEvent(eventId: string): Promise<LumaEvent> {
