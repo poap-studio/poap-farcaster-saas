@@ -47,6 +47,13 @@ export default function EditDropPage({ params }: PageProps) {
       const response = await fetch(`/api/drops/${dropId}`);
       if (response.ok) {
         const { drop } = await response.json();
+        
+        // If it's a Luma drop, redirect to the Luma edit page
+        if (drop.platform === 'luma') {
+          router.push(`/dashboard/drops/luma/${dropId}/edit`);
+          return;
+        }
+        
         setFormData({
           poapEventId: drop.poapEventId,
           poapSecretCode: drop.poapSecretCode,

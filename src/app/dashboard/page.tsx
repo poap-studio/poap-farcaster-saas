@@ -53,6 +53,9 @@ interface Drop {
     claimed: number;
     available: number;
   };
+  poapEventData?: {
+    expiry_date: string;
+  };
   lumaEventData?: {
     start_at: string;
     end_at: string;
@@ -143,13 +146,17 @@ export default function DashboardPage() {
           data.drops.map(async (drop: Drop) => {
             let poapName = null;
             let poapStats = null;
+            let poapEventData = null;
             
             try {
-              // Fetch POAP name
+              // Fetch POAP name and event data
               const poapResponse = await fetch(`/api/poap/validate-event?eventId=${drop.poapEventId}`);
               if (poapResponse.ok) {
                 const poapData = await poapResponse.json();
                 poapName = poapData.event?.name || null;
+                poapEventData = {
+                  expiry_date: poapData.event?.expiry_date || null
+                };
               }
             } catch (error) {
               console.error(`Error fetching POAP name for event ${drop.poapEventId}:`, error);
@@ -196,7 +203,7 @@ export default function DashboardPage() {
               }
             }
             
-            return { ...drop, poapName, poapStats, lumaEventData, lumaGuestStats };
+            return { ...drop, poapName, poapStats, poapEventData, lumaEventData, lumaGuestStats };
           })
         );
         setDrops(dropsWithDetails);
@@ -537,6 +544,22 @@ export default function DashboardPage() {
                           ? "Active"
                           : "Inactive"}
                       </span>
+                    ) : drop.platform === 'farcaster' && drop.poapEventData?.expiry_date ? (
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+                          new Date(drop.poapEventData.expiry_date) < new Date()
+                            ? "bg-gray-900 text-gray-300"
+                            : drop.isActive
+                            ? "bg-green-900 text-green-300"
+                            : "bg-red-900 text-red-300"
+                        }`}
+                      >
+                        {new Date(drop.poapEventData.expiry_date) < new Date()
+                          ? "Event Ended"
+                          : drop.isActive
+                          ? "Active"
+                          : "Inactive"}
+                      </span>
                     ) : (
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
@@ -563,6 +586,11 @@ export default function DashboardPage() {
                       {drop.platform === 'luma' && drop.lumaEventData && (
                         <p className="text-gray-400 text-sm">
                           Event ends: {new Date(drop.lumaEventData.end_at).toLocaleDateString()} at {new Date(drop.lumaEventData.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      )}
+                      {drop.platform === 'farcaster' && drop.poapEventData?.expiry_date && (
+                        <p className="text-gray-400 text-sm">
+                          POAP expires: {new Date(drop.poapEventData.expiry_date).toLocaleDateString()} at {new Date(drop.poapEventData.expiry_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       )}
                       {drop.requireFollow && (

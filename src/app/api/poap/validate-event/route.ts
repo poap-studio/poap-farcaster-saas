@@ -43,6 +43,10 @@ export async function GET(request: NextRequest) {
         id: eventData.id,
         name: eventData.name,
         image_url: eventData.image_url,
+        description: eventData.description,
+        start_date: eventData.start_date,
+        end_date: eventData.end_date,
+        expiry_date: eventData.expiry_date,
       }
     });
   } catch (error) {
@@ -101,6 +105,10 @@ export async function POST(request: NextRequest) {
         id: eventData.id,
         name: eventData.name,
         image_url: eventData.image_url,
+        description: eventData.description,
+        start_date: eventData.start_date,
+        end_date: eventData.end_date,
+        expiry_date: eventData.expiry_date,
       }
     });
   } catch (error) {
