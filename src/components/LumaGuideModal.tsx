@@ -29,7 +29,7 @@ export default function LumaGuideModal({ isOpen, onClose }: LumaGuideModalProps)
           {/* Content */}
           <div className="px-6 py-4">
             <p className="text-gray-300 mb-6">
-              To validate your event, POAP Studio must be added as a Manager. Follow these steps:
+              To validate your event, POAP Studio must be added as a Manager on Luma. Follow these steps:
             </p>
 
             {/* Steps */}
