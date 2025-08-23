@@ -495,7 +495,7 @@ The {{eventName}} Team`,
                       onChange={(e) => setFormData({ ...formData, deliveryMethod: e.target.value })}
                       className="mr-2 text-pink-600"
                     />
-                    <span className="text-white">Automatic - Send POAPs after the event</span>
+                    <span className="text-white">Manual - Configure delivery externally</span>
                   </label>
                   <label className="flex items-center opacity-50">
                     <input
