@@ -73,9 +73,6 @@ export async function POST(request: Request) {
         }
       };
       
-      console.log('API Response - guestStats:', guestStats);
-      console.log('API Response - full event data keys:', Object.keys(responseData.event));
-      
       return NextResponse.json(responseData);
     } catch (error) {
       if ((error as Error).message.includes('owner or co-host')) {
