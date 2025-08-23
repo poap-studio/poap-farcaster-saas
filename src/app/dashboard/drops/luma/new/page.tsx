@@ -50,12 +50,28 @@ The {{eventName}} Team`,
   };
 
   const validateEvent = async (url: string) => {
+    // Check if it's a valid URL
+    try {
+      new URL(url);
+    } catch {
+      setEventData(null);
+      if (url.trim()) {
+        toast.error("Please enter a valid URL");
+      }
+      return;
+    }
+
+    // Check if it's a Luma URL
+    if (!url.includes("lu.ma")) {
+      setEventData(null);
+      toast.error("Please enter a Luma event URL");
+      return;
+    }
+
     const eventId = extractEventId(url);
     if (!eventId) {
       setEventData(null);
-      if (url.includes("lu.ma")) {
-        toast.error("Invalid Luma event URL format");
-      }
+      toast.error("Invalid Luma event URL format. Expected: https://lu.ma/event/manage/evt-XXX or https://lu.ma/XXX");
       return;
     }
 
