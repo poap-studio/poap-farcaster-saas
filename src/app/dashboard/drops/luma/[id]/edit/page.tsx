@@ -101,6 +101,11 @@ The {{eventName}} Team`,
         if (drop.lumaEventUrl) {
           validateEvent(drop.lumaEventUrl);
         }
+        
+        // Validate POAP to show the image
+        if (drop.poapEventId && drop.poapSecretCode) {
+          validatePoap(drop.poapEventId, drop.poapSecretCode);
+        }
       }
     } catch (error) {
       console.error("Fetch drop error:", error);
@@ -199,8 +204,11 @@ The {{eventName}} Team`,
     }
   };
 
-  const validatePoap = async () => {
-    if (!formData.poapEventId || !formData.poapSecretCode) {
+  const validatePoap = async (eventId?: string, secretCode?: string) => {
+    const poapEventId = eventId || formData.poapEventId;
+    const poapSecretCode = secretCode || formData.poapSecretCode;
+    
+    if (!poapEventId || !poapSecretCode) {
       setPoapData(null);
       setPoapWarning(null);
       setPoapError(null);
@@ -213,7 +221,7 @@ The {{eventName}} Team`,
 
     try {
       // Validate POAP event
-      const eventResponse = await fetch(`/api/poap/validate-event?eventId=${formData.poapEventId}`);
+      const eventResponse = await fetch(`/api/poap/validate-event?eventId=${poapEventId}`);
       const poapEventData = await eventResponse.json();
 
       if (!eventResponse.ok) {
@@ -223,7 +231,7 @@ The {{eventName}} Team`,
       }
 
       // Get POAP stats
-      const statsResponse = await fetch(`/api/poap/stats?eventId=${formData.poapEventId}&secretCode=${encodeURIComponent(formData.poapSecretCode)}`);
+      const statsResponse = await fetch(`/api/poap/stats?eventId=${poapEventId}&secretCode=${encodeURIComponent(poapSecretCode)}`);
       const statsData = await statsResponse.json();
 
       if (!statsResponse.ok) {
