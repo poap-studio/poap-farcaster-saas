@@ -42,6 +42,8 @@ interface Drop {
   deliveryMethod?: string;
   lumaEventUrl?: string;
   poapName?: string;
+  emailSubject?: string;
+  emailBody?: string;
   _count?: {
     claims: number;
     lumaDeliveries?: number;
@@ -113,9 +115,16 @@ export default function DashboardPage() {
   });
   const [sessionUser, setSessionUser] = useState<SessionData | null>(null);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [emailPreviewModal, setEmailPreviewModal] = useState<{ isOpen: boolean; eventName: string }>({
+  const [emailPreviewModal, setEmailPreviewModal] = useState<{ 
+    isOpen: boolean; 
+    eventName: string;
+    emailSubject?: string;
+    emailBody?: string;
+  }>({
     isOpen: false,
-    eventName: ''
+    eventName: '',
+    emailSubject: undefined,
+    emailBody: undefined
   });
   
   const ITEMS_PER_PAGE = 9;
@@ -409,8 +418,15 @@ export default function DashboardPage() {
       />
       <EmailPreviewModal
         isOpen={emailPreviewModal.isOpen}
-        onClose={() => setEmailPreviewModal({ isOpen: false, eventName: '' })}
+        onClose={() => setEmailPreviewModal({ 
+          isOpen: false, 
+          eventName: '',
+          emailSubject: undefined,
+          emailBody: undefined
+        })}
         eventName={emailPreviewModal.eventName}
+        emailSubject={emailPreviewModal.emailSubject}
+        emailMessage={emailPreviewModal.emailBody}
       />
       <div className="min-h-screen bg-slate-900">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -620,7 +636,9 @@ export default function DashboardPage() {
                       <button
                         onClick={() => setEmailPreviewModal({ 
                           isOpen: true, 
-                          eventName: drop.poapName || `Event #${drop.poapEventId}` 
+                          eventName: drop.poapName || `Event #${drop.poapEventId}`,
+                          emailSubject: drop.emailSubject,
+                          emailBody: drop.emailBody
                         })}
                         className="flex-1 bg-slate-700 hover:bg-slate-600 text-white h-12 sm:h-10 px-4 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center justify-center"
                       >
