@@ -1,14 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '~/lib/prisma';
 
-const INSTAGRAM_ACCESS_TOKEN = 'IGAAZAob8miVV1BZAFBja2RQdVJxRXFpRUpmdG55bFFmdFhJWnpMNEFzakx1ZA1Q3UThvRGpjRXVIRnFsVXBmbldNYi1KNDdQaUZAELVZAPLXhIT0VULWJyRFdKWm5VSGhIU1JnYzBPTWtBV0FabU54ODNWcThB';
+// Helper function to extract email, ENS, or Ethereum address from text
+function extractRecipientInfo(text: string): { type: 'email' | 'ens' | 'address' | null; value: string | null } {
+  // Email regex
+  const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
+  const emailMatch = text.match(emailRegex);
+  if (emailMatch) {
+    return { type: 'email', value: emailMatch[0].toLowerCase() };
+  }
 
-async function sendInstagramMessage(recipientId: string, messageText: string) {
+  // Ethereum address regex (0x followed by 40 hex characters)
+  const addressRegex = /\b0x[a-fA-F0-9]{40}\b/;
+  const addressMatch = text.match(addressRegex);
+  if (addressMatch) {
+    return { type: 'address', value: addressMatch[0].toLowerCase() };
+  }
+
+  // ENS regex (ending with .eth)
+  const ensRegex = /\b[a-zA-Z0-9][a-zA-Z0-9-]*\.eth\b/;
+  const ensMatch = text.match(ensRegex);
+  if (ensMatch) {
+    return { type: 'ens', value: ensMatch[0].toLowerCase() };
+  }
+
+  return { type: null, value: null };
+}
+
+async function sendInstagramMessage(accessToken: string, recipientId: string, messageText: string) {
   try {
     const response = await fetch(`https://graph.instagram.com/v18.0/me/messages`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${INSTAGRAM_ACCESS_TOKEN}`,
+        'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -33,6 +57,70 @@ async function sendInstagramMessage(recipientId: string, messageText: string) {
   } catch (error) {
     console.error('[Instagram API] Error sending message:', error);
     return false;
+  }
+}
+
+async function claimPoapForEmail(email: string, eventId: string, secretCode: string, sendEmail: boolean) {
+  try {
+    const response = await fetch('https://api.poap.tech/actions/claim-qr', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.POAP_API_KEY}`,
+      },
+      body: JSON.stringify({
+        address: email,
+        qr_hash: secretCode,
+        secret: secretCode,
+        sendEmail: sendEmail
+      })
+    });
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+      console.error('[POAP API] Error claiming for email:', result);
+      return null;
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('[POAP API] Error claiming:', error);
+    return null;
+  }
+}
+
+async function mintPoapLink(eventId: string, secretCode: string) {
+  try {
+    // First, get a mint link from POAP
+    const response = await fetch(`https://api.poap.tech/event/${eventId}/qr-codes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.POAP_API_KEY}`,
+        'X-API-Key': process.env.POAP_API_KEY!,
+      },
+      body: JSON.stringify({
+        secret_code: secretCode,
+        requested_codes: 1
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('[POAP API] Error getting mint link:', error);
+      return null;
+    }
+
+    const result = await response.json();
+    if (result.qr_codes && result.qr_codes.length > 0) {
+      return result.qr_codes[0].claimed_page_url;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('[POAP API] Error getting mint link:', error);
+    return null;
   }
 }
 
@@ -90,23 +178,167 @@ export async function POST(request: NextRequest) {
 
               try {
                 // Store in database
-                await prisma.instagramMessage.create({
+                const savedMessage = await prisma.instagramMessage.create({
                   data: messageData
                 });
                 
                 console.log('[Instagram Webhook] Message stored successfully');
                 
-                // Send automatic reply "hola"
-                console.log('[Instagram Webhook] Sending automatic reply to sender:', message.sender?.id);
-                const replySent = await sendInstagramMessage(
-                  message.sender?.id || '', 
-                  'hola'
-                );
-                
-                if (replySent) {
-                  console.log('[Instagram Webhook] Auto-reply sent successfully');
-                } else {
-                  console.log('[Instagram Webhook] Failed to send auto-reply');
+                // Check if this story belongs to a drop
+                if (messageData.storyId) {
+                  const drop = await prisma.drop.findFirst({
+                    where: {
+                      instagramStoryId: messageData.storyId,
+                      isActive: true,
+                      platform: 'instagram'
+                    },
+                    include: {
+                      instagramMessages: true,
+                      instagramAccount: true
+                    }
+                  });
+
+                  if (drop && drop.instagramMessages && drop.instagramAccount) {
+                    console.log('[Instagram Webhook] Found drop for story:', drop.id);
+                    
+                    // Extract recipient info from message
+                    const recipientInfo = extractRecipientInfo(messageData.text);
+                    
+                    if (!recipientInfo.type || !recipientInfo.value) {
+                      // Send invalid format message
+                      await sendInstagramMessage(
+                        drop.instagramAccount.accessToken,
+                        messageData.senderId,
+                        drop.instagramMessages.invalidFormatMessage
+                      );
+                      continue;
+                    }
+
+                    // Check if format is accepted
+                    if (!drop.acceptedFormats.includes(recipientInfo.type)) {
+                      await sendInstagramMessage(
+                        drop.instagramAccount.accessToken,
+                        messageData.senderId,
+                        drop.instagramMessages.invalidFormatMessage
+                      );
+                      continue;
+                    }
+
+                    // Check if already claimed
+                    const existingDelivery = await prisma.instagramDelivery.findUnique({
+                      where: {
+                        dropId_recipientValue_recipientType: {
+                          dropId: drop.id,
+                          recipientValue: recipientInfo.value,
+                          recipientType: recipientInfo.type
+                        }
+                      }
+                    });
+
+                    if (existingDelivery) {
+                      // Send already claimed message
+                      await sendInstagramMessage(
+                        drop.instagramAccount.accessToken,
+                        messageData.senderId,
+                        drop.instagramMessages.alreadyClaimedMessage
+                      );
+                      continue;
+                    }
+
+                    // Create delivery record
+                    const delivery = await prisma.instagramDelivery.create({
+                      data: {
+                        dropId: drop.id,
+                        messageId: savedMessage.messageId,
+                        recipientType: recipientInfo.type,
+                        recipientValue: recipientInfo.value,
+                        deliveryStatus: 'pending'
+                      }
+                    });
+
+                    // Deliver POAP based on type
+                    let poapLink = null;
+                    let deliveryStatus = 'failed';
+                    let errorMessage = null;
+
+                    try {
+                      if (recipientInfo.type === 'email') {
+                        // For email, claim directly
+                        const claimResult = await claimPoapForEmail(
+                          recipientInfo.value,
+                          drop.poapEventId,
+                          drop.poapSecretCode,
+                          drop.sendPoapEmail
+                        );
+                        
+                        if (claimResult) {
+                          deliveryStatus = 'delivered';
+                          poapLink = recipientInfo.value; // Store email as reference
+                        } else {
+                          errorMessage = 'Failed to claim POAP';
+                        }
+                      } else {
+                        // For ENS and address, get mint link
+                        const mintLink = await mintPoapLink(drop.poapEventId, drop.poapSecretCode);
+                        
+                        if (mintLink) {
+                          poapLink = mintLink;
+                          deliveryStatus = 'delivered';
+                        } else {
+                          errorMessage = 'Failed to generate mint link';
+                        }
+                      }
+                    } catch (error) {
+                      console.error('[Instagram Webhook] Error delivering POAP:', error);
+                      errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                    }
+
+                    // Update delivery record
+                    await prisma.instagramDelivery.update({
+                      where: { id: delivery.id },
+                      data: {
+                        poapLink,
+                        deliveryStatus,
+                        errorMessage,
+                        deliveredAt: deliveryStatus === 'delivered' ? new Date() : null
+                      }
+                    });
+
+                    // Update message as processed
+                    await prisma.instagramMessage.update({
+                      where: { id: savedMessage.id },
+                      data: {
+                        processed: true,
+                        processedAt: new Date(),
+                        dropId: drop.id
+                      }
+                    });
+
+                    // Send response message
+                    if (deliveryStatus === 'delivered') {
+                      let successMessage = drop.instagramMessages.successMessage;
+                      successMessage = successMessage.replace('{{recipient}}', recipientInfo.value);
+                      
+                      if (recipientInfo.type !== 'email' && poapLink) {
+                        successMessage += `\n\nClaim your POAP here: ${poapLink}`;
+                      }
+                      
+                      await sendInstagramMessage(
+                        drop.instagramAccount.accessToken,
+                        messageData.senderId,
+                        successMessage
+                      );
+                    } else {
+                      // Send error message
+                      await sendInstagramMessage(
+                        drop.instagramAccount.accessToken,
+                        messageData.senderId,
+                        `Sorry, there was an error delivering your POAP. Please try again later.`
+                      );
+                    }
+                  } else {
+                    console.log('[Instagram Webhook] No active drop found for story:', messageData.storyId);
+                  }
                 }
                 
               } catch (dbError) {

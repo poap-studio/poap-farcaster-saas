@@ -31,7 +31,7 @@ export default function PlatformSelectorModal({ isOpen, onClose }: PlatformSelec
           Choose where you want to distribute your POAPs
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Farcaster Option */}
           <Link
             href="/dashboard/drops/farcaster/new"
@@ -74,6 +74,29 @@ export default function PlatformSelectorModal({ isOpen, onClose }: PlatformSelec
               <h3 className="text-xl font-semibold text-white mb-2">Luma</h3>
               <p className="text-gray-400 text-sm">
                 Send POAPs to attendees of your Luma events automatically
+              </p>
+            </div>
+          </Link>
+
+          {/* Instagram Option */}
+          <Link
+            href="/dashboard/drops/instagram/new"
+            onClick={onClose}
+            className="bg-slate-700 hover:bg-slate-600 rounded-xl p-6 transition-all duration-200 hover:scale-105 cursor-pointer border-2 border-transparent hover:border-gradient-to-r hover:from-purple-500 hover:to-pink-500"
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full flex items-center justify-center mb-4">
+                <Image 
+                  src="/icons/instagram.png" 
+                  alt="Instagram" 
+                  width={48} 
+                  height={48}
+                  className="w-12 h-12"
+                />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Instagram</h3>
+              <p className="text-gray-400 text-sm">
+                Send POAPs to users who reply to your Instagram stories
               </p>
             </div>
           </Link>

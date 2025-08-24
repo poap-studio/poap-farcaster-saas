@@ -72,6 +72,13 @@ export async function POST(request: NextRequest) {
       emailSubject,
       emailBody,
       isActive,
+      // Instagram fields
+      instagramAccountId,
+      instagramStoryId,
+      instagramStoryUrl,
+      instagramMessages,
+      acceptedFormats,
+      sendPoapEmail,
     } = body;
 
     // Validate required fields
@@ -82,6 +89,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Create the drop
     const drop = await prisma.drop.create({
       data: {
         userId,
@@ -104,8 +112,26 @@ export async function POST(request: NextRequest) {
         emailSubject,
         emailBody,
         isActive: isActive ?? true,
+        // Instagram fields
+        instagramAccountId,
+        instagramStoryId,
+        instagramStoryUrl,
+        acceptedFormats: acceptedFormats || ["email"],
+        sendPoapEmail: sendPoapEmail ?? true,
       },
     });
+
+    // If it's an Instagram drop, create the messages
+    if (platform === "instagram" && instagramMessages) {
+      await prisma.instagramDropMessages.create({
+        data: {
+          dropId: drop.id,
+          successMessage: instagramMessages.successMessage,
+          alreadyClaimedMessage: instagramMessages.alreadyClaimedMessage,
+          invalidFormatMessage: instagramMessages.invalidFormatMessage,
+        },
+      });
+    }
 
     return NextResponse.json({ drop });
   } catch (error) {

@@ -11,7 +11,17 @@ export async function GET(
     const { id } = await params;
     const drop = await prisma.drop.findUnique({
       where: { id },
-      include: { user: true },
+      include: { 
+        user: true,
+        instagramMessages: true,
+        instagramAccount: {
+          select: {
+            id: true,
+            instagramId: true,
+            username: true
+          }
+        }
+      },
     });
 
     if (!drop) {
@@ -62,10 +72,31 @@ export async function PUT(
       );
     }
 
+    // Extract Instagram messages if present
+    const { instagramMessages, ...dropData } = body;
+
     const drop = await prisma.drop.update({
       where: { id },
-      data: body,
+      data: dropData,
     });
+
+    // Update Instagram messages if provided and it's an Instagram drop
+    if (existingDrop.platform === 'instagram' && instagramMessages) {
+      await prisma.instagramDropMessages.upsert({
+        where: { dropId: id },
+        update: {
+          successMessage: instagramMessages.successMessage,
+          alreadyClaimedMessage: instagramMessages.alreadyClaimedMessage,
+          invalidFormatMessage: instagramMessages.invalidFormatMessage,
+        },
+        create: {
+          dropId: id,
+          successMessage: instagramMessages.successMessage,
+          alreadyClaimedMessage: instagramMessages.alreadyClaimedMessage,
+          invalidFormatMessage: instagramMessages.invalidFormatMessage,
+        },
+      });
+    }
 
     return NextResponse.json({ drop });
   } catch (error) {

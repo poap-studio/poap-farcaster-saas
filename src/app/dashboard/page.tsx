@@ -505,18 +505,34 @@ export default function DashboardPage() {
                 {/* Color Preview Bar */}
                 <div
                   className="h-3"
-                  style={{ backgroundColor: drop.platform === 'luma' ? "#000000" : "#8b5cf6" }}
+                  style={{ 
+                    backgroundColor: drop.platform === 'luma' ? "#000000" : 
+                                   drop.platform === 'instagram' ? "#E4405F" : 
+                                   "#8b5cf6" 
+                  }}
                 />
                 
                 <div className="p-6 flex flex-col flex-1">
                   {/* Top row with platform icon and status chip */}
                   <div className="flex justify-between items-center mb-3">
                     <div className="flex items-center gap-2">
-                      <div className={`w-8 h-8 rounded-full ${drop.platform === 'luma' ? 'bg-pink-500/20' : 'bg-white/10'} backdrop-blur-sm flex items-center justify-center`}>
+                      <div className={`w-8 h-8 rounded-full ${
+                        drop.platform === 'luma' ? 'bg-pink-500/20' : 
+                        drop.platform === 'instagram' ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20' :
+                        'bg-white/10'
+                      } backdrop-blur-sm flex items-center justify-center`}>
                         {drop.platform === 'luma' ? (
                           <Image 
                             src="/icons/luma.svg" 
                             alt="Luma" 
+                            width={20} 
+                            height={20}
+                            className="w-5 h-5"
+                          />
+                        ) : drop.platform === 'instagram' ? (
+                          <Image 
+                            src="/icons/instagram.png" 
+                            alt="Instagram" 
                             width={20} 
                             height={20}
                             className="w-5 h-5"
@@ -532,7 +548,7 @@ export default function DashboardPage() {
                         )}
                       </div>
                       <span className="text-xs text-gray-400">
-                        {drop.platform === 'luma' ? 'Luma' : 'Farcaster'}
+                        {drop.platform === 'luma' ? 'Luma' : drop.platform === 'instagram' ? 'Instagram' : 'Farcaster'}
                       </span>
                     </div>
                     {drop.platform === 'luma' && drop.lumaEventData ? (
@@ -693,7 +709,11 @@ export default function DashboardPage() {
                       </button>
                     ) : null}
                     <Link
-                      href={drop.platform === 'luma' ? `/dashboard/drops/luma/${drop.id}/edit` : `/drops/${drop.id}/edit`}
+                      href={
+                        drop.platform === 'luma' ? `/dashboard/drops/luma/${drop.id}/edit` : 
+                        drop.platform === 'instagram' ? `/dashboard/drops/instagram/${drop.id}/edit` :
+                        `/drops/${drop.id}/edit`
+                      }
                       className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12 sm:h-10 px-4 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center justify-center"
                     >
                       Edit

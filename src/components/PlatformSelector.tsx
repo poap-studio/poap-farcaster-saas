@@ -26,6 +26,13 @@ const platforms: Platform[] = [
     icon: "/icons/luma.svg",
     href: "/dashboard/drops/luma/new",
     color: "bg-pink-600 hover:bg-pink-700"
+  },
+  {
+    id: "instagram",
+    name: "Instagram",
+    icon: "/icons/instagram.png",
+    href: "/dashboard/drops/instagram/new",
+    color: "bg-gradient-to-r from-purple-600 to-pink-600"
   }
 ];
 

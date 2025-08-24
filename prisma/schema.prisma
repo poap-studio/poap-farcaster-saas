@@ -48,14 +48,25 @@ model Drop {
   deliveryTarget    String   @default("email")
   poapsDelivered    Boolean  @default(false)
   deliveredAt       DateTime?
+  // Instagram fields
+  instagramAccountId String?
+  instagramStoryId   String?
+  instagramStoryUrl  String?  @db.Text
+  instagramMessages  InstagramDropMessages?
+  acceptedFormats    String[] @default(["email"]) // ["email", "ens", "address"]
+  sendPoapEmail      Boolean  @default(true) // Whether POAP should send email when minting
   claims            Claim[]
   lumaDeliveries    LumaDelivery[]
   lumaGuests        LumaGuest[]
+  instagramDeliveries InstagramDelivery[]
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  instagramAccount  InstagramAccount? @relation(fields: [instagramAccountId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([slug])
   @@index([platform])
+  @@index([instagramAccountId])
+  @@index([instagramStoryId])
 }
 
 model Claim {
@@ -144,9 +155,61 @@ model InstagramMessage {
   storyUrl    String?  @db.Text
   receivedAt  DateTime @default(now())
   createdAt   DateTime @default(now())
+  processed   Boolean  @default(false)
+  processedAt DateTime?
+  dropId      String?
+  delivery    InstagramDelivery?
   
   @@index([senderId])
   @@index([recipientId])
   @@index([timestamp])
   @@index([createdAt])
+  @@index([processed])
+  @@index([storyId])
+  @@index([dropId])
+}
+
+model InstagramAccount {
+  id           String   @id @default(cuid())
+  instagramId  String   @unique
+  username     String?
+  accessToken  String   @db.Text
+  tokenType    String   @default("bearer")
+  expiresAt    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  drops        Drop[]
+  
+  @@index([instagramId])
+}
+
+model InstagramDropMessages {
+  id                String   @id @default(cuid())
+  dropId            String   @unique
+  successMessage    String   @db.Text // Message when POAP is delivered (contains {{recipient}} variable)
+  alreadyClaimedMessage String @db.Text // Message when user already claimed
+  invalidFormatMessage String @db.Text // Message when no valid email/ENS/address found
+  drop              Drop     @relation(fields: [dropId], references: [id], onDelete: Cascade)
+  
+  @@index([dropId])
+}
+
+model InstagramDelivery {
+  id             String   @id @default(cuid())
+  dropId         String
+  messageId      String   @unique
+  recipientType  String   // "email", "ens", or "address"
+  recipientValue String   // The actual email, ENS, or address
+  poapLink       String?
+  deliveryStatus String   @default("pending") // "pending", "delivered", "failed"
+  errorMessage   String?
+  deliveredAt    DateTime?
+  createdAt      DateTime @default(now())
+  drop           Drop     @relation(fields: [dropId], references: [id], onDelete: Cascade)
+  message        InstagramMessage @relation(fields: [messageId], references: [messageId], onDelete: Cascade)
+  
+  @@unique([dropId, recipientValue, recipientType])
+  @@index([dropId])
+  @@index([messageId])
+  @@index([deliveryStatus])
 }
