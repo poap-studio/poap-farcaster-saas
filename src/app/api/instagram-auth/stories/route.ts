@@ -18,75 +18,29 @@ export async function GET() {
       return NextResponse.json({ error: 'No Instagram account connected' }, { status: 400 });
     }
 
-    // Get Instagram stories
-    // Note: Instagram API requires page access token for stories
-    // First, we need to get the pages
-    const pagesResponse = await fetch(
-      `https://graph.facebook.com/v18.0/me/accounts?access_token=${account.accessToken}`
+    // Get user media from Instagram Basic Display API
+    const mediaResponse = await fetch(
+      `https://graph.instagram.com/me/media?fields=id,media_type,media_url,timestamp,permalink&access_token=${account.accessToken}`
     );
     
-    if (!pagesResponse.ok) {
-      const error = await pagesResponse.json();
-      console.error('[Instagram Stories] Error getting pages:', error);
-      return NextResponse.json({ error: 'Failed to get Instagram pages' }, { status: 400 });
+    if (!mediaResponse.ok) {
+      const error = await mediaResponse.json();
+      console.error('[Instagram Stories] Error getting media:', error);
+      return NextResponse.json({ error: 'Failed to get Instagram media' }, { status: 400 });
     }
 
-    const pagesData = await pagesResponse.json();
-    
-    if (!pagesData.data || pagesData.data.length === 0) {
-      return NextResponse.json({ stories: [] });
-    }
+    const mediaData = await mediaResponse.json();
 
-    // Get the first page (Instagram business account)
-    const page = pagesData.data[0];
-    
-    // Get Instagram business account ID
-    const igAccountResponse = await fetch(
-      `https://graph.facebook.com/v18.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`
-    );
-    
-    if (!igAccountResponse.ok) {
-      const error = await igAccountResponse.json();
-      console.error('[Instagram Stories] Error getting IG account:', error);
-      return NextResponse.json({ error: 'Failed to get Instagram business account' }, { status: 400 });
-    }
-
-    const igAccountData = await igAccountResponse.json();
-    
-    if (!igAccountData.instagram_business_account) {
-      return NextResponse.json({ error: 'No Instagram business account found' }, { status: 400 });
-    }
-
-    const igBusinessId = igAccountData.instagram_business_account.id;
-
-    // Get stories
-    const storiesResponse = await fetch(
-      `https://graph.facebook.com/v18.0/${igBusinessId}/stories?fields=id,media_url,media_type,timestamp,permalink&access_token=${page.access_token}`
-    );
-
-    if (!storiesResponse.ok) {
-      const error = await storiesResponse.json();
-      console.error('[Instagram Stories] Error getting stories:', error);
-      
-      // If no stories, return empty array
-      if (error.error?.code === 100) {
-        return NextResponse.json({ stories: [] });
-      }
-      
-      return NextResponse.json({ error: 'Failed to get stories' }, { status: 400 });
-    }
-
-    const storiesData = await storiesResponse.json();
-
-    // Filter stories from the last 24 hours
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const activeStories = (storiesData.data || []).filter((story: { timestamp: string }) => {
-      const storyDate = new Date(story.timestamp);
-      return storyDate > twentyFourHoursAgo;
+    // Filter media to get only recent posts (last 7 days as stories)
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const recentMedia = (mediaData.data || []).filter((media: { timestamp: string; media_type: string }) => {
+      const mediaDate = new Date(media.timestamp);
+      // Only include images and videos
+      return mediaDate > sevenDaysAgo && (media.media_type === 'IMAGE' || media.media_type === 'VIDEO');
     });
 
     return NextResponse.json({
-      stories: activeStories
+      stories: recentMedia
     });
 
   } catch (error) {

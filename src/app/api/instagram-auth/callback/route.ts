@@ -62,13 +62,20 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Exchange code for access token using Facebook Graph API
+    // Exchange code for access token using Instagram Basic Display API
     const tokenResponse = await fetch(
-      `https://graph.facebook.com/v18.0/oauth/access_token?` +
-      `client_id=${process.env.INSTAGRAM_CLIENT_ID || '631541192644294'}` +
-      `&redirect_uri=${encodeURIComponent(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://social.poap.studio'}/api/instagram-auth/callback`)}` +
-      `&client_secret=${process.env.INSTAGRAM_CLIENT_SECRET}` +
-      `&code=${code}`
+      'https://api.instagram.com/oauth/access_token',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: process.env.INSTAGRAM_CLIENT_ID || '631541192644294',
+          client_secret: process.env.INSTAGRAM_CLIENT_SECRET || '',
+          grant_type: 'authorization_code',
+          redirect_uri: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://social.poap.studio'}/api/instagram-auth/callback`,
+          code,
+        }),
+      }
     );
 
     const tokenData = await tokenResponse.json();
@@ -92,20 +99,20 @@ export async function GET(request: NextRequest) {
 
     const { access_token } = tokenData;
 
-    // Get user pages
-    const pagesResponse = await fetch(
-      `https://graph.facebook.com/v18.0/me/accounts?access_token=${access_token}`
+    // Exchange for long-lived token
+    const longLivedResponse = await fetch(
+      `https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${process.env.INSTAGRAM_CLIENT_SECRET}&access_token=${access_token}`
     );
-    const pagesData = await pagesResponse.json();
+    const longLivedData = await longLivedResponse.json();
 
-    if (!pagesData.data || pagesData.data.length === 0) {
+    if (!longLivedData.access_token) {
       return new Response(`
         <!DOCTYPE html>
         <html>
         <head><title>Instagram Auth Error</title></head>
         <body>
           <script>
-            window.opener.postMessage({ type: 'instagram-auth-error', error: 'No Facebook pages found. Please ensure your Facebook account has a connected Instagram business account.' }, '*');
+            window.opener.postMessage({ type: 'instagram-auth-error', error: 'Failed to get long-lived access token' }, '*');
             window.close();
           </script>
         </body>
@@ -115,24 +122,20 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Get the first page and its Instagram business account
-    const page = pagesData.data[0];
-    const pageAccessToken = page.access_token;
-    
-    // Get Instagram business account ID
-    const igAccountResponse = await fetch(
-      `https://graph.facebook.com/v18.0/${page.id}?fields=instagram_business_account&access_token=${pageAccessToken}`
+    // Get user info
+    const userResponse = await fetch(
+      `https://graph.instagram.com/me?fields=id,username&access_token=${longLivedData.access_token}`
     );
-    const igAccountData = await igAccountResponse.json();
+    const userData = await userResponse.json();
 
-    if (!igAccountData.instagram_business_account) {
+    if (!userData.id) {
       return new Response(`
         <!DOCTYPE html>
         <html>
         <head><title>Instagram Auth Error</title></head>
         <body>
           <script>
-            window.opener.postMessage({ type: 'instagram-auth-error', error: 'No Instagram business account connected to your Facebook page.' }, '*');
+            window.opener.postMessage({ type: 'instagram-auth-error', error: 'Failed to get user info' }, '*');
             window.close();
           </script>
         </body>
@@ -141,29 +144,21 @@ export async function GET(request: NextRequest) {
         headers: { 'Content-Type': 'text/html' }
       });
     }
-
-    const instagramBusinessAccountId = igAccountData.instagram_business_account.id;
-    
-    // Get Instagram account info
-    const igUserResponse = await fetch(
-      `https://graph.facebook.com/v18.0/${instagramBusinessAccountId}?fields=username&access_token=${pageAccessToken}`
-    );
-    const igUserData = await igUserResponse.json();
 
     // Store or update Instagram account in database
     await prisma.instagramAccount.upsert({
-      where: { instagramId: instagramBusinessAccountId },
+      where: { instagramId: userData.id },
       update: {
-        accessToken: pageAccessToken, // Use page access token for Instagram API calls
-        username: igUserData.username || 'Instagram Business',
-        expiresAt: tokenData.expires_in ? new Date(Date.now() + tokenData.expires_in * 1000) : null,
+        accessToken: longLivedData.access_token,
+        username: userData.username || 'Instagram User',
+        expiresAt: longLivedData.expires_in ? new Date(Date.now() + longLivedData.expires_in * 1000) : null,
         updatedAt: new Date()
       },
       create: {
-        instagramId: instagramBusinessAccountId,
-        accessToken: pageAccessToken, // Use page access token for Instagram API calls
-        username: igUserData.username || 'Instagram Business',
-        expiresAt: tokenData.expires_in ? new Date(Date.now() + tokenData.expires_in * 1000) : null
+        instagramId: userData.id,
+        accessToken: longLivedData.access_token,
+        username: userData.username || 'Instagram User',
+        expiresAt: longLivedData.expires_in ? new Date(Date.now() + longLivedData.expires_in * 1000) : null
       }
     });
 
@@ -176,7 +171,7 @@ export async function GET(request: NextRequest) {
       <head><title>Instagram Auth Success</title></head>
       <body>
         <script>
-          window.opener.postMessage({ type: 'instagram-auth-success', accountId: '${instagramBusinessAccountId}', username: '${igUserData.username || 'Instagram Business'}' }, '*');
+          window.opener.postMessage({ type: 'instagram-auth-success', accountId: '${userData.id}', username: '${userData.username || 'Instagram User'}' }, '*');
           window.close();
         </script>
       </body>

@@ -29,6 +29,9 @@ function extractRecipientInfo(text: string): { type: 'email' | 'ens' | 'address'
 
 async function sendInstagramMessage(accessToken: string, recipientId: string, messageText: string) {
   try {
+    // Note: Instagram Basic Display API doesn't support messaging
+    // This requires Instagram Messaging API which needs business verification
+    // For now, we'll attempt to use the Graph API endpoint
     const response = await fetch(`https://graph.instagram.com/v18.0/me/messages`, {
       method: 'POST',
       headers: {
