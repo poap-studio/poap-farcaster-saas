@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
           client_id: '1803679193781597', // Instagram App ID from working app
           client_secret: process.env.INSTAGRAM_CLIENT_SECRET || '',
           grant_type: 'authorization_code',
-          redirect_uri: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://social.poap.studio'}/api/instagram-auth/callback`,
+          redirect_uri: 'https://social.poap.studio/api/instagram-auth/callback',
           code,
         }),
       }

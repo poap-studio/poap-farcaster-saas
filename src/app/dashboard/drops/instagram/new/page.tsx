@@ -130,9 +130,8 @@ export default function NewInstagramDropPage() {
     try {
       // Instagram OAuth URL
       const clientId = "1803679193781597"; // Instagram App ID from working app
-      const redirectUri = process.env.NEXT_PUBLIC_BASE_URL 
-        ? `${process.env.NEXT_PUBLIC_BASE_URL}/api/instagram-auth/callback`
-        : `${window.location.origin}/api/instagram-auth/callback`;
+      // Hardcode the redirect URI to match what's registered in the Instagram app
+      const redirectUri = "https://social.poap.studio/api/instagram-auth/callback";
       // Instagram Business API scopes
       const scope = "instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments,instagram_business_content_publish";
       
