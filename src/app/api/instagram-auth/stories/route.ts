@@ -18,29 +18,46 @@ export async function GET() {
       return NextResponse.json({ error: 'No Instagram account connected' }, { status: 400 });
     }
 
-    // Get user media from Instagram Basic Display API
-    const mediaResponse = await fetch(
-      `https://graph.instagram.com/me/media?fields=id,media_type,media_url,timestamp,permalink&access_token=${account.accessToken}`
+    // For Instagram Business accounts, we need to use the stories endpoint
+    const storiesResponse = await fetch(
+      `https://graph.instagram.com/${account.instagramId}/stories?fields=id,media_type,media_url,timestamp,permalink&access_token=${account.accessToken}`
     );
     
-    if (!mediaResponse.ok) {
-      const error = await mediaResponse.json();
-      console.error('[Instagram Stories] Error getting media:', error);
-      return NextResponse.json({ error: 'Failed to get Instagram media' }, { status: 400 });
+    if (!storiesResponse.ok) {
+      const error = await storiesResponse.json();
+      console.error('[Instagram Stories] Error getting stories:', error);
+      
+      // If stories endpoint fails, try media endpoint as fallback
+      const mediaResponse = await fetch(
+        `https://graph.instagram.com/me/media?fields=id,media_type,media_url,timestamp,permalink&access_token=${account.accessToken}`
+      );
+      
+      if (!mediaResponse.ok) {
+        const mediaError = await mediaResponse.json();
+        console.error('[Instagram Stories] Error getting media:', mediaError);
+        return NextResponse.json({ error: 'Failed to get Instagram content' }, { status: 400 });
+      }
+      
+      const mediaData = await mediaResponse.json();
+      // Return recent media as fallback
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const recentMedia = (mediaData.data || []).filter((media: { timestamp: string; media_type: string }) => {
+        const mediaDate = new Date(media.timestamp);
+        return mediaDate > sevenDaysAgo && (media.media_type === 'IMAGE' || media.media_type === 'VIDEO');
+      });
+      
+      return NextResponse.json({
+        stories: recentMedia
+      });
     }
 
-    const mediaData = await mediaResponse.json();
+    const storiesData = await storiesResponse.json();
 
-    // Filter media to get only recent posts (last 7 days as stories)
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const recentMedia = (mediaData.data || []).filter((media: { timestamp: string; media_type: string }) => {
-      const mediaDate = new Date(media.timestamp);
-      // Only include images and videos
-      return mediaDate > sevenDaysAgo && (media.media_type === 'IMAGE' || media.media_type === 'VIDEO');
-    });
+    // Instagram stories are already filtered to last 24 hours by the API
+    const stories = storiesData.data || [];
 
     return NextResponse.json({
-      stories: recentMedia
+      stories: stories
     });
 
   } catch (error) {
