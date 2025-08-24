@@ -62,14 +62,14 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Exchange code for access token using Instagram Basic Display API
+    // Exchange code for access token using Instagram API
     const tokenResponse = await fetch(
       'https://api.instagram.com/oauth/access_token',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-          client_id: process.env.INSTAGRAM_CLIENT_ID || '631541192644294',
+          client_id: '1803679193781597', // Instagram App ID from working app
           client_secret: process.env.INSTAGRAM_CLIENT_SECRET || '',
           grant_type: 'authorization_code',
           redirect_uri: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://social.poap.studio'}/api/instagram-auth/callback`,

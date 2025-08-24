@@ -129,15 +129,15 @@ export default function NewInstagramDropPage() {
     
     try {
       // Instagram OAuth URL
-      const clientId = process.env.NEXT_PUBLIC_INSTAGRAM_CLIENT_ID || "631541192644294";
+      const clientId = "1803679193781597"; // Instagram App ID from working app
       const redirectUri = process.env.NEXT_PUBLIC_BASE_URL 
         ? `${process.env.NEXT_PUBLIC_BASE_URL}/api/instagram-auth/callback`
         : `${window.location.origin}/api/instagram-auth/callback`;
-      // Instagram Basic Display API scopes
-      const scope = "user_profile,user_media";
+      // Instagram Business API scopes
+      const scope = "instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments,instagram_business_content_publish";
       
-      // Use Instagram OAuth
-      const authUrl = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&response_type=code`;
+      // Use Instagram OAuth with business scopes
+      const authUrl = `https://www.instagram.com/oauth/authorize?enable_fb_login=0&force_authentication=1&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}`;
       
       // Open Instagram auth in popup
       const authWindow = window.open(authUrl, 'instagram-auth', 'width=600,height=700');
