@@ -206,7 +206,8 @@ export default function EditInstagramDropPage({ params }: PageProps) {
       const redirectUri = process.env.NEXT_PUBLIC_BASE_URL 
         ? `${process.env.NEXT_PUBLIC_BASE_URL}/api/instagram-auth/callback`
         : `${window.location.origin}/api/instagram-auth/callback`;
-      const scope = "instagram_basic,instagram_manage_messages,pages_show_list,pages_read_engagement";
+      // Instagram Basic Display API scope
+      const scope = "user_profile,user_media";
       
       const authUrl = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&response_type=code`;
       
