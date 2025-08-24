@@ -46,6 +46,8 @@ model Drop {
   emailSubject      String?
   emailBody         String?
   deliveryTarget    String   @default("email")
+  poapsDelivered    Boolean  @default(false)
+  deliveredAt       DateTime?
   claims            Claim[]
   lumaDeliveries    LumaDelivery[]
   lumaGuests        LumaGuest[]

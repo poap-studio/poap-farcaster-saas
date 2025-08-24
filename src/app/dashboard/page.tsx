@@ -47,6 +47,8 @@ interface Drop {
   poapName?: string;
   emailSubject?: string;
   emailBody?: string;
+  poapsDelivered?: boolean;
+  deliveredAt?: string;
   _count?: {
     claims: number;
     lumaDeliveries?: number;
@@ -536,12 +538,16 @@ export default function DashboardPage() {
                     {drop.platform === 'luma' && drop.lumaEventData ? (
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-                          new Date(drop.lumaEventData.end_at) < new Date()
+                          drop.poapsDelivered
+                            ? "bg-purple-900 text-purple-300"
+                            : new Date(drop.lumaEventData.end_at) < new Date()
                             ? "bg-gray-900 text-gray-300"
                             : "bg-green-900 text-green-300"
                         }`}
                       >
-                        {new Date(drop.lumaEventData.end_at) < new Date()
+                        {drop.poapsDelivered
+                          ? "POAPs Delivered"
+                          : new Date(drop.lumaEventData.end_at) < new Date()
                           ? "Event Ended"
                           : "Active"}
                       </span>
@@ -587,7 +593,7 @@ export default function DashboardPage() {
                       {drop.platform === 'luma' && drop.lumaEventData && (
                         <>
                           <p className="text-gray-400 text-sm">
-                            Event ends: {new Date(drop.lumaEventData.end_at).toLocaleDateString()} at {new Date(drop.lumaEventData.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            POAPs will be delivered on: {new Date(drop.lumaEventData.end_at).toLocaleDateString()} at {new Date(drop.lumaEventData.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
                           <p className="text-gray-400 text-sm">
                             Delivery: {drop.deliveryTarget === 'ethereum' ? 'ETH Address' : 'Email'}
