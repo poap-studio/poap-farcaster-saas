@@ -132,3 +132,21 @@ model LumaCookie {
   
   @@index([createdAt])
 }
+
+model InstagramMessage {
+  id          String   @id @default(cuid())
+  messageId   String   @unique
+  text        String
+  senderId    String
+  recipientId String
+  timestamp   BigInt
+  storyId     String?
+  storyUrl    String?  @db.Text
+  receivedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([timestamp])
+  @@index([createdAt])
+}
