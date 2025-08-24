@@ -1,6 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '~/lib/prisma';
 
+const INSTAGRAM_ACCESS_TOKEN = 'IGAAZAob8miVV1BZAFBja2RQdVJxRXFpRUpmdG55bFFmdFhJWnpMNEFzakx1ZA1Q3UThvRGpjRXVIRnFsVXBmbldNYi1KNDdQaUZAELVZAPLXhIT0VULWJyRFdKWm5VSGhIU1JnYzBPTWtBV0FabU54ODNWcThB';
+
+async function sendInstagramMessage(recipientId: string, messageText: string) {
+  try {
+    const response = await fetch(`https://graph.instagram.com/v18.0/me/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${INSTAGRAM_ACCESS_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        recipient: {
+          id: recipientId
+        },
+        message: {
+          text: messageText
+        }
+      })
+    });
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+      console.error('[Instagram API] Error sending message:', result);
+      return false;
+    }
+    
+    console.log('[Instagram API] Message sent successfully:', result);
+    return true;
+  } catch (error) {
+    console.error('[Instagram API] Error sending message:', error);
+    return false;
+  }
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const hubMode = searchParams.get('hub.mode');
@@ -60,6 +95,20 @@ export async function POST(request: NextRequest) {
                 });
                 
                 console.log('[Instagram Webhook] Message stored successfully');
+                
+                // Send automatic reply "hola"
+                console.log('[Instagram Webhook] Sending automatic reply to sender:', message.sender?.id);
+                const replySent = await sendInstagramMessage(
+                  message.sender?.id || '', 
+                  'hola'
+                );
+                
+                if (replySent) {
+                  console.log('[Instagram Webhook] Auto-reply sent successfully');
+                } else {
+                  console.log('[Instagram Webhook] Failed to send auto-reply');
+                }
+                
               } catch (dbError) {
                 // Check if it's a duplicate message
                 if (dbError instanceof Error && dbError.message.includes('Unique constraint')) {
