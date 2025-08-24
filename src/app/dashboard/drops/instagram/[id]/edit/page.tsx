@@ -202,7 +202,7 @@ export default function EditInstagramDropPage({ params }: PageProps) {
     
     try {
       // Instagram OAuth URL
-      const clientId = process.env.NEXT_PUBLIC_INSTAGRAM_CLIENT_ID || "1249974956219125";
+      const clientId = process.env.NEXT_PUBLIC_INSTAGRAM_CLIENT_ID || "631541192644294";
       const redirectUri = process.env.NEXT_PUBLIC_BASE_URL 
         ? `${process.env.NEXT_PUBLIC_BASE_URL}/api/instagram-auth/callback`
         : `${window.location.origin}/api/instagram-auth/callback`;
