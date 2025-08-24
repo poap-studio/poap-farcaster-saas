@@ -206,10 +206,11 @@ export default function EditInstagramDropPage({ params }: PageProps) {
       const redirectUri = process.env.NEXT_PUBLIC_BASE_URL 
         ? `${process.env.NEXT_PUBLIC_BASE_URL}/api/instagram-auth/callback`
         : `${window.location.origin}/api/instagram-auth/callback`;
-      // Instagram Basic Display API scope
-      const scope = "user_profile,user_media";
+      // Facebook Login for Instagram Business
+      const scope = "instagram_basic,instagram_content_publish,pages_show_list,pages_read_engagement,business_management";
       
-      const authUrl = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&response_type=code`;
+      // Use Facebook OAuth for Facebook App
+      const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&response_type=code`;
       
       // Open Instagram auth in popup
       const authWindow = window.open(authUrl, 'instagram-auth', 'width=600,height=700');

@@ -62,18 +62,14 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Exchange code for access token
-    const tokenResponse = await fetch('https://api.instagram.com/oauth/access_token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: process.env.INSTAGRAM_CLIENT_ID || '631541192644294',
-        client_secret: process.env.INSTAGRAM_CLIENT_SECRET!,
-        grant_type: 'authorization_code',
-        redirect_uri: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://social.poap.studio'}/api/instagram-auth/callback`,
-        code,
-      }),
-    });
+    // Exchange code for access token using Facebook Graph API
+    const tokenResponse = await fetch(
+      `https://graph.facebook.com/v18.0/oauth/access_token?` +
+      `client_id=${process.env.INSTAGRAM_CLIENT_ID || '631541192644294'}` +
+      `&redirect_uri=${encodeURIComponent(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://social.poap.studio'}/api/instagram-auth/callback`)}` +
+      `&client_secret=${process.env.INSTAGRAM_CLIENT_SECRET}` +
+      `&code=${code}`
+    );
 
     const tokenData = await tokenResponse.json();
 
@@ -94,22 +90,22 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const { access_token, user_id } = tokenData;
+    const { access_token } = tokenData;
 
-    // Exchange short-lived token for long-lived token
-    const longLivedResponse = await fetch(
-      `https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${process.env.INSTAGRAM_CLIENT_SECRET}&access_token=${access_token}`
+    // Get user pages
+    const pagesResponse = await fetch(
+      `https://graph.facebook.com/v18.0/me/accounts?access_token=${access_token}`
     );
-    const longLivedData = await longLivedResponse.json();
+    const pagesData = await pagesResponse.json();
 
-    if (!longLivedData.access_token) {
+    if (!pagesData.data || pagesData.data.length === 0) {
       return new Response(`
         <!DOCTYPE html>
         <html>
         <head><title>Instagram Auth Error</title></head>
         <body>
           <script>
-            window.opener.postMessage({ type: 'instagram-auth-error', error: 'Failed to get long-lived token' }, '*');
+            window.opener.postMessage({ type: 'instagram-auth-error', error: 'No Facebook pages found. Please ensure your Facebook account has a connected Instagram business account.' }, '*');
             window.close();
           </script>
         </body>
@@ -119,26 +115,55 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Get user info
-    const userResponse = await fetch(
-      `https://graph.instagram.com/me?fields=id,username&access_token=${longLivedData.access_token}`
+    // Get the first page and its Instagram business account
+    const page = pagesData.data[0];
+    const pageAccessToken = page.access_token;
+    
+    // Get Instagram business account ID
+    const igAccountResponse = await fetch(
+      `https://graph.facebook.com/v18.0/${page.id}?fields=instagram_business_account&access_token=${pageAccessToken}`
     );
-    const userData = await userResponse.json();
+    const igAccountData = await igAccountResponse.json();
+
+    if (!igAccountData.instagram_business_account) {
+      return new Response(`
+        <!DOCTYPE html>
+        <html>
+        <head><title>Instagram Auth Error</title></head>
+        <body>
+          <script>
+            window.opener.postMessage({ type: 'instagram-auth-error', error: 'No Instagram business account connected to your Facebook page.' }, '*');
+            window.close();
+          </script>
+        </body>
+        </html>
+      `, {
+        headers: { 'Content-Type': 'text/html' }
+      });
+    }
+
+    const instagramBusinessAccountId = igAccountData.instagram_business_account.id;
+    
+    // Get Instagram account info
+    const igUserResponse = await fetch(
+      `https://graph.facebook.com/v18.0/${instagramBusinessAccountId}?fields=username&access_token=${pageAccessToken}`
+    );
+    const igUserData = await igUserResponse.json();
 
     // Store or update Instagram account in database
     await prisma.instagramAccount.upsert({
-      where: { instagramId: user_id.toString() },
+      where: { instagramId: instagramBusinessAccountId },
       update: {
-        accessToken: longLivedData.access_token,
-        username: userData.username,
-        expiresAt: longLivedData.expires_in ? new Date(Date.now() + longLivedData.expires_in * 1000) : null,
+        accessToken: pageAccessToken, // Use page access token for Instagram API calls
+        username: igUserData.username || 'Instagram Business',
+        expiresAt: tokenData.expires_in ? new Date(Date.now() + tokenData.expires_in * 1000) : null,
         updatedAt: new Date()
       },
       create: {
-        instagramId: user_id.toString(),
-        accessToken: longLivedData.access_token,
-        username: userData.username,
-        expiresAt: longLivedData.expires_in ? new Date(Date.now() + longLivedData.expires_in * 1000) : null
+        instagramId: instagramBusinessAccountId,
+        accessToken: pageAccessToken, // Use page access token for Instagram API calls
+        username: igUserData.username || 'Instagram Business',
+        expiresAt: tokenData.expires_in ? new Date(Date.now() + tokenData.expires_in * 1000) : null
       }
     });
 
@@ -151,7 +176,7 @@ export async function GET(request: NextRequest) {
       <head><title>Instagram Auth Success</title></head>
       <body>
         <script>
-          window.opener.postMessage({ type: 'instagram-auth-success', accountId: '${user_id}', username: '${userData.username}' }, '*');
+          window.opener.postMessage({ type: 'instagram-auth-success', accountId: '${instagramBusinessAccountId}', username: '${igUserData.username || 'Instagram Business'}' }, '*');
           window.close();
         </script>
       </body>
