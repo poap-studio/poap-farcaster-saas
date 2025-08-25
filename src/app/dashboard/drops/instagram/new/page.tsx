@@ -147,8 +147,6 @@ export default function NewInstagramDropPage() {
         if (authWindow?.closed) {
           clearInterval(checkInterval);
           setConnectingInstagram(false);
-          // Check if auth was successful
-          checkInstagramConnection();
         }
       }, 1000);
       
@@ -158,27 +156,18 @@ export default function NewInstagramDropPage() {
     }
   };
 
-  const checkInstagramConnection = async () => {
-    try {
-      const response = await fetch("/api/instagram-auth/status");
-      const data = await response.json();
-      
-      if (data.connected) {
-        setInstagramConnected(true);
-        setInstagramAccount(data.account);
-        toast.success("Instagram connected successfully!");
-        // Load stories
-        loadInstagramStories();
-      }
-    } catch (error) {
-      console.error("Error checking Instagram connection:", error);
-    }
-  };
 
-  const loadInstagramStories = async () => {
+  const loadInstagramStories = async (accountId?: string) => {
+    if (!accountId && !instagramAccount?.id) {
+      toast.error("No Instagram account selected");
+      return;
+    }
+    
+    const targetAccountId = accountId || instagramAccount?.id;
+    
     setLoadingStories(true);
     try {
-      const response = await fetch("/api/instagram-auth/stories");
+      const response = await fetch(`/api/instagram-auth/stories?accountId=${targetAccountId}`);
       const data = await response.json();
       
       if (response.ok) {
@@ -266,10 +255,25 @@ export default function NewInstagramDropPage() {
     }
   };
 
-  // Check Instagram connection on mount
+  // Message listener for Instagram OAuth
   useEffect(() => {
-    checkInstagramConnection();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'instagram-auth-success') {
+        setInstagramConnected(true);
+        setInstagramAccount({
+          id: event.data.accountId,
+          instagramId: event.data.instagramId,
+          username: event.data.username
+        });
+        toast.success("Instagram connected successfully!");
+        loadInstagramStories(event.data.accountId);
+      } else if (event.data.type === 'instagram-auth-error') {
+        toast.error(event.data.error || "Failed to connect Instagram");
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
   }, []);
 
   return (

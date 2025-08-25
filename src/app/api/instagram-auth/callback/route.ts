@@ -146,7 +146,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Store or update Instagram account in database
-    await prisma.instagramAccount.upsert({
+    const instagramAccount = await prisma.instagramAccount.upsert({
       where: { instagramId: userData.id },
       update: {
         accessToken: longLivedData.access_token,
@@ -161,9 +161,6 @@ export async function GET(request: NextRequest) {
         expiresAt: longLivedData.expires_in ? new Date(Date.now() + longLivedData.expires_in * 1000) : null
       }
     });
-
-    // Store the Instagram account ID in session
-    // Note: In a real implementation, you might want to store this in a more persistent way
     
     return new Response(`
       <!DOCTYPE html>
@@ -171,7 +168,12 @@ export async function GET(request: NextRequest) {
       <head><title>Instagram Auth Success</title></head>
       <body>
         <script>
-          window.opener.postMessage({ type: 'instagram-auth-success', accountId: '${userData.id}', username: '${userData.username || 'Instagram User'}' }, '*');
+          window.opener.postMessage({ 
+            type: 'instagram-auth-success', 
+            accountId: '${instagramAccount.id}', 
+            instagramId: '${userData.id}',
+            username: '${userData.username || 'Instagram User'}' 
+          }, '*');
           window.close();
         </script>
       </body>

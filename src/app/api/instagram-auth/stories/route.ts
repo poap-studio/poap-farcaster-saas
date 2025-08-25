@@ -1,17 +1,24 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '~/lib/session';
 import { prisma } from '~/lib/prisma';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get the most recent Instagram account
-    const account = await prisma.instagramAccount.findFirst({
-      orderBy: { createdAt: 'desc' }
+    const searchParams = request.nextUrl.searchParams;
+    const accountId = searchParams.get('accountId');
+    
+    if (!accountId) {
+      return NextResponse.json({ error: 'Account ID is required' }, { status: 400 });
+    }
+
+    // Get the specific Instagram account
+    const account = await prisma.instagramAccount.findUnique({
+      where: { id: accountId }
     });
 
     if (!account) {
