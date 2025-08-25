@@ -11,7 +11,9 @@ async function applyMigration() {
 
   const client = new Client({
     connectionString,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    ssl: {
+      rejectUnauthorized: false
+    }
   });
 
   try {

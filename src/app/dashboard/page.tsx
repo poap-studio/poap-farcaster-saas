@@ -69,6 +69,8 @@ interface Drop {
     total: number;
     checkedIn: number;
   };
+  instagramStoryId?: string;
+  instagramStoryUrl?: string;
 }
 
 interface DeleteModalProps {
@@ -135,6 +137,7 @@ export default function DashboardPage() {
     emailBody: undefined
   });
   const [showPlatformModal, setShowPlatformModal] = useState(false);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   
   const ITEMS_PER_PAGE = 9;
 
@@ -236,6 +239,18 @@ export default function DashboardPage() {
   }, []);
 
   // Check server session first
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (openDropdownId && !(e.target as HTMLElement).closest('.relative')) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [openDropdownId]);
+
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -627,6 +642,21 @@ export default function DashboardPage() {
                     {drop.poapName || `Event #${drop.poapEventId}`}
                   </h3>
 
+                  {/* Instagram Story Thumbnail */}
+                  {drop.platform === 'instagram' && drop.instagramStoryUrl && (
+                    <div className="mb-3 rounded-lg overflow-hidden bg-slate-700/50">
+                      <img
+                        src={drop.instagramStoryUrl}
+                        alt="Instagram Story"
+                        className="w-full h-32 object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
+
                   <div className="flex-1">
                     <div className="space-y-2 mb-4">
                       <p className="text-gray-400 text-sm">
@@ -686,26 +716,9 @@ export default function DashboardPage() {
                         </div>
                       ) : drop.platform === 'instagram' ? (
                         <div className="space-y-1">
-                          <a
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              downloadInstagramData(drop.id, 'collectors', drop.poapName || `Event #${drop.poapEventId}`);
-                            }}
-                            className="block text-blue-400 hover:text-blue-300 text-sm underline"
-                          >
-                            Download collectors
-                          </a>
-                          <a
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              downloadInstagramData(drop.id, 'interactions', drop.poapName || `Event #${drop.poapEventId}`);
-                            }}
-                            className="block text-gray-400 hover:text-gray-300 text-sm underline"
-                          >
-                            Download all interactions
-                          </a>
+                          <p className="text-gray-400 text-sm">
+                            Story ID: {drop.instagramStoryId?.slice(0, 12)}...
+                          </p>
                         </div>
                       ) : (
                         <a
@@ -756,6 +769,43 @@ export default function DashboardPage() {
                       >
                         Copy Link
                       </button>
+                    ) : drop.platform === 'instagram' ? (
+                      <div className="relative flex-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenDropdownId(openDropdownId === drop.id ? null : drop.id);
+                          }}
+                          className="w-full bg-slate-700 hover:bg-slate-600 text-white h-12 sm:h-10 px-4 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center justify-center gap-2"
+                        >
+                          Download
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {openDropdownId === drop.id && (
+                          <div className="absolute bottom-full mb-1 left-0 right-0 bg-slate-700 rounded-lg shadow-lg overflow-hidden z-10">
+                            <button
+                              onClick={() => {
+                                downloadInstagramData(drop.id, 'collectors', drop.poapName || `Event #${drop.poapEventId}`);
+                                setOpenDropdownId(null);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-white hover:bg-slate-600 transition-colors"
+                            >
+                              Download collectors
+                            </button>
+                            <button
+                              onClick={() => {
+                                downloadInstagramData(drop.id, 'interactions', drop.poapName || `Event #${drop.poapEventId}`);
+                                setOpenDropdownId(null);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-white hover:bg-slate-600 transition-colors"
+                            >
+                              Download all interactions
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     ) : null}
                     <Link
                       href={
