@@ -132,11 +132,11 @@ async function getQRSecret(qrHash: string): Promise<string | null> {
 }
 
 // Claim POAP with the obtained secret
-async function claimPOAP(eventId: string, qrSecret: string, recipientInfo: { type: 'email' | 'ens' | 'address'; value: string }, sendEmail: boolean): Promise<{ claim_url?: string; qr_hash?: string } | null> {
+async function claimPOAP(qrHash: string, qrSecret: string, recipientInfo: { type: 'email' | 'ens' | 'address'; value: string }, sendEmail: boolean): Promise<{ claim_url?: string; qr_hash?: string } | null> {
   try {
     const authManager = getPOAPAuthManager();
     const response = await authManager.makeAuthenticatedRequest(
-      `https://api.poap.tech/event/${eventId}/qr-codes`,
+      `https://api.poap.tech/actions/claim-qr`,
       {
         method: 'POST',
         headers: {
@@ -144,8 +144,9 @@ async function claimPOAP(eventId: string, qrSecret: string, recipientInfo: { typ
           'X-API-Key': process.env.POAP_API_KEY || '',
         },
         body: JSON.stringify({
-          secret_code: qrSecret,
           address: recipientInfo.value,
+          qr_hash: qrHash,
+          secret: qrSecret, // Use the secret obtained from the QR hash
           sendEmail: recipientInfo.type === 'email' ? sendEmail : false
         })
       }
@@ -190,9 +191,9 @@ async function deliverPOAP(eventId: string, eventSecretCode: string, recipientIn
     
     console.log('[POAP Delivery] Got QR secret');
     
-    // Step 3: Claim the POAP with the secret
+    // Step 3: Claim the POAP with the QR hash and secret
     console.log('[POAP Delivery] Step 3: Claiming POAP...');
-    const claimResult = await claimPOAP(eventId, qrSecret, recipientInfo, sendEmail);
+    const claimResult = await claimPOAP(qrHash, qrSecret, recipientInfo, sendEmail);
     
     if (!claimResult) {
       return { success: false, error: 'Failed to claim POAP' };
