@@ -308,7 +308,7 @@ export async function POST(request: NextRequest) {
                       continue;
                     }
 
-                    // Check if already claimed
+                    // Check if already claimed by this recipient info
                     const existingDelivery = await prisma.instagramDelivery.findUnique({
                       where: {
                         dropId_recipientValue_recipientType: {
@@ -321,6 +321,27 @@ export async function POST(request: NextRequest) {
 
                     if (existingDelivery) {
                       // Send already claimed message
+                      await sendInstagramMessage(
+                        drop.instagramAccount.accessToken,
+                        messageData.senderId,
+                        drop.instagramMessages.alreadyClaimedMessage
+                      );
+                      continue;
+                    }
+
+                    // Check if this Instagram user already claimed a POAP for this story
+                    const existingUserDelivery = await prisma.instagramDelivery.findFirst({
+                      where: {
+                        dropId: drop.id,
+                        deliveryStatus: 'delivered',
+                        message: {
+                          senderId: messageData.senderId
+                        }
+                      }
+                    });
+
+                    if (existingUserDelivery) {
+                      // This Instagram user already claimed a POAP for this story
                       await sendInstagramMessage(
                         drop.instagramAccount.accessToken,
                         messageData.senderId,
