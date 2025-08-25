@@ -52,6 +52,7 @@ interface Drop {
   _count?: {
     claims: number;
     lumaDeliveries?: number;
+    instagramDeliveries?: number;
   };
   poapStats?: {
     total: number;
@@ -71,6 +72,10 @@ interface Drop {
   };
   instagramStoryId?: string;
   instagramStoryUrl?: string;
+  instagramStats?: {
+    collectors: number;
+    interactions: number;
+  };
 }
 
 interface DeleteModalProps {
@@ -541,7 +546,7 @@ export default function DashboardPage() {
             {currentDrops.map((drop) => (
               <div
                 key={drop.id}
-                className="bg-slate-800 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-200 flex flex-col h-[360px]"
+                className="bg-slate-800 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-200 flex flex-col h-[420px]"
               >
                 {/* Color Preview Bar */}
                 <div
@@ -716,9 +721,26 @@ export default function DashboardPage() {
                         </div>
                       ) : drop.platform === 'instagram' ? (
                         <div className="space-y-1">
-                          <p className="text-gray-400 text-sm">
-                            Story ID: {drop.instagramStoryId?.slice(0, 12)}...
-                          </p>
+                          <a
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              downloadInstagramData(drop.id, 'collectors', drop.poapName || `Event #${drop.poapEventId}`);
+                            }}
+                            className="block text-blue-400 hover:text-blue-300 text-sm underline"
+                          >
+                            {drop.instagramStats?.collectors || 0} collectors
+                          </a>
+                          <a
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              downloadInstagramData(drop.id, 'interactions', drop.poapName || `Event #${drop.poapEventId}`);
+                            }}
+                            className="block text-gray-400 hover:text-gray-300 text-sm underline"
+                          >
+                            {drop.instagramStats?.interactions || 0} total interactions
+                          </a>
                         </div>
                       ) : (
                         <a

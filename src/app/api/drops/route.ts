@@ -22,13 +22,41 @@ export async function GET(request: NextRequest) {
         _count: {
           select: { 
             claims: true,
-            lumaDeliveries: true
+            lumaDeliveries: true,
+            instagramDeliveries: true
           }
         }
       }
     });
 
-    return NextResponse.json({ drops });
+    // Get Instagram stats for each drop
+    const dropsWithStats = await Promise.all(drops.map(async (drop) => {
+      if (drop.platform === 'instagram' && drop.instagramStoryId) {
+        // Count total interactions (all messages for this story)
+        const interactionsCount = await prisma.instagramMessage.count({
+          where: { storyId: drop.instagramStoryId }
+        });
+
+        // Count successful deliveries (collectors)
+        const collectorsCount = await prisma.instagramDelivery.count({
+          where: { 
+            dropId: drop.id,
+            deliveryStatus: 'delivered'
+          }
+        });
+
+        return {
+          ...drop,
+          instagramStats: {
+            collectors: collectorsCount,
+            interactions: interactionsCount
+          }
+        };
+      }
+      return drop;
+    }));
+
+    return NextResponse.json({ drops: dropsWithStats });
   } catch (error) {
     console.error("[Drops GET] Error:", error);
     return NextResponse.json(
