@@ -30,6 +30,7 @@ export default function EditInstagramDropPage({ params }: PageProps) {
   const [instagramConnected, setInstagramConnected] = useState(false);
   const [instagramAccount, setInstagramAccount] = useState<{
     id: string;
+    instagramId: string;
     username: string;
   } | null>(null);
   
@@ -99,6 +100,7 @@ export default function EditInstagramDropPage({ params }: PageProps) {
           setInstagramConnected(true);
           setInstagramAccount({
             id: drop.instagramAccountId,
+            instagramId: drop.instagramAccount?.instagramId || "",
             username: drop.instagramAccount?.username || ""
           });
           

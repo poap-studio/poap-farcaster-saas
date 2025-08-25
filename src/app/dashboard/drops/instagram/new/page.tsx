@@ -24,6 +24,7 @@ export default function NewInstagramDropPage() {
   const [instagramConnected, setInstagramConnected] = useState(false);
   const [instagramAccount, setInstagramAccount] = useState<{
     id: string;
+    instagramId: string;
     username: string;
   } | null>(null);
   

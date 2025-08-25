@@ -28,7 +28,8 @@ export async function GET() {
     return NextResponse.json({
       connected: true,
       account: {
-        id: account.instagramId,
+        id: account.id, // Database ID, not Instagram ID
+        instagramId: account.instagramId,
         username: account.username
       }
     });
