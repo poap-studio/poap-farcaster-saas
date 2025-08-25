@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
-import "~/app/globals.css";
+import "./globals.css";
 import "@farcaster/auth-kit/styles.css";
 import { Providers } from "~/app/providers";
 
