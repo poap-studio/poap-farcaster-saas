@@ -149,6 +149,7 @@ model InstagramMessage {
   messageId   String   @unique
   text        String
   senderId    String
+  senderUsername String?
   recipientId String
   timestamp   BigInt
   storyId     String?

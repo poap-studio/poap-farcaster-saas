@@ -41,7 +41,76 @@ export async function GET(request: Request) {
     let csvContent: string;
     let fileName: string;
 
-    if (drop.platform === 'luma') {
+    if (drop.platform === 'instagram') {
+      // Get query parameter for type of download
+      const downloadType = searchParams.get('type') || 'collectors';
+      
+      if (downloadType === 'interactions') {
+        // Fetch all Instagram messages for this drop's story
+        const messages = await prisma.instagramMessage.findMany({
+          where: { 
+            storyId: drop.instagramStoryId || undefined
+          },
+          orderBy: { timestamp: 'desc' }
+        });
+
+        if (messages.length === 0) {
+          return new NextResponse("No interactions found", {
+            headers: {
+              'Content-Type': 'text/plain',
+            },
+          });
+        }
+
+        const csvHeader = 'Sender ID,Sender Username,Message,Timestamp,Processed\n';
+        const csvRows = messages.map(message => {
+          return [
+            escapeCSVField(message.senderId),
+            escapeCSVField(message.senderUsername || 'Unknown'),
+            escapeCSVField(message.text),
+            escapeCSVField(new Date(Number(message.timestamp)).toISOString()),
+            escapeCSVField(message.processed ? 'Yes' : 'No')
+          ].join(',');
+        });
+
+        csvContent = csvHeader + csvRows.join('\n');
+        fileName = `instagram-interactions-${drop.instagramStoryId}-${new Date().toISOString().split('T')[0]}.csv`;
+      } else {
+        // Fetch Instagram deliveries (collectors)
+        const deliveries = await prisma.instagramDelivery.findMany({
+          where: { 
+            dropId,
+            deliveryStatus: 'delivered'
+          },
+          include: {
+            message: true
+          },
+          orderBy: { deliveredAt: 'desc' }
+        });
+
+        if (deliveries.length === 0) {
+          return new NextResponse("No collectors found", {
+            headers: {
+              'Content-Type': 'text/plain',
+            },
+          });
+        }
+
+        const csvHeader = 'Instagram Username,Recipient Type,Recipient Value,POAP Link,Delivered At\n';
+        const csvRows = deliveries.map(delivery => {
+          return [
+            escapeCSVField(delivery.message.senderUsername || 'Unknown'),
+            escapeCSVField(delivery.recipientType),
+            escapeCSVField(delivery.recipientValue),
+            escapeCSVField(delivery.poapLink || ''),
+            escapeCSVField(delivery.deliveredAt?.toISOString() || '')
+          ].join(',');
+        });
+
+        csvContent = csvHeader + csvRows.join('\n');
+        fileName = `instagram-collectors-${drop.instagramStoryId}-${new Date().toISOString().split('T')[0]}.csv`;
+      }
+    } else if (drop.platform === 'luma') {
       // Fetch Luma deliveries
       const deliveries = await prisma.lumaDelivery.findMany({
         where: { dropId },

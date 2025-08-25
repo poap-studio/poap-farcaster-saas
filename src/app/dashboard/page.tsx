@@ -393,6 +393,32 @@ export default function DashboardPage() {
     }
   };
   
+  const downloadInstagramData = async (dropId: string, type: 'collectors' | 'interactions', dropName: string) => {
+    try {
+      const response = await fetch(`/api/download?dropId=${dropId}&type=${type}`);
+      
+      if (!response.ok) {
+        toast.error(`Failed to download ${type}`);
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `instagram-${type}-${dropName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`${type === 'collectors' ? 'Collectors' : 'Interactions'} downloaded successfully`);
+    } catch (error) {
+      console.error(`Error downloading Instagram ${type}:`, error);
+      toast.error(`Failed to download ${type}`);
+    }
+  };
+  
   // Pagination logic
   const totalPages = Math.ceil(drops.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -657,6 +683,29 @@ export default function DashboardPage() {
                               </a>
                             </>
                           )}
+                        </div>
+                      ) : drop.platform === 'instagram' ? (
+                        <div className="space-y-1">
+                          <a
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              downloadInstagramData(drop.id, 'collectors', drop.poapName || `Event #${drop.poapEventId}`);
+                            }}
+                            className="block text-blue-400 hover:text-blue-300 text-sm underline"
+                          >
+                            Download collectors
+                          </a>
+                          <a
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              downloadInstagramData(drop.id, 'interactions', drop.poapName || `Event #${drop.poapEventId}`);
+                            }}
+                            className="block text-gray-400 hover:text-gray-300 text-sm underline"
+                          >
+                            Download all interactions
+                          </a>
                         </div>
                       ) : (
                         <a

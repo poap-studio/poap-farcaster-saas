@@ -252,6 +252,7 @@ export async function POST(request: NextRequest) {
                 messageId: message.message.mid || '',
                 text: message.message.text,
                 senderId: message.sender?.id || '',
+                senderUsername: message.sender?.username || null, // Try to get username if available
                 recipientId: message.recipient?.id || '',
                 timestamp: BigInt(message.timestamp || Date.now()),
                 storyId: message.message.reply_to?.story?.id || null,
