@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '~/lib/prisma';
+import { getPOAPAuthManager } from '~/lib/poap-auth';
 
 // Helper function to extract email, ENS, or Ethereum address from text
 function extractRecipientInfo(text: string): { type: 'email' | 'ens' | 'address' | null; value: string | null } {
@@ -63,67 +64,146 @@ async function sendInstagramMessage(accessToken: string, recipientId: string, me
   }
 }
 
-async function claimPoapForEmail(email: string, eventId: string, secretCode: string, sendEmail: boolean) {
+// Get available QR hashes for an event
+async function getAvailableQRHashes(eventId: string, secretCode: string): Promise<string[]> {
   try {
-    const response = await fetch('https://api.poap.tech/actions/claim-qr', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.POAP_API_KEY}`,
-      },
-      body: JSON.stringify({
-        address: email,
-        qr_hash: secretCode,
-        secret: secretCode,
-        sendEmail: sendEmail
-      })
-    });
+    const authManager = getPOAPAuthManager();
+    const response = await authManager.makeAuthenticatedRequest(
+      `https://api.poap.tech/event/${eventId}/qr-codes`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': process.env.POAP_API_KEY || '',
+        },
+        body: JSON.stringify({
+          secret_code: secretCode
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('[POAP API] Error getting QR hashes:', error);
+      return [];
+    }
 
     const result = await response.json();
+    console.log('[POAP API] Available QR codes:', result.length);
     
+    // Filter out only unused QR codes
+    const availableHashes = result
+      .filter((qr: { claimed: boolean }) => !qr.claimed)
+      .map((qr: { qr_hash: string }) => qr.qr_hash);
+    
+    return availableHashes;
+  } catch (error) {
+    console.error('[POAP API] Error getting QR hashes:', error);
+    return [];
+  }
+}
+
+// Get secret for a specific QR hash
+async function getQRSecret(qrHash: string): Promise<string | null> {
+  try {
+    const authManager = getPOAPAuthManager();
+    const response = await authManager.makeAuthenticatedRequest(
+      `https://api.poap.tech/actions/claim-qr?qr_hash=${qrHash}`,
+      {
+        method: 'GET',
+        headers: {
+          'X-API-Key': process.env.POAP_API_KEY || '',
+        }
+      }
+    );
+
     if (!response.ok) {
-      console.error('[POAP API] Error claiming for email:', result);
+      const error = await response.json();
+      console.error('[POAP API] Error getting QR secret:', error);
       return null;
     }
-    
-    return result;
+
+    const result = await response.json();
+    return result.secret;
   } catch (error) {
-    console.error('[POAP API] Error claiming:', error);
+    console.error('[POAP API] Error getting QR secret:', error);
     return null;
   }
 }
 
-async function mintPoapLink(eventId: string, secretCode: string) {
+// Claim POAP with the obtained secret
+async function claimPOAP(eventId: string, qrSecret: string, recipientInfo: { type: 'email' | 'ens' | 'address'; value: string }, sendEmail: boolean): Promise<{ claim_url?: string; qr_hash?: string } | null> {
   try {
-    // First, get a mint link from POAP
-    const response = await fetch(`https://api.poap.tech/event/${eventId}/qr-codes`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.POAP_API_KEY}`,
-        'X-API-Key': process.env.POAP_API_KEY!,
-      },
-      body: JSON.stringify({
-        secret_code: secretCode,
-        requested_codes: 1
-      })
-    });
+    const authManager = getPOAPAuthManager();
+    const response = await authManager.makeAuthenticatedRequest(
+      `https://api.poap.tech/event/${eventId}/qr-codes`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': process.env.POAP_API_KEY || '',
+        },
+        body: JSON.stringify({
+          secret_code: qrSecret,
+          address: recipientInfo.value,
+          sendEmail: recipientInfo.type === 'email' ? sendEmail : false
+        })
+      }
+    );
 
     if (!response.ok) {
       const error = await response.json();
-      console.error('[POAP API] Error getting mint link:', error);
+      console.error('[POAP API] Error claiming POAP:', error);
       return null;
     }
 
     const result = await response.json();
-    if (result.qr_codes && result.qr_codes.length > 0) {
-      return result.qr_codes[0].claimed_page_url;
-    }
-
-    return null;
+    return result;
   } catch (error) {
-    console.error('[POAP API] Error getting mint link:', error);
+    console.error('[POAP API] Error claiming POAP:', error);
     return null;
+  }
+}
+
+// Main function to deliver POAP following the 3-step process
+async function deliverPOAP(eventId: string, eventSecretCode: string, recipientInfo: { type: 'email' | 'ens' | 'address'; value: string }, sendEmail: boolean): Promise<{ success: boolean; data?: { claim_url?: string; qr_hash?: string }; error?: string }> {
+  try {
+    // Step 1: Get available QR hashes
+    console.log('[POAP Delivery] Step 1: Getting available QR hashes...');
+    const availableHashes = await getAvailableQRHashes(eventId, eventSecretCode);
+    
+    if (availableHashes.length === 0) {
+      return { success: false, error: 'No POAPs available' };
+    }
+    
+    // Use the first available QR hash
+    const qrHash = availableHashes[0];
+    console.log('[POAP Delivery] Using QR hash:', qrHash);
+    
+    // Step 2: Get the secret for this QR hash
+    console.log('[POAP Delivery] Step 2: Getting QR secret...');
+    const qrSecret = await getQRSecret(qrHash);
+    
+    if (!qrSecret) {
+      return { success: false, error: 'Failed to get QR secret' };
+    }
+    
+    console.log('[POAP Delivery] Got QR secret');
+    
+    // Step 3: Claim the POAP with the secret
+    console.log('[POAP Delivery] Step 3: Claiming POAP...');
+    const claimResult = await claimPOAP(eventId, qrSecret, recipientInfo, sendEmail);
+    
+    if (!claimResult) {
+      return { success: false, error: 'Failed to claim POAP' };
+    }
+    
+    console.log('[POAP Delivery] POAP delivered successfully');
+    return { success: true, data: claimResult };
+    
+  } catch (error) {
+    console.error('[POAP Delivery] Error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
@@ -259,36 +339,35 @@ export async function POST(request: NextRequest) {
                       }
                     });
 
-                    // Deliver POAP based on type
+                    // Deliver POAP using the 3-step process
                     let poapLink = null;
                     let deliveryStatus = 'failed';
                     let errorMessage = null;
 
                     try {
-                      if (recipientInfo.type === 'email') {
-                        // For email, claim directly
-                        const claimResult = await claimPoapForEmail(
-                          recipientInfo.value,
-                          drop.poapEventId,
-                          drop.poapSecretCode,
-                          drop.sendPoapEmail
-                        );
-                        
-                        if (claimResult) {
-                          deliveryStatus = 'delivered';
+                      // At this point, we've already validated that recipientInfo has valid values
+                      const deliveryResult = await deliverPOAP(
+                        drop.poapEventId,
+                        drop.poapSecretCode,
+                        recipientInfo as { type: 'email' | 'ens' | 'address'; value: string },
+                        drop.sendPoapEmail
+                      );
+                      
+                      if (deliveryResult.success) {
+                        deliveryStatus = 'delivered';
+                        // For email recipients, the POAP is sent directly to their email
+                        // For ENS/address, we need to provide a claim link
+                        if (recipientInfo.type === 'email') {
                           poapLink = recipientInfo.value; // Store email as reference
                         } else {
-                          errorMessage = 'Failed to claim POAP';
+                          // Extract claim URL from the result if available
+                          poapLink = deliveryResult.data?.claim_url || `https://poap.xyz/claim/${deliveryResult.data?.qr_hash}`;
                         }
                       } else {
-                        // For ENS and address, get mint link
-                        const mintLink = await mintPoapLink(drop.poapEventId, drop.poapSecretCode);
-                        
-                        if (mintLink) {
-                          poapLink = mintLink;
-                          deliveryStatus = 'delivered';
-                        } else {
-                          errorMessage = 'Failed to generate mint link';
+                        errorMessage = deliveryResult.error || 'Failed to deliver POAP';
+                        // Special handling for "No POAPs available"
+                        if (deliveryResult.error === 'No POAPs available') {
+                          console.log('[Instagram Webhook] No POAPs available for drop:', drop.id);
                         }
                       }
                     } catch (error) {
