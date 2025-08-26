@@ -10,7 +10,7 @@ import PlatformSelector from "~/components/PlatformSelector";
 import EmailPreviewModal from "~/components/EmailPreviewModal";
 import PlatformSelectorModal from "~/components/PlatformSelectorModal";
 import CardSkeleton from "~/components/dashboard/CardSkeleton";
-import { useRealtimeStatsSSE } from "~/hooks/useRealtimeStats";
+import { useRealtimePusher } from "~/hooks/useRealtimePusher";
 
 interface SessionData {
   userId: string;
@@ -149,7 +149,7 @@ export default function DashboardPage() {
   
   // Use real-time stats - only if drops are loaded
   const dropIds = drops.map(d => d.id);
-  const { statsUpdates } = useRealtimeStatsSSE(dropIds.length > 0 ? dropIds : []);
+  const { statsUpdates } = useRealtimePusher(dropIds.length > 0 ? dropIds : []);
 
   const fetchDrops = useCallback(async (uid: string) => {
     try {

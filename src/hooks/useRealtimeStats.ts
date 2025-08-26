@@ -38,7 +38,7 @@ export function useRealtimeStats(dropIds: string[]) {
       } catch (error) {
         console.error('Error polling stats:', error);
       }
-    }, 10000); // Poll every 10 seconds
+    }, 3000); // Poll every 3 seconds
 
     return () => clearInterval(pollInterval);
   }, [dropIds]);

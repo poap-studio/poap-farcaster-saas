@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '~/lib/prisma';
 import { getPOAPAuthManager } from '~/lib/poap-auth';
+import { getPusherServer } from '~/lib/pusher';
 
 // Helper function to extract email, ENS, or Ethereum address from text
 function extractRecipientInfo(text: string): { type: 'email' | 'ens' | 'address' | null; value: string | null } {
@@ -288,6 +289,17 @@ export async function POST(request: NextRequest) {
                 
                 // Check if this story belongs to a drop
                 if (messageData.storyId) {
+                  // Emit real-time update immediately for interaction count
+                  try {
+                    const pusher = getPusherServer();
+                    await pusher.trigger(`drop-stats`, 'stats-update', {
+                      dropId: messageData.storyId,
+                      type: 'interaction',
+                      timestamp: new Date().toISOString()
+                    });
+                  } catch (error) {
+                    console.error('[Instagram Webhook] Failed to emit real-time update:', error);
+                  }
                   const drop = await prisma.drop.findFirst({
                     where: {
                       instagramStoryId: messageData.storyId,
@@ -438,6 +450,20 @@ export async function POST(request: NextRequest) {
                         deliveredAt: deliveryStatus === 'delivered' ? new Date() : null
                       }
                     });
+                    
+                    // Emit real-time update for successful delivery
+                    if (deliveryStatus === 'delivered') {
+                      try {
+                        const pusher = getPusherServer();
+                        await pusher.trigger(`drop-${drop.id}`, 'stats-update', {
+                          dropId: drop.id,
+                          type: 'collector',
+                          timestamp: new Date().toISOString()
+                        });
+                      } catch (error) {
+                        console.error('[Instagram Webhook] Failed to emit collector update:', error);
+                      }
+                    }
 
                     // Update message as processed
                     await prisma.instagramMessage.update({
