@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 interface Stats {
   claims?: number;
@@ -22,21 +22,35 @@ export function useRealtimeSSE(dropIds: string[]) {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const reconnectAttemptsRef = useRef(0);
   
-  const connect = useCallback(() => {
-    if (dropIds.length === 0 || eventSourceRef.current) return;
+  useEffect(() => {
+    // Clean up existing connection
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
+    }
     
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+    
+    // Don't connect if no drops
+    if (dropIds.length === 0) {
+      setIsConnected(false);
+      return;
+    }
+    
+    // Create new connection
+    const url = `/api/drops/stats/stream?ids=${dropIds.join(',')}`;
     console.log('[SSE] Connecting with dropIds:', dropIds);
     
-    const url = `/api/drops/stats/stream?ids=${dropIds.join(',')}`;
     const eventSource = new EventSource(url);
     eventSourceRef.current = eventSource;
     
     eventSource.onopen = () => {
       console.log('[SSE] Connection opened');
       setIsConnected(true);
-      reconnectAttemptsRef.current = 0;
     };
     
     eventSource.onmessage = (event) => {
@@ -59,67 +73,35 @@ export function useRealtimeSSE(dropIds: string[]) {
     eventSource.onerror = (error) => {
       console.error('[SSE] Connection error:', error);
       setIsConnected(false);
-      eventSource.close();
-      eventSourceRef.current = null;
       
-      // Exponential backoff for reconnection
-      const attempts = reconnectAttemptsRef.current;
-      if (attempts < 5) {
-        const delay = Math.min(1000 * Math.pow(2, attempts), 10000);
-        console.log(`[SSE] Reconnecting in ${delay}ms (attempt ${attempts + 1})`);
-        
-        reconnectTimeoutRef.current = setTimeout(() => {
-          reconnectAttemptsRef.current++;
-          connect();
-        }, delay);
-      } else {
-        console.error('[SSE] Max reconnection attempts reached');
+      // Close the connection
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
       }
+      
+      // Attempt to reconnect after 5 seconds
+      reconnectTimeoutRef.current = setTimeout(() => {
+        console.log('[SSE] Attempting to reconnect...');
+        // This will trigger a re-run of the effect
+        setStatsUpdates(prev => ({ ...prev }));
+      }, 5000);
     };
     
-    return eventSource;
-  }, [dropIds]);
-  
-  const disconnect = useCallback(() => {
-    if (eventSourceRef.current) {
-      console.log('[SSE] Disconnecting');
-      eventSourceRef.current.close();
-      eventSourceRef.current = null;
+    // Cleanup function
+    return () => {
+      console.log('[SSE] Cleaning up connection');
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
       setIsConnected(false);
-    }
-    
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
-    }
-  }, []);
-  
-  useEffect(() => {
-    connect();
-    
-    return () => {
-      disconnect();
     };
-  }, [connect, disconnect]);
-  
-  // Handle page visibility changes
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        console.log('[SSE] Page hidden, disconnecting');
-        disconnect();
-      } else {
-        console.log('[SSE] Page visible, reconnecting');
-        setTimeout(connect, 100);
-      }
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [connect, disconnect]);
+  }, [dropIds.join(',')]); // Only re-run when dropIds actually change
   
   return { statsUpdates, isConnected, lastUpdate };
 }
