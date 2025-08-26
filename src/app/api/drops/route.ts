@@ -8,6 +8,9 @@ export async function GET(request: NextRequest) {
     const session = await getSessionFromRequest(request);
     const userId = session?.userId || request.headers.get("x-user-id");
     
+    console.log("[Drops GET] Session:", session);
+    console.log("[Drops GET] UserId:", userId);
+    
     if (!userId) {
       return NextResponse.json(
         { error: "Unauthorized" },
