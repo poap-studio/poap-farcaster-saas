@@ -42,29 +42,34 @@ export async function GET(request: NextRequest) {
       // Filter out null story IDs
       const validStoryIds = instagramDrops
         .map(d => d.instagramStoryId)
-        .filter((id): id is string => id !== null);
+        .filter((id): id is string => id !== null && id !== undefined);
       
       let interactionsData: Array<{ story_id: string; count: bigint }> = [];
       let collectorsData: Array<{ drop_id: string; count: bigint }> = [];
       
       if (validStoryIds.length > 0) {
+        console.log("[Drops GET] Querying interactions for story IDs:", validStoryIds);
         // Get all interactions count in one query
         interactionsData = await prisma.$queryRaw<Array<{ story_id: string; count: bigint }>>`
-          SELECT story_id, COUNT(*)::bigint as count 
+          SELECT "storyId" as story_id, COUNT(*)::bigint as count 
           FROM "InstagramMessage" 
-          WHERE story_id = ANY(${validStoryIds})
-          GROUP BY story_id
+          WHERE "storyId" = ANY(${validStoryIds}::text[])
+          GROUP BY "storyId"
         `;
       }
       
       // Get all collectors count in one query  
-      collectorsData = await prisma.$queryRaw<Array<{ drop_id: string; count: bigint }>>`
-        SELECT drop_id, COUNT(*)::bigint as count
-        FROM "InstagramDelivery"
-        WHERE drop_id = ANY(${instagramDrops.map(d => d.id)})
-        AND delivery_status = 'delivered'
-        GROUP BY drop_id
-      `;
+      const dropIds = instagramDrops.map(d => d.id);
+      if (dropIds.length > 0) {
+        console.log("[Drops GET] Querying collectors for drop IDs:", dropIds);
+        collectorsData = await prisma.$queryRaw<Array<{ drop_id: string; count: bigint }>>`
+          SELECT "dropId" as drop_id, COUNT(*)::bigint as count
+          FROM "InstagramDelivery"
+          WHERE "dropId" = ANY(${dropIds}::text[])
+          AND "deliveryStatus" = 'delivered'
+          GROUP BY "dropId"
+        `;
+      }
       
       // Build stats map
       instagramDrops.forEach(drop => {
@@ -92,8 +97,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ drops: dropsWithStats });
   } catch (error) {
     console.error("[Drops GET] Error:", error);
+    console.error("[Drops GET] Error stack:", error instanceof Error ? error.stack : 'No stack trace');
+    
+    // Return more detailed error in development
+    const errorMessage = error instanceof Error ? error.message : "Failed to fetch drops";
+    const isProduction = process.env.NODE_ENV === 'production';
+    
     return NextResponse.json(
-      { error: "Failed to fetch drops" },
+      { 
+        error: isProduction ? "Failed to fetch drops" : errorMessage,
+        details: isProduction ? undefined : error instanceof Error ? error.toString() : String(error)
+      },
       { status: 500 }
     );
   }

@@ -63,19 +63,19 @@ export async function GET(request: NextRequest) {
       
       if (validStoryIds.length > 0) {
         interactionsData = await prisma.$queryRaw<Array<{ story_id: string; count: bigint }>>`
-          SELECT story_id, COUNT(*)::bigint as count 
+          SELECT "storyId" as story_id, COUNT(*)::bigint as count 
           FROM "InstagramMessage" 
-          WHERE story_id = ANY(${validStoryIds})
-          GROUP BY story_id
+          WHERE "storyId" = ANY(${validStoryIds}::text[])
+          GROUP BY "storyId"
         `;
       }
       
       collectorsData = await prisma.$queryRaw<Array<{ drop_id: string; count: bigint }>>`
-        SELECT drop_id, COUNT(*)::bigint as count
+        SELECT "dropId" as drop_id, COUNT(*)::bigint as count
         FROM "InstagramDelivery"
-        WHERE drop_id = ANY(${instagramDrops.map(d => d.id)})
-        AND delivery_status = 'delivered'
-        GROUP BY drop_id
+        WHERE "dropId" = ANY(${instagramDrops.map(d => d.id)}::text[])
+        AND "deliveryStatus" = 'delivered'
+        GROUP BY "dropId"
       `;
       
       instagramDrops.forEach(drop => {
