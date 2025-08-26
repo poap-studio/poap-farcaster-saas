@@ -99,18 +99,27 @@ async function getDropStats(dropIds: string[]) {
   });
 
   // Get Instagram stats
-  const instagramDrops = drops.filter(d => d.platform === 'instagram' && d.instagramStoryId);
+  const instagramDrops = drops.filter(d => d.platform === 'instagram');
   const instagramStats: Record<string, { collectors: number; interactions: number }> = {};
   
   if (instagramDrops.length > 0) {
-    const interactionsData = await prisma.$queryRaw<Array<{ story_id: string; count: bigint }>>`
-      SELECT story_id, COUNT(*)::bigint as count 
-      FROM "InstagramMessage" 
-      WHERE story_id = ANY(${instagramDrops.map(d => d.instagramStoryId)})
-      GROUP BY story_id
-    `;
+    const validStoryIds = instagramDrops
+      .map(d => d.instagramStoryId)
+      .filter((id): id is string => id !== null);
     
-    const collectorsData = await prisma.$queryRaw<Array<{ drop_id: string; count: bigint }>>`
+    let interactionsData: Array<{ story_id: string; count: bigint }> = [];
+    let collectorsData: Array<{ drop_id: string; count: bigint }> = [];
+    
+    if (validStoryIds.length > 0) {
+      interactionsData = await prisma.$queryRaw<Array<{ story_id: string; count: bigint }>>`
+        SELECT story_id, COUNT(*)::bigint as count 
+        FROM "InstagramMessage" 
+        WHERE story_id = ANY(${validStoryIds})
+        GROUP BY story_id
+      `;
+    }
+    
+    collectorsData = await prisma.$queryRaw<Array<{ drop_id: string; count: bigint }>>`
       SELECT drop_id, COUNT(*)::bigint as count
       FROM "InstagramDelivery"
       WHERE drop_id = ANY(${instagramDrops.map(d => d.id)})
