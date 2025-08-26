@@ -147,9 +147,9 @@ export default function DashboardPage() {
   
   const ITEMS_PER_PAGE = 9;
   
-  // Use real-time stats
+  // Use real-time stats - only if drops are loaded
   const dropIds = drops.map(d => d.id);
-  const { statsUpdates } = useRealtimeStatsSSE(dropIds);
+  const { statsUpdates } = useRealtimeStatsSSE(dropIds.length > 0 ? dropIds : []);
 
   const fetchDrops = useCallback(async (uid: string) => {
     try {
@@ -159,6 +159,7 @@ export default function DashboardPage() {
       
       if (response.ok) {
         const data = await response.json();
+        console.log("[Dashboard] Fetched drops:", data.drops.length, data.drops);
         // Fetch POAP names and stats for each drop
         const dropsWithDetails = await Promise.all(
           data.drops.map(async (drop: Drop) => {
@@ -225,6 +226,7 @@ export default function DashboardPage() {
           })
         );
         setDrops(dropsWithDetails);
+        console.log("[Dashboard] Set drops:", dropsWithDetails.length);
         
         // Sync Luma guests in the background
         const lumaDropIds = data.drops
@@ -268,6 +270,7 @@ export default function DashboardPage() {
         if (response.ok) {
           const data = await response.json();
           if (data.authenticated) {
+            console.log("[Dashboard] Session authenticated:", data.user);
             setSessionUser(data.user);
             setUserId(data.user.userId);
             fetchDrops(data.user.userId);
