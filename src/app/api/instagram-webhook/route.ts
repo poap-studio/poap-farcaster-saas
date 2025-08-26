@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '~/lib/prisma';
 import { getPOAPAuthManager } from '~/lib/poap-auth';
-import { getPusherServer } from '~/lib/pusher';
+import { emitDropUpdate } from '~/lib/events';
 
 // Helper function to extract email, ENS, or Ethereum address from text
 function extractRecipientInfo(text: string): { type: 'email' | 'ens' | 'address' | null; value: string | null } {
@@ -305,17 +305,8 @@ export async function POST(request: NextRequest) {
                     console.log('[Instagram Webhook] Found drop for story:', drop.id);
                     
                     // Emit real-time update immediately for interaction count
-                    try {
-                      const pusher = getPusherServer();
-                      await pusher.trigger(`drop-${drop.id}`, 'stats-update', {
-                        dropId: drop.id,
-                        type: 'interaction',
-                        timestamp: new Date().toISOString()
-                      });
-                      console.log('[Instagram Webhook] Emitted stats update for drop:', drop.id);
-                    } catch (error) {
-                      console.error('[Instagram Webhook] Failed to emit real-time update:', error);
-                    }
+                    emitDropUpdate(drop.id, 'interaction');
+                    console.log('[Instagram Webhook] Emitted interaction update for drop:', drop.id);
                     
                     // Try to get username if not provided
                     if (!messageData.senderUsername && messageData.senderId) {
@@ -455,16 +446,8 @@ export async function POST(request: NextRequest) {
                     
                     // Emit real-time update for successful delivery
                     if (deliveryStatus === 'delivered') {
-                      try {
-                        const pusher = getPusherServer();
-                        await pusher.trigger(`drop-${drop.id}`, 'stats-update', {
-                          dropId: drop.id,
-                          type: 'collector',
-                          timestamp: new Date().toISOString()
-                        });
-                      } catch (error) {
-                        console.error('[Instagram Webhook] Failed to emit collector update:', error);
-                      }
+                      emitDropUpdate(drop.id, 'collector');
+                      console.log('[Instagram Webhook] Emitted collector update for drop:', drop.id);
                     }
 
                     // Update message as processed

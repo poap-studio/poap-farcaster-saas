@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '~/lib/prisma';
 import { getSessionFromRequest } from '~/lib/session';
+import { dropEvents } from '~/lib/events';
 
 export async function GET(request: NextRequest) {
   try {
@@ -46,7 +47,46 @@ export async function GET(request: NextRequest) {
           stats
         })}\n\n`));
 
-        // Set up interval to send updates
+        // Listen for drop-specific updates
+        const unsubscribes: Array<() => void> = [];
+        
+        // Listen for general drop updates
+        const unsubscribeGeneral = dropEvents.on('drop-update', async (data) => {
+          const updateData = data as { dropId: string; type: string; timestamp: string };
+          if (validDropIds.includes(updateData.dropId)) {
+            try {
+              const updatedStats = await getDropStats(validDropIds);
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                type: 'update',
+                stats: updatedStats,
+                timestamp: updateData.timestamp
+              })}\n\n`));
+            } catch (error) {
+              console.error('Error sending stats update:', error);
+            }
+          }
+        });
+        unsubscribes.push(unsubscribeGeneral);
+        
+        // Listen for specific drop updates
+        validDropIds.forEach(dropId => {
+          const unsubscribe = dropEvents.on(`drop-${dropId}`, async (data) => {
+            const updateData = data as { type: string; timestamp: string };
+            try {
+              const updatedStats = await getDropStats(validDropIds);
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                type: 'update',
+                stats: updatedStats,
+                timestamp: updateData.timestamp
+              })}\n\n`));
+            } catch (error) {
+              console.error('Error sending stats update:', error);
+            }
+          });
+          unsubscribes.push(unsubscribe);
+        });
+
+        // Also keep a periodic check as fallback (less frequent)
         const interval = setInterval(async () => {
           try {
             const updatedStats = await getDropStats(validDropIds);
@@ -56,13 +96,14 @@ export async function GET(request: NextRequest) {
               timestamp: new Date().toISOString()
             })}\n\n`));
           } catch (error) {
-            console.error('Error sending stats update:', error);
+            console.error('Error sending periodic stats update:', error);
           }
-        }, 5000); // Send updates every 5 seconds
+        }, 30000); // Check every 30 seconds as fallback
 
         // Clean up on disconnect
         request.signal.addEventListener('abort', () => {
           clearInterval(interval);
+          unsubscribes.forEach(unsub => unsub());
           controller.close();
         });
       },
