@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getPOAPAuthManager } from "~/lib/poap-auth";
 import { prisma } from "~/lib/prisma";
 import { getUserProfile } from "~/lib/neynar";
+import { emitDropUpdate } from "~/lib/events";
 
 interface QRCode {
   qr_hash: string;
@@ -185,6 +186,12 @@ export async function POST(request: Request) {
         }
       });
       console.log(`[POAP Claim] Recorded claim for FID ${fid}, Drop ${dropId}, Username ${userProfile.username}, Followers ${userProfile.followers}`);
+      
+      // Emit real-time update for successful claim
+      if (dropId) {
+        emitDropUpdate(dropId, 'collector');
+        console.log(`[POAP Claim] Emitted collector update for drop: ${dropId}`);
+      }
     } catch (error) {
       console.warn(`[POAP Claim] Failed to record claim in database for FID ${fid}, but POAP was claimed successfully`, error);
     }
