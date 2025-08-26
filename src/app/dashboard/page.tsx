@@ -10,6 +10,7 @@ import PlatformSelector from "~/components/PlatformSelector";
 import EmailPreviewModal from "~/components/EmailPreviewModal";
 import PlatformSelectorModal from "~/components/PlatformSelectorModal";
 import CardSkeleton from "~/components/dashboard/CardSkeleton";
+import { useRealtimeStatsSSE } from "~/hooks/useRealtimeStats";
 
 interface SessionData {
   userId: string;
@@ -145,6 +146,10 @@ export default function DashboardPage() {
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   
   const ITEMS_PER_PAGE = 9;
+  
+  // Use real-time stats
+  const dropIds = drops.map(d => d.id);
+  const { statsUpdates } = useRealtimeStatsSSE(dropIds);
 
   const fetchDrops = useCallback(async (uid: string) => {
     try {
@@ -729,7 +734,7 @@ export default function DashboardPage() {
                             }}
                             className="block text-blue-400 hover:text-blue-300 text-sm underline"
                           >
-                            {drop.instagramStats?.collectors || 0} collectors
+                            {statsUpdates[drop.id]?.instagramStats?.collectors ?? drop.instagramStats?.collectors ?? 0} collectors
                           </a>
                           <a
                             href="#"
@@ -739,7 +744,7 @@ export default function DashboardPage() {
                             }}
                             className="block text-gray-400 hover:text-gray-300 text-sm underline"
                           >
-                            {drop.instagramStats?.interactions || 0} total interactions
+                            {statsUpdates[drop.id]?.instagramStats?.interactions ?? drop.instagramStats?.interactions ?? 0} total interactions
                           </a>
                         </div>
                       ) : (
@@ -751,7 +756,7 @@ export default function DashboardPage() {
                           }}
                           className="text-blue-400 hover:text-blue-300 text-sm underline"
                         >
-                          {drop._count?.claims || 0} collectors
+                          {statsUpdates[drop.id]?.claims ?? drop._count?.claims ?? 0} collectors
                         </a>
                       )}
                       {drop.poapStats && (

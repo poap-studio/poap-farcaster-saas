@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Get all drops with counts
     const drops = await prisma.drop.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
@@ -29,32 +30,51 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Get Instagram stats for each drop
-    const dropsWithStats = await Promise.all(drops.map(async (drop) => {
-      if (drop.platform === 'instagram' && drop.instagramStoryId) {
-        // Count total interactions (all messages for this story)
-        const interactionsCount = await prisma.instagramMessage.count({
-          where: { storyId: drop.instagramStoryId }
-        });
+    // Get Instagram stats in bulk using raw query for efficiency
+    const instagramDrops = drops.filter(d => d.platform === 'instagram' && d.instagramStoryId);
+    
+    const instagramStats: Record<string, { collectors: number; interactions: number }> = {};
+    
+    if (instagramDrops.length > 0) {
+      // Get all interactions count in one query
+      const interactionsData = await prisma.$queryRaw<Array<{ story_id: string; count: bigint }>>`
+        SELECT story_id, COUNT(*)::bigint as count 
+        FROM "InstagramMessage" 
+        WHERE story_id = ANY(${instagramDrops.map(d => d.instagramStoryId)})
+        GROUP BY story_id
+      `;
+      
+      // Get all collectors count in one query  
+      const collectorsData = await prisma.$queryRaw<Array<{ drop_id: string; count: bigint }>>`
+        SELECT drop_id, COUNT(*)::bigint as count
+        FROM "InstagramDelivery"
+        WHERE drop_id = ANY(${instagramDrops.map(d => d.id)})
+        AND delivery_status = 'delivered'
+        GROUP BY drop_id
+      `;
+      
+      // Build stats map
+      instagramDrops.forEach(drop => {
+        const interactions = interactionsData.find(d => d.story_id === drop.instagramStoryId);
+        const collectors = collectorsData.find(d => d.drop_id === drop.id);
+        
+        instagramStats[drop.id] = {
+          interactions: Number(interactions?.count || 0),
+          collectors: Number(collectors?.count || 0)
+        };
+      });
+    }
 
-        // Count successful deliveries (collectors)
-        const collectorsCount = await prisma.instagramDelivery.count({
-          where: { 
-            dropId: drop.id,
-            deliveryStatus: 'delivered'
-          }
-        });
-
+    // Merge stats with drops
+    const dropsWithStats = drops.map(drop => {
+      if (drop.platform === 'instagram' && instagramStats[drop.id]) {
         return {
           ...drop,
-          instagramStats: {
-            collectors: collectorsCount,
-            interactions: interactionsCount
-          }
+          instagramStats: instagramStats[drop.id]
         };
       }
       return drop;
-    }));
+    });
 
     return NextResponse.json({ drops: dropsWithStats });
   } catch (error) {
