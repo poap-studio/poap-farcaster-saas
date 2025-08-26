@@ -14,20 +14,45 @@ interface Stats {
 
 export function useRealtimePusher(dropIds: string[]) {
   const [statsUpdates, setStatsUpdates] = useState<Record<string, Stats>>({});
+  const [isConnected, setIsConnected] = useState(false);
   const channelsRef = useRef<Channel[]>([]);
   const pusherRef = useRef<ReturnType<typeof getPusherClient> | null>(null);
 
   useEffect(() => {
     if (dropIds.length === 0) return;
 
-    // Initialize Pusher client
-    const pusher = getPusherClient();
-    pusherRef.current = pusher;
+    console.log('[Pusher Hook] Initializing with dropIds:', dropIds);
+
+    let pusher;
+    try {
+      // Initialize Pusher client
+      pusher = getPusherClient();
+      pusherRef.current = pusher;
+      
+      // Enable Pusher logging
+      pusher.connection.bind('state_change', (states: { previous: string; current: string }) => {
+        console.log('[Pusher] Connection state changed from', states.previous, 'to', states.current);
+        setIsConnected(states.current === 'connected');
+      });
+      
+      pusher.connection.bind('error', (err: Error) => {
+        console.error('[Pusher] Connection error:', err);
+      });
+    } catch (error) {
+      console.error('[Pusher] Failed to initialize client:', error);
+      return;
+    }
 
     // Subscribe to channels for each drop
     dropIds.forEach(dropId => {
+      console.log(`[Pusher Hook] Subscribing to channel: drop-${dropId}`);
       const channel = pusher.subscribe(`drop-${dropId}`);
       channelsRef.current.push(channel);
+      
+      // Log subscription status
+      channel.bind('pusher:subscription_succeeded', () => {
+        console.log(`[Pusher] Successfully subscribed to drop-${dropId}`);
+      });
 
       // Listen for stats updates
       channel.bind('stats-update', async (data: { dropId: string; type: string; timestamp: string }) => {
@@ -85,7 +110,8 @@ export function useRealtimePusher(dropIds: string[]) {
       // Disconnect pusher
       pusher.disconnect();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dropIds.join(',')]); // Use string join to avoid infinite re-renders
 
-  return { statsUpdates };
+  return { statsUpdates, isConnected };
 }

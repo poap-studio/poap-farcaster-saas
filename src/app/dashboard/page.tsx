@@ -149,7 +149,7 @@ export default function DashboardPage() {
   
   // Use real-time stats - only if drops are loaded
   const dropIds = drops.map(d => d.id);
-  const { statsUpdates } = useRealtimePusher(dropIds.length > 0 ? dropIds : []);
+  const { statsUpdates, isConnected } = useRealtimePusher(dropIds.length > 0 ? dropIds : []);
 
   const fetchDrops = useCallback(async (uid: string) => {
     try {
@@ -514,7 +514,17 @@ export default function DashboardPage() {
                 <p className="text-gray-400">Manage your POAP drops</p>
               </div>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
+              {drops.length > 0 && (
+                <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs ${
+                  isConnected ? 'bg-green-900/50 text-green-400' : 'bg-yellow-900/50 text-yellow-400'
+                }`}>
+                  <div className={`w-2 h-2 rounded-full ${
+                    isConnected ? 'bg-green-400' : 'bg-yellow-400'
+                  } animate-pulse`} />
+                  {isConnected ? 'Live' : 'Connecting...'}
+                </div>
+              )}
               <button
                 onClick={handleLogout}
                 className="bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"

@@ -289,17 +289,6 @@ export async function POST(request: NextRequest) {
                 
                 // Check if this story belongs to a drop
                 if (messageData.storyId) {
-                  // Emit real-time update immediately for interaction count
-                  try {
-                    const pusher = getPusherServer();
-                    await pusher.trigger(`drop-stats`, 'stats-update', {
-                      dropId: messageData.storyId,
-                      type: 'interaction',
-                      timestamp: new Date().toISOString()
-                    });
-                  } catch (error) {
-                    console.error('[Instagram Webhook] Failed to emit real-time update:', error);
-                  }
                   const drop = await prisma.drop.findFirst({
                     where: {
                       instagramStoryId: messageData.storyId,
@@ -314,6 +303,19 @@ export async function POST(request: NextRequest) {
 
                   if (drop && drop.instagramMessages && drop.instagramAccount) {
                     console.log('[Instagram Webhook] Found drop for story:', drop.id);
+                    
+                    // Emit real-time update immediately for interaction count
+                    try {
+                      const pusher = getPusherServer();
+                      await pusher.trigger(`drop-${drop.id}`, 'stats-update', {
+                        dropId: drop.id,
+                        type: 'interaction',
+                        timestamp: new Date().toISOString()
+                      });
+                      console.log('[Instagram Webhook] Emitted stats update for drop:', drop.id);
+                    } catch (error) {
+                      console.error('[Instagram Webhook] Failed to emit real-time update:', error);
+                    }
                     
                     // Try to get username if not provided
                     if (!messageData.senderUsername && messageData.senderId) {
