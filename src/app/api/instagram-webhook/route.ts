@@ -28,6 +28,23 @@ function extractRecipientInfo(text: string): { type: 'email' | 'ens' | 'address'
   return { type: null, value: null };
 }
 
+async function getInstagramUsername(accessToken: string, userId: string): Promise<string | null> {
+  try {
+    const response = await fetch(`https://graph.instagram.com/${userId}?fields=username&access_token=${accessToken}`);
+    
+    if (!response.ok) {
+      console.error('[Instagram API] Error getting username:', await response.text());
+      return null;
+    }
+    
+    const data = await response.json();
+    return data.username || null;
+  } catch (error) {
+    console.error('[Instagram API] Error getting username:', error);
+    return null;
+  }
+}
+
 async function sendInstagramMessage(accessToken: string, recipientId: string, messageText: string) {
   try {
     // Note: Instagram Basic Display API doesn't support messaging
@@ -262,7 +279,7 @@ export async function POST(request: NextRequest) {
               console.log('[Instagram Webhook] Processing message:', messageData);
 
               try {
-                // Store in database
+                // Store in database first
                 const savedMessage = await prisma.instagramMessage.create({
                   data: messageData
                 });
@@ -285,6 +302,19 @@ export async function POST(request: NextRequest) {
 
                   if (drop && drop.instagramMessages && drop.instagramAccount) {
                     console.log('[Instagram Webhook] Found drop for story:', drop.id);
+                    
+                    // Try to get username if not provided
+                    if (!messageData.senderUsername && messageData.senderId) {
+                      const username = await getInstagramUsername(drop.instagramAccount.accessToken, messageData.senderId);
+                      if (username) {
+                        // Update the message with the username
+                        await prisma.instagramMessage.update({
+                          where: { id: savedMessage.id },
+                          data: { senderUsername: username }
+                        });
+                        console.log('[Instagram Webhook] Updated username:', username);
+                      }
+                    }
                     
                     // Extract recipient info from message
                     const recipientInfo = extractRecipientInfo(messageData.text);
