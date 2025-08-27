@@ -19,8 +19,8 @@ function extractRecipientInfo(text: string): { type: 'email' | 'ens' | 'address'
     return { type: 'address', value: addressMatch[0].toLowerCase() };
   }
 
-  // ENS regex (ending with .eth)
-  const ensRegex = /\b[a-zA-Z0-9][a-zA-Z0-9-]*\.eth\b/;
+  // ENS regex (ending with .eth, including subdomains)
+  const ensRegex = /\b[a-zA-Z0-9][a-zA-Z0-9-]*(?:\.[a-zA-Z0-9][a-zA-Z0-9-]*)*\.eth\b/;
   const ensMatch = text.match(ensRegex);
   if (ensMatch) {
     return { type: 'ens', value: ensMatch[0].toLowerCase() };
