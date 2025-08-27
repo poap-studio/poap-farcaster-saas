@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "~/lib/prisma";
 import { getSessionFromRequest } from "~/lib/session";
+import { processHistoricalMessagesForDrop } from "~/lib/instagram-message-processor";
 
 // GET all drops for a user
 export async function GET(request: NextRequest) {
@@ -206,6 +207,20 @@ export async function POST(request: NextRequest) {
           invalidFormatMessage: instagramMessages.invalidFormatMessage,
         },
       });
+    }
+
+    // Process historical messages for Instagram drops
+    if (platform === "instagram" && instagramStoryId) {
+      console.log("[Drops POST] Processing historical messages for story:", instagramStoryId);
+      
+      // Run this asynchronously so we don't block the response
+      processHistoricalMessagesForDrop(drop.id)
+        .then(result => {
+          console.log("[Drops POST] Historical messages processed:", result);
+        })
+        .catch(error => {
+          console.error("[Drops POST] Error processing historical messages:", error);
+        });
     }
 
     return NextResponse.json({ drop });
