@@ -3,6 +3,7 @@ import { getPOAPAuthManager } from "~/lib/poap-auth";
 import { prisma } from "~/lib/prisma";
 import { getUserProfile } from "~/lib/neynar";
 import { emitDropUpdate } from "~/lib/events";
+import { checkPOAPOwnership } from "~/lib/poap-duplicate-check";
 
 interface QRCode {
   qr_hash: string;
@@ -61,6 +62,17 @@ export async function POST(request: Request) {
         hasSecretCode: !!poapSecretCode
       });
       throw new Error("POAP configuration incomplete");
+    }
+
+    // Check if address already owns this POAP
+    console.log(`[POAP Claim] Checking if address ${address} already owns POAP for event ${poapEventId}`);
+    const ownershipCheck = await checkPOAPOwnership(address, poapEventId);
+    if (ownershipCheck.hasPoap) {
+      console.log(`[POAP Claim] Address ${address} already owns POAP for event ${poapEventId}`);
+      return NextResponse.json(
+        { error: "This address already owns this POAP" },
+        { status: 409 }
+      );
     }
 
     // Check if user has already claimed this drop

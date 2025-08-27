@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '~/lib/prisma';
 import { getPOAPAuthManager } from '~/lib/poap-auth';
 import { emitDropUpdate } from '~/lib/events';
+import { checkPOAPOwnership } from '~/lib/poap-duplicate-check';
 
 // Helper function to extract email, ENS, or Ethereum address from text
 function extractRecipientInfo(text: string): { type: 'email' | 'ens' | 'address' | null; value: string | null } {
@@ -340,6 +341,18 @@ export async function POST(request: NextRequest) {
                         drop.instagramAccount.accessToken,
                         messageData.senderId,
                         drop.instagramMessages.invalidFormatMessage
+                      );
+                      continue;
+                    }
+
+                    // Check if recipient already owns this POAP
+                    const ownershipCheck = await checkPOAPOwnership(recipientInfo.value, drop.poapEventId);
+                    if (ownershipCheck.hasPoap) {
+                      console.log('[Instagram Webhook] Recipient already owns this POAP');
+                      await sendInstagramMessage(
+                        drop.instagramAccount.accessToken,
+                        messageData.senderId,
+                        drop.instagramMessages.alreadyClaimedMessage
                       );
                       continue;
                     }

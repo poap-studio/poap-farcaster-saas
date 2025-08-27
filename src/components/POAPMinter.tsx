@@ -391,6 +391,10 @@ export default function POAPMinter({ initialDrop }: POAPMinterProps) {
       const data = await response.json();
 
       if (!response.ok) {
+        // Check if the error is because address already owns the POAP
+        if (response.status === 409 && data.error?.includes("already owns this POAP")) {
+          throw new Error("This address already owns this POAP");
+        }
         throw new Error(data.error || "Failed to claim POAP");
       }
 

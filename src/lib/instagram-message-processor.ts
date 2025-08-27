@@ -1,6 +1,7 @@
 import { prisma } from '~/lib/prisma';
 import { emitDropUpdate } from '~/lib/events';
 import { getPOAPAuthManager } from '~/lib/poap-auth';
+import { checkPOAPOwnership } from '~/lib/poap-duplicate-check';
 import type { Drop, InstagramAccount, InstagramDropMessages, InstagramMessage } from '@prisma/client';
 
 // Helper function to extract email, ENS, or Ethereum address from text
@@ -281,7 +282,19 @@ export async function processInstagramMessage(
       return { processed: true, error: 'Format not accepted' };
     }
 
-    // Check if already claimed by this recipient info
+    // Check if recipient already owns this POAP
+    const ownershipCheck = await checkPOAPOwnership(recipientInfo.value, drop.poapEventId);
+    if (ownershipCheck.hasPoap) {
+      console.log('[Message Processor] Recipient already owns this POAP');
+      await sendInstagramMessage(
+        drop.instagramAccount.accessToken,
+        message.senderId,
+        drop.instagramMessages.alreadyClaimedMessage
+      );
+      return { processed: true, error: 'Already owns POAP' };
+    }
+
+    // Check if already claimed by this recipient info in our system
     const existingDelivery = await prisma.instagramDelivery.findUnique({
       where: {
         dropId_recipientValue_recipientType: {
