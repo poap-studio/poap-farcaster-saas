@@ -46,6 +46,42 @@ async function getInstagramUsername(accessToken: string, userId: string): Promis
   }
 }
 
+async function sendInstagramMessage(accessToken: string, recipientId: string, messageText: string): Promise<boolean> {
+  try {
+    // Note: Instagram Basic Display API doesn't support messaging
+    // This requires Instagram Messaging API which needs business verification
+    // For now, we'll attempt to use the Graph API endpoint
+    const response = await fetch(`https://graph.instagram.com/v18.0/me/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        recipient: {
+          id: recipientId
+        },
+        message: {
+          text: messageText
+        }
+      })
+    });
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+      console.error('[Instagram API] Error sending message:', result);
+      return false;
+    }
+    
+    console.log('[Instagram API] Message sent successfully:', result);
+    return true;
+  } catch (error) {
+    console.error('[Instagram API] Error sending message:', error);
+    return false;
+  }
+}
+
 // Get available QR hashes for an event
 async function getAvailableQRHashes(eventId: string, secretCode: string): Promise<string[]> {
   try {
@@ -226,12 +262,22 @@ export async function processInstagramMessage(
     if (!recipientInfo.type || !recipientInfo.value) {
       // Send invalid format message
       console.log('[Message Processor] Invalid format in message');
+      await sendInstagramMessage(
+        drop.instagramAccount.accessToken,
+        message.senderId,
+        drop.instagramMessages.invalidFormatMessage
+      );
       return { processed: true, error: 'Invalid format' };
     }
 
     // Check if format is accepted
     if (!drop.acceptedFormats.includes(recipientInfo.type)) {
       console.log('[Message Processor] Format not accepted:', recipientInfo.type);
+      await sendInstagramMessage(
+        drop.instagramAccount.accessToken,
+        message.senderId,
+        drop.instagramMessages.invalidFormatMessage
+      );
       return { processed: true, error: 'Format not accepted' };
     }
 
@@ -248,6 +294,11 @@ export async function processInstagramMessage(
 
     if (existingDelivery) {
       console.log('[Message Processor] Already claimed by recipient');
+      await sendInstagramMessage(
+        drop.instagramAccount.accessToken,
+        message.senderId,
+        drop.instagramMessages.alreadyClaimedMessage
+      );
       return { processed: true, error: 'Already claimed' };
     }
 
@@ -264,6 +315,11 @@ export async function processInstagramMessage(
 
     if (existingUserDelivery) {
       console.log('[Message Processor] User already claimed');
+      await sendInstagramMessage(
+        drop.instagramAccount.accessToken,
+        message.senderId,
+        drop.instagramMessages.alreadyClaimedMessage
+      );
       return { processed: true, error: 'User already claimed' };
     }
 
@@ -324,6 +380,29 @@ export async function processInstagramMessage(
     if (deliveryStatus === 'delivered') {
       emitDropUpdate(drop.id, 'collector');
       console.log('[Message Processor] Emitted collector update for drop:', drop.id);
+    }
+
+    // Send response message
+    if (deliveryStatus === 'delivered') {
+      let successMessage = drop.instagramMessages.successMessage;
+      successMessage = successMessage.replace('{{recipient}}', recipientInfo.value);
+      
+      if (recipientInfo.type !== 'email' && poapLink) {
+        successMessage += `\n\nClaim your POAP here: ${poapLink}`;
+      }
+      
+      await sendInstagramMessage(
+        drop.instagramAccount.accessToken,
+        message.senderId,
+        successMessage
+      );
+    } else {
+      // Send error message
+      await sendInstagramMessage(
+        drop.instagramAccount.accessToken,
+        message.senderId,
+        `Sorry, there was an error delivering your POAP. Please try again later.`
+      );
     }
 
     // Update message as processed
