@@ -263,10 +263,12 @@ export async function processInstagramMessage(
     if (!recipientInfo.type || !recipientInfo.value) {
       // Send invalid format message
       console.log('[Message Processor] Invalid format in message');
+      const invalidMessage = drop.instagramMessages.invalidFormatMessage;
+      // Note: Cannot replace {{recipient}} since we don't have a valid recipient
       await sendInstagramMessage(
         drop.instagramAccount.accessToken,
         message.senderId,
-        drop.instagramMessages.invalidFormatMessage
+        invalidMessage
       );
       return { processed: true, error: 'Invalid format' };
     }
@@ -274,10 +276,12 @@ export async function processInstagramMessage(
     // Check if format is accepted
     if (!drop.acceptedFormats.includes(recipientInfo.type)) {
       console.log('[Message Processor] Format not accepted:', recipientInfo.type);
+      let invalidMessage = drop.instagramMessages.invalidFormatMessage;
+      invalidMessage = invalidMessage.replace('{{recipient}}', recipientInfo.value);
       await sendInstagramMessage(
         drop.instagramAccount.accessToken,
         message.senderId,
-        drop.instagramMessages.invalidFormatMessage
+        invalidMessage
       );
       return { processed: true, error: 'Format not accepted' };
     }
@@ -286,10 +290,12 @@ export async function processInstagramMessage(
     const ownershipCheck = await checkPOAPOwnership(recipientInfo.value, drop.poapEventId);
     if (ownershipCheck.hasPoap) {
       console.log('[Message Processor] Recipient already owns this POAP');
+      let alreadyClaimedMessage = drop.instagramMessages.alreadyClaimedMessage;
+      alreadyClaimedMessage = alreadyClaimedMessage.replace('{{recipient}}', recipientInfo.value);
       await sendInstagramMessage(
         drop.instagramAccount.accessToken,
         message.senderId,
-        drop.instagramMessages.alreadyClaimedMessage
+        alreadyClaimedMessage
       );
       return { processed: true, error: 'Already owns POAP' };
     }
@@ -307,10 +313,12 @@ export async function processInstagramMessage(
 
     if (existingDelivery) {
       console.log('[Message Processor] Already claimed by recipient');
+      let alreadyClaimedMessage = drop.instagramMessages.alreadyClaimedMessage;
+      alreadyClaimedMessage = alreadyClaimedMessage.replace('{{recipient}}', recipientInfo.value);
       await sendInstagramMessage(
         drop.instagramAccount.accessToken,
         message.senderId,
-        drop.instagramMessages.alreadyClaimedMessage
+        alreadyClaimedMessage
       );
       return { processed: true, error: 'Already claimed' };
     }
@@ -328,10 +336,12 @@ export async function processInstagramMessage(
 
     if (existingUserDelivery) {
       console.log('[Message Processor] User already claimed');
+      let alreadyClaimedMessage = drop.instagramMessages.alreadyClaimedMessage;
+      alreadyClaimedMessage = alreadyClaimedMessage.replace('{{recipient}}', recipientInfo.value);
       await sendInstagramMessage(
         drop.instagramAccount.accessToken,
         message.senderId,
-        drop.instagramMessages.alreadyClaimedMessage
+        alreadyClaimedMessage
       );
       return { processed: true, error: 'User already claimed' };
     }

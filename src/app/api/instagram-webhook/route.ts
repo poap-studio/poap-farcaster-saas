@@ -327,20 +327,24 @@ export async function POST(request: NextRequest) {
                     
                     if (!recipientInfo.type || !recipientInfo.value) {
                       // Send invalid format message
+                      const invalidMessage = drop.instagramMessages.invalidFormatMessage;
+                      // Note: Cannot replace {{recipient}} since we don't have a valid recipient
                       await sendInstagramMessage(
                         drop.instagramAccount.accessToken,
                         messageData.senderId,
-                        drop.instagramMessages.invalidFormatMessage
+                        invalidMessage
                       );
                       continue;
                     }
 
                     // Check if format is accepted
                     if (!drop.acceptedFormats.includes(recipientInfo.type)) {
+                      let invalidMessage = drop.instagramMessages.invalidFormatMessage;
+                      invalidMessage = invalidMessage.replace('{{recipient}}', recipientInfo.value);
                       await sendInstagramMessage(
                         drop.instagramAccount.accessToken,
                         messageData.senderId,
-                        drop.instagramMessages.invalidFormatMessage
+                        invalidMessage
                       );
                       continue;
                     }
@@ -349,10 +353,12 @@ export async function POST(request: NextRequest) {
                     const ownershipCheck = await checkPOAPOwnership(recipientInfo.value, drop.poapEventId);
                     if (ownershipCheck.hasPoap) {
                       console.log('[Instagram Webhook] Recipient already owns this POAP');
+                      let alreadyClaimedMessage = drop.instagramMessages.alreadyClaimedMessage;
+                      alreadyClaimedMessage = alreadyClaimedMessage.replace('{{recipient}}', recipientInfo.value);
                       await sendInstagramMessage(
                         drop.instagramAccount.accessToken,
                         messageData.senderId,
-                        drop.instagramMessages.alreadyClaimedMessage
+                        alreadyClaimedMessage
                       );
                       continue;
                     }
@@ -370,10 +376,12 @@ export async function POST(request: NextRequest) {
 
                     if (existingDelivery) {
                       // Send already claimed message
+                      let alreadyClaimedMessage = drop.instagramMessages.alreadyClaimedMessage;
+                      alreadyClaimedMessage = alreadyClaimedMessage.replace('{{recipient}}', recipientInfo.value);
                       await sendInstagramMessage(
                         drop.instagramAccount.accessToken,
                         messageData.senderId,
-                        drop.instagramMessages.alreadyClaimedMessage
+                        alreadyClaimedMessage
                       );
                       continue;
                     }
@@ -391,10 +399,12 @@ export async function POST(request: NextRequest) {
 
                     if (existingUserDelivery) {
                       // This Instagram user already claimed a POAP for this story
+                      let alreadyClaimedMessage = drop.instagramMessages.alreadyClaimedMessage;
+                      alreadyClaimedMessage = alreadyClaimedMessage.replace('{{recipient}}', recipientInfo.value);
                       await sendInstagramMessage(
                         drop.instagramAccount.accessToken,
                         messageData.senderId,
-                        drop.instagramMessages.alreadyClaimedMessage
+                        alreadyClaimedMessage
                       );
                       continue;
                     }
