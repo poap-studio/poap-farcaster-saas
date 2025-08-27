@@ -331,13 +331,18 @@ export async function processInstagramMessage(
         message: {
           senderId: message.senderId
         }
+      },
+      select: {
+        recipientValue: true,
+        recipientType: true
       }
     });
 
     if (existingUserDelivery) {
-      console.log('[Message Processor] User already claimed');
+      console.log('[Message Processor] User already claimed with:', existingUserDelivery.recipientValue);
       let alreadyClaimedMessage = drop.instagramMessages.alreadyClaimedMessage;
-      alreadyClaimedMessage = alreadyClaimedMessage.replace('{{recipient}}', recipientInfo.value);
+      // Replace with the ORIGINAL address/email/ENS that was used
+      alreadyClaimedMessage = alreadyClaimedMessage.replace('{{recipient}}', existingUserDelivery.recipientValue);
       await sendInstagramMessage(
         drop.instagramAccount.accessToken,
         message.senderId,

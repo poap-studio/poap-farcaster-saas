@@ -394,13 +394,19 @@ export async function POST(request: NextRequest) {
                         message: {
                           senderId: messageData.senderId
                         }
+                      },
+                      select: {
+                        recipientValue: true,
+                        recipientType: true
                       }
                     });
 
                     if (existingUserDelivery) {
                       // This Instagram user already claimed a POAP for this story
+                      console.log('[Instagram Webhook] User already claimed with:', existingUserDelivery.recipientValue);
                       let alreadyClaimedMessage = drop.instagramMessages.alreadyClaimedMessage;
-                      alreadyClaimedMessage = alreadyClaimedMessage.replace('{{recipient}}', recipientInfo.value);
+                      // Replace with the ORIGINAL address/email/ENS that was used
+                      alreadyClaimedMessage = alreadyClaimedMessage.replace('{{recipient}}', existingUserDelivery.recipientValue);
                       await sendInstagramMessage(
                         drop.instagramAccount.accessToken,
                         messageData.senderId,
