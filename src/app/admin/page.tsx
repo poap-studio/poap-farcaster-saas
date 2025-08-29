@@ -42,7 +42,10 @@ export default function AdminLoginPage() {
             
             <div className="mt-6 pt-6 border-t border-gray-700">
               <button
-                onClick={() => router.push('/admin/dashboard')}
+                onClick={() => {
+                  console.log('Navigating to admin dashboard...');
+                  window.location.href = '/admin/dashboard';
+                }}
                 className="w-full text-center text-sm text-gray-400 hover:text-white transition-colors py-2"
               >
                 Go to Admin Dashboard →

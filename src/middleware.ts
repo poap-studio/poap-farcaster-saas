@@ -1,28 +1,14 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getSessionFromRequest } from '~/lib/session';
-import { getToken } from 'next-auth/jwt';
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   
-  // Handle admin routes
+  // Handle admin routes - removed middleware checks
+  // Admin access is now handled in the layout component
   if (path.startsWith('/admin')) {
-    // Skip auth check for login page
-    if (path === '/admin') {
-      const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-      if (token && token.email?.endsWith('@poap.fr')) {
-        return NextResponse.redirect(new URL('/admin/dashboard', request.url));
-      }
-      return NextResponse.next();
-    }
-    
-    // Check auth for other admin routes
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-    
-    if (!token || !token.email?.endsWith('@poap.fr')) {
-      return NextResponse.redirect(new URL('/admin', request.url));
-    }
+    return NextResponse.next();
   }
   
   // Check authentication for protected routes
