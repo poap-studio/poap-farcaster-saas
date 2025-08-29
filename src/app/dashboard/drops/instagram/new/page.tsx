@@ -12,6 +12,8 @@ interface InstagramStory {
   media_type: string;
   timestamp: string;
   permalink: string;
+  isHighlight?: boolean;
+  highlightTitle?: string;
 }
 
 export default function NewInstagramDropPage() {
@@ -348,7 +350,7 @@ export default function NewInstagramDropPage() {
               {instagramConnected && (
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-white">Select Story</h3>
-                  <p className="text-sm text-gray-400">Select the story that users will reply to</p>
+                  <p className="text-sm text-gray-400">Select the story that users will reply to (includes active stories and highlights)</p>
                   
                   {loadingStories ? (
                     <div className="flex items-center justify-center p-8">
@@ -384,6 +386,23 @@ export default function NewInstagramDropPage() {
                               className="w-full h-full object-cover"
                             />
                           )}
+                          
+                          {/* Highlight indicator */}
+                          {story.isHighlight && (
+                            <div className="absolute top-2 left-2 right-2 bg-black bg-opacity-60 rounded-md px-2 py-1">
+                              <p className="text-xs text-white font-medium truncate">
+                                📌 {story.highlightTitle || "Highlight"}
+                              </p>
+                            </div>
+                          )}
+                          
+                          {/* Active story indicator */}
+                          {!story.isHighlight && (
+                            <div className="absolute bottom-2 left-2 bg-green-500 bg-opacity-80 rounded-full px-2 py-0.5">
+                              <p className="text-xs text-white font-medium">Active</p>
+                            </div>
+                          )}
+                          
                           {formData.selectedStoryId === story.id && (
                             <div className="absolute inset-0 bg-pink-500 bg-opacity-20 flex items-center justify-center">
                               <div className="bg-pink-500 rounded-full p-2">

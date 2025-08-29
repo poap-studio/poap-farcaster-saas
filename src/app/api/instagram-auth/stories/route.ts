@@ -25,16 +25,67 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No Instagram account connected' }, { status: 400 });
     }
 
-    // For Instagram Business accounts, we need to use the stories endpoint
-    const storiesResponse = await fetch(
-      `https://graph.instagram.com/${account.instagramId}/stories?fields=id,media_type,media_url,timestamp,permalink&access_token=${account.accessToken}`
-    );
-    
-    if (!storiesResponse.ok) {
-      const error = await storiesResponse.json();
-      console.error('[Instagram Stories] Error getting stories:', error);
+    let allStories: any[] = [];
+
+    // 1. Get active stories (last 24 hours)
+    try {
+      const storiesResponse = await fetch(
+        `https://graph.instagram.com/${account.instagramId}/stories?fields=id,media_type,media_url,timestamp,permalink&access_token=${account.accessToken}`
+      );
       
-      // If stories endpoint fails, try media endpoint as fallback
+      if (storiesResponse.ok) {
+        const storiesData = await storiesResponse.json();
+        const activeStories = (storiesData.data || []).map((story: any) => ({
+          ...story,
+          isHighlight: false
+        }));
+        allStories = [...allStories, ...activeStories];
+        console.log('[Instagram Stories] Found', activeStories.length, 'active stories');
+      }
+    } catch (error) {
+      console.error('[Instagram Stories] Error getting active stories:', error);
+    }
+
+    // 2. Get highlights
+    try {
+      const highlightsResponse = await fetch(
+        `https://graph.instagram.com/${account.instagramId}/available_story_highlights?fields=id,title,cover_media{id,media_type,media_url,timestamp}&access_token=${account.accessToken}`
+      );
+      
+      if (highlightsResponse.ok) {
+        const highlightsData = await highlightsResponse.json();
+        console.log('[Instagram Stories] Found', highlightsData.data?.length || 0, 'highlights');
+        
+        // For each highlight, get its media
+        for (const highlight of (highlightsData.data || [])) {
+          try {
+            const highlightMediaResponse = await fetch(
+              `https://graph.instagram.com/${highlight.id}?fields=id,title,media{id,media_type,media_url,timestamp,permalink}&access_token=${account.accessToken}`
+            );
+            
+            if (highlightMediaResponse.ok) {
+              const highlightMediaData = await highlightMediaResponse.json();
+              const highlightStories = (highlightMediaData.media?.data || []).map((media: any) => ({
+                ...media,
+                isHighlight: true,
+                highlightTitle: highlight.title || 'Highlight'
+              }));
+              allStories = [...allStories, ...highlightStories];
+              console.log('[Instagram Stories] Added', highlightStories.length, 'stories from highlight:', highlight.title);
+            }
+          } catch (error) {
+            console.error('[Instagram Stories] Error getting highlight media:', error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('[Instagram Stories] Error getting highlights:', error);
+    }
+
+    // If no stories found, try media endpoint as fallback
+    if (allStories.length === 0) {
+      console.log('[Instagram Stories] No stories or highlights found, trying media endpoint');
+      
       const mediaResponse = await fetch(
         `https://graph.instagram.com/me/media?fields=id,media_type,media_url,timestamp,permalink&access_token=${account.accessToken}`
       );
@@ -53,18 +104,21 @@ export async function GET(request: NextRequest) {
         return mediaDate > sevenDaysAgo && (media.media_type === 'IMAGE' || media.media_type === 'VIDEO');
       });
       
-      return NextResponse.json({
-        stories: recentMedia
-      });
+      allStories = recentMedia.map((media: any) => ({
+        ...media,
+        isHighlight: false
+      }));
     }
 
-    const storiesData = await storiesResponse.json();
-
-    // Instagram stories are already filtered to last 24 hours by the API
-    const stories = storiesData.data || [];
+    // Sort by timestamp (newest first) and add source info
+    allStories.sort((a, b) => {
+      const timeA = new Date(a.timestamp).getTime();
+      const timeB = new Date(b.timestamp).getTime();
+      return timeB - timeA;
+    });
 
     return NextResponse.json({
-      stories: stories
+      stories: allStories
     });
 
   } catch (error) {
