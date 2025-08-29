@@ -10,6 +10,8 @@ export default function AdminLoginPage() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
+    let mounted = true;
+    
     const checkSession = async () => {
       try {
         const response = await fetch('/api/auth/session');
@@ -19,20 +21,30 @@ export default function AdminLoginPage() {
           if (data.authenticated && data.user) {
             // Check if user email ends with @poap.fr and redirect to dashboard
             if (data.user.email && data.user.email.endsWith('@poap.fr')) {
-              router.replace('/admin/dashboard');
+              // Use window.location for more reliable redirect
+              window.location.href = '/admin/dashboard';
               return;
             }
-            setUser(data.user);
+            if (mounted) {
+              setUser(data.user);
+            }
           }
         }
       } catch (error) {
         console.error('Session check error:', error);
       }
-      setIsLoading(false);
+      
+      if (mounted) {
+        setIsLoading(false);
+      }
     };
 
     checkSession();
-  }, [router]);
+    
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   if (isLoading) {
     return (
