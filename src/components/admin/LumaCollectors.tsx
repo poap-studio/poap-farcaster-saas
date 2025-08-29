@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
+import { toast } from 'react-hot-toast';
 
 interface LumaCollector {
   id: string;
@@ -22,27 +23,35 @@ interface LumaCollector {
   };
 }
 
+const ITEMS_PER_PAGE = 20;
+
 export default function LumaCollectors() {
   const [collectors, setCollectors] = useState<LumaCollector[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const observer = useRef<IntersectionObserver>();
+  const lastCollectorRef = useRef<HTMLTableRowElement>(null);
 
-  useEffect(() => {
-    fetchCollectors();
-  }, [search]);
-
-  const fetchCollectors = async () => {
+  const fetchCollectors = useCallback(async (pageNum: number, searchQuery: string) => {
     try {
-      setLoading(true);
+      if (pageNum === 1) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+      
       const params = new URLSearchParams();
-      if (search) params.append('search', search);
+      if (searchQuery) params.append('search', searchQuery);
+      params.append('page', pageNum.toString());
+      params.append('limit', ITEMS_PER_PAGE.toString());
 
       const response = await fetch(`/api/admin/collectors/luma?${params}`);
       const data = await response.json();
 
       if (response.ok) {
-        setCollectors(data.collectors);
-        
         // Fetch POAP data for each collector
         const poapPromises = data.collectors.map(async (collector: LumaCollector) => {
           try {
@@ -60,12 +69,64 @@ export default function LumaCollectors() {
           return { ...collector, poapData: poapResult?.poap };
         });
         
-        setCollectors(collectorsWithPoap);
+        if (pageNum === 1) {
+          setCollectors(collectorsWithPoap);
+        } else {
+          setCollectors(prev => [...prev, ...collectorsWithPoap]);
+        }
+        
+        setHasMore(data.collectors.length === ITEMS_PER_PAGE);
       }
     } catch (error) {
       console.error('Failed to fetch collectors:', error);
+      toast.error('Failed to load collectors');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    setPage(1);
+    setCollectors([]);
+    fetchCollectors(1, search);
+  }, [search, fetchCollectors]);
+
+  // Set up intersection observer for infinite scroll
+  useEffect(() => {
+    if (loading || loadingMore || !hasMore) return;
+
+    const callback = (entries: IntersectionObserverEntry[]) => {
+      if (entries[0].isIntersecting && hasMore) {
+        setPage(prev => prev + 1);
+      }
+    };
+
+    observer.current = new IntersectionObserver(callback);
+    
+    if (lastCollectorRef.current) {
+      observer.current.observe(lastCollectorRef.current);
+    }
+
+    return () => {
+      if (observer.current) {
+        observer.current.disconnect();
+      }
+    };
+  }, [loading, loadingMore, hasMore]);
+
+  useEffect(() => {
+    if (page > 1) {
+      fetchCollectors(page, search);
+    }
+  }, [page, search, fetchCollectors]);
+
+  const copyToClipboard = async (address: string) => {
+    try {
+      await navigator.clipboard.writeText(address);
+      toast.success('Address copied to clipboard');
+    } catch (error) {
+      toast.error('Failed to copy address');
     }
   };
 
@@ -83,7 +144,7 @@ export default function LumaCollectors() {
       </div>
 
       {/* Collectors Table */}
-      {loading ? (
+      {loading && collectors.length === 0 ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
         </div>
@@ -94,7 +155,7 @@ export default function LumaCollectors() {
       ) : (
         <div className="bg-slate-800 rounded-2xl overflow-hidden">
           <table className="min-w-full divide-y divide-slate-700">
-            <thead className="bg-slate-900">
+            <thead className="bg-slate-900 sticky top-0 z-10">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Event
@@ -117,8 +178,11 @@ export default function LumaCollectors() {
               </tr>
             </thead>
             <tbody className="bg-slate-800 divide-y divide-slate-700">
-              {collectors.map((collector) => (
-                <tr key={collector.id}>
+              {collectors.map((collector, index) => (
+                <tr 
+                  key={collector.id}
+                  ref={index === collectors.length - 1 ? lastCollectorRef : null}
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <Image
@@ -142,12 +206,17 @@ export default function LumaCollectors() {
                     {collector.email}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-300 font-mono">
-                      {collector.guest?.ethAddress ? 
-                        `${collector.guest.ethAddress.slice(0, 6)}...${collector.guest.ethAddress.slice(-4)}` : 
-                        '-'
-                      }
-                    </span>
+                    {collector.guest?.ethAddress ? (
+                      <button
+                        onClick={() => copyToClipboard(collector.guest!.ethAddress!)}
+                        className="text-sm text-gray-300 font-mono hover:text-white transition-colors cursor-pointer"
+                        title="Click to copy full address"
+                      >
+                        {collector.guest.ethAddress.slice(0, 6)}...{collector.guest.ethAddress.slice(-4)}
+                      </button>
+                    ) : (
+                      <span className="text-sm text-gray-300">-</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {collector.poapData && (
@@ -174,6 +243,18 @@ export default function LumaCollectors() {
               ))}
             </tbody>
           </table>
+          
+          {loadingMore && (
+            <div className="flex justify-center py-4 border-t border-slate-700">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+            </div>
+          )}
+          
+          {!hasMore && collectors.length > 0 && (
+            <div className="text-center py-4 text-sm text-gray-400 border-t border-slate-700">
+              No more collectors to load
+            </div>
+          )}
         </div>
       )}
     </div>
