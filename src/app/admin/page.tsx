@@ -1,58 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import Image from 'next/image';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    
-    const checkSession = async () => {
-      try {
-        const response = await fetch('/api/auth/session');
-        if (response.ok) {
-          const data = await response.json();
-          
-          if (data.authenticated && data.user) {
-            // Check if user email ends with @poap.fr and redirect to dashboard
-            if (data.user.email && data.user.email.endsWith('@poap.fr')) {
-              // Use window.location for more reliable redirect
-              window.location.href = '/admin/dashboard';
-              return;
-            }
-            if (mounted) {
-              setUser(data.user);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Session check error:', error);
-      }
-      
-      if (mounted) {
-        setIsLoading(false);
-      }
-    };
-
-    checkSession();
-    
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
@@ -71,19 +23,6 @@ export default function AdminLoginPage() {
           </div>
 
           <div className="space-y-4">
-            {user && (
-              <div className="mb-4 p-3 bg-slate-700 rounded-lg">
-                <p className="text-sm text-gray-300 text-center">
-                  Currently signed in as: <span className="font-semibold">{user.email || user.username}</span>
-                </p>
-                {user.email && !user.email.endsWith('@poap.fr') && (
-                  <p className="text-sm text-red-400 text-center mt-2">
-                    Your account doesn&apos;t have access to the admin panel
-                  </p>
-                )}
-              </div>
-            )}
-            
             <button
               onClick={() => router.push('/login')}
               className="w-full bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-3"
@@ -94,11 +33,20 @@ export default function AdminLoginPage() {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              {user ? 'Sign in with Different Account' : 'Sign in with Google'}
+              Sign in with Google
             </button>
 
             <div className="text-sm text-center text-gray-400 mt-4">
               <p>Only emails ending with @poap.fr can access this panel</p>
+            </div>
+            
+            <div className="mt-6 pt-6 border-t border-gray-700">
+              <button
+                onClick={() => router.push('/admin/dashboard')}
+                className="w-full text-sm text-gray-400 hover:text-white transition-colors"
+              >
+                Go to Admin Dashboard →
+              </button>
             </div>
           </div>
         </div>

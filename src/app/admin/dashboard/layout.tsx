@@ -14,43 +14,42 @@ export default function AdminDashboardLayout({
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasAccess, setHasAccess] = useState(false);
 
   useEffect(() => {
-    const checkAdminAccess = async () => {
+    const checkSession = async () => {
       try {
         const response = await fetch('/api/auth/session');
         if (response.ok) {
           const data = await response.json();
           
-          if (data.authenticated && data.user && data.user.email) {
-            // Only allow @poap.fr emails
-            if (data.user.email.endsWith('@poap.fr')) {
-              setUser(data.user);
-              setIsLoading(false);
-            } else {
-              // Not an admin, redirect to regular login
-              router.replace('/login');
+          if (data.authenticated && data.user) {
+            setUser(data.user);
+            // Check if user has admin access (email ends with @poap.fr)
+            if (data.user.email && data.user.email.endsWith('@poap.fr')) {
+              setHasAccess(true);
             }
-          } else {
-            // Not authenticated, redirect to admin login
-            router.replace('/admin');
           }
-        } else {
-          router.replace('/admin');
         }
       } catch (error) {
         console.error('Session check error:', error);
-        router.replace('/admin');
       }
+      setIsLoading(false);
     };
 
-    checkAdminAccess();
+    checkSession();
   }, []);
 
   const handleSignOut = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/admin');
+    router.push('/login');
   };
+
+  const navigation = [
+    { name: 'Projects', href: '/admin/dashboard' },
+    { name: 'Users', href: '/admin/dashboard/users' },
+    { name: 'Collectors', href: '/admin/dashboard/collectors' },
+  ];
 
   if (isLoading) {
     return (
@@ -60,15 +59,49 @@ export default function AdminDashboardLayout({
     );
   }
 
-  if (!user) {
-    return null;
+  // Show access denied message if user doesn't have @poap.fr email
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
+        <div className="max-w-md w-full">
+          <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 text-center">
+            <Image
+              src="/poap-studio-logo.png"
+              alt="POAP Studio"
+              width={120}
+              height={120}
+              className="mx-auto mb-6 invert"
+            />
+            <h1 className="text-2xl font-bold text-white mb-4">Access Denied</h1>
+            <p className="text-gray-400 mb-2">
+              This area is restricted to POAP team members.
+            </p>
+            {user && (
+              <p className="text-sm text-gray-500 mb-6">
+                You are signed in as: {user.email || user.username}
+              </p>
+            )}
+            <div className="space-y-3">
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                Go to Dashboard
+              </button>
+              {user && (
+                <button
+                  onClick={handleSignOut}
+                  className="w-full bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                >
+                  Sign Out
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
-
-  const navigation = [
-    { name: 'Projects', href: '/admin/dashboard' },
-    { name: 'Users', href: '/admin/dashboard/users' },
-    { name: 'Collectors', href: '/admin/dashboard/collectors' },
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -82,7 +115,7 @@ export default function AdminDashboardLayout({
                 alt="POAP Studio"
                 width={40}
                 height={40}
-                className="mr-4"
+                className="mr-4 invert"
               />
               <div className="flex items-baseline space-x-4">
                 {navigation.map((item) => {
