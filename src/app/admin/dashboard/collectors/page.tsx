@@ -4,14 +4,16 @@ import { useState } from 'react';
 import InstagramCollectors from '~/components/admin/InstagramCollectors';
 import LumaCollectors from '~/components/admin/LumaCollectors';
 import FarcasterCollectors from '~/components/admin/FarcasterCollectors';
+import POAPCollectors from '~/components/admin/POAPCollectors';
 
 export default function AdminCollectorsPage() {
-  const [activeTab, setActiveTab] = useState<'instagram' | 'luma' | 'farcaster'>('instagram');
+  const [activeTab, setActiveTab] = useState<'instagram' | 'luma' | 'farcaster' | 'poaps'>('instagram');
 
   const tabs = [
     { id: 'instagram', label: 'Instagram' },
     { id: 'luma', label: 'Luma' },
     { id: 'farcaster', label: 'Farcaster' },
+    { id: 'poaps', label: 'POAPs' },
   ];
 
   return (
@@ -25,7 +27,7 @@ export default function AdminCollectorsPage() {
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as 'instagram' | 'luma' | 'farcaster')}
+                onClick={() => setActiveTab(tab.id as 'instagram' | 'luma' | 'farcaster' | 'poaps')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === tab.id
                     ? 'border-purple-500 text-white'
@@ -44,6 +46,7 @@ export default function AdminCollectorsPage() {
         {activeTab === 'instagram' && <InstagramCollectors />}
         {activeTab === 'luma' && <LumaCollectors />}
         {activeTab === 'farcaster' && <FarcasterCollectors />}
+        {activeTab === 'poaps' && <POAPCollectors />}
       </div>
     </div>
   );
