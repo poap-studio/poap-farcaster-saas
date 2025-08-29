@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import Image from 'next/image';
 
 interface AuthorizedUser {
   id: string;
@@ -305,11 +306,12 @@ export default function AdminUsersPage() {
                     className="bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg p-4 transition-all hover:border-purple-500"
                   >
                     <div className="flex flex-col items-center gap-2">
-                      <svg className="w-12 h-12 text-purple-400" viewBox="0 0 1000 1000" fill="currentColor">
-                        <path d="M257.778 155.556H742.222V844.444H671.111V528.889H670.414C662.542 441.677 589.258 373.333 500 373.333C410.742 373.333 337.458 441.677 329.586 528.889H328.889V844.444H257.778V155.556Z" />
-                        <path d="M128.889 253.333L157.778 351.111H182.222V746.667C182.222 777.776 207.111 802.667 238.222 802.667H280V844.444H238.222C183.111 844.444 138.667 800 138.667 744.889V351.111H100L128.889 253.333Z" />
-                        <path d="M871.111 253.333L900 351.111H861.333V744.889C861.333 800 816.889 844.444 761.778 844.444H720V802.667H761.778C792.889 802.667 817.778 777.776 817.778 746.667V351.111H842.222L871.111 253.333Z" />
-                      </svg>
+                      <Image
+                        src="/icons/farcaster.png"
+                        alt="Farcaster"
+                        width={48}
+                        height={48}
+                      />
                       <span className="text-white font-medium">Farcaster</span>
                     </div>
                   </button>
@@ -319,12 +321,12 @@ export default function AdminUsersPage() {
                     className="bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg p-4 transition-all hover:border-purple-500"
                   >
                     <div className="flex flex-col items-center gap-2">
-                      <svg className="w-12 h-12" viewBox="0 0 24 24">
-                        <path fill="#EA4335" d="M22 8.608v8.142a3.25 3.25 0 0 1-3.25 3.25h-5.5V12l-1.25-1L22 8.608Z"/>
-                        <path fill="#34A853" d="m22 8.608-10 2.392V20h5.5a3.25 3.25 0 0 0 3.25-3.25V8.608Z"/>
-                        <path fill="#FBBC04" d="M12 11v9H5.25A3.25 3.25 0 0 1 2 16.75V11l10-1Z"/>
-                        <path fill="#4285F4" d="m2 11 4.666-3.5L12 11l5.334-3.5L22 11V7.25A3.25 3.25 0 0 0 18.75 4h-13.5A3.25 3.25 0 0 0 2 7.25V11Z"/>
-                      </svg>
+                      <Image
+                        src="/icons/google.svg"
+                        alt="Google"
+                        width={48}
+                        height={48}
+                      />
                       <span className="text-white font-medium">Gmail</span>
                     </div>
                   </button>
