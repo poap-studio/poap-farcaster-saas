@@ -46,6 +46,7 @@ model Drop {
   emailSubject      String?
   emailBody         String?
   deliveryTarget    String   @default("email")
+  isRealTime        Boolean  @default(false)
   poapsDelivered    Boolean  @default(false)
   deliveredAt       DateTime?
   // Instagram fields

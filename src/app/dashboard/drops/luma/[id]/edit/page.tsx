@@ -53,6 +53,7 @@ export default function EditLumaDropPage({ params }: PageProps) {
     eventUrl: "",
     deliveryMethod: "manual",
     deliveryTarget: "email",
+    isRealTime: false,
     emailSubject: "Your POAP for {{eventName}}",
     emailBody: `Hi {{name}},
 
@@ -95,6 +96,7 @@ The {{eventName}} Team`,
           eventUrl: drop.lumaEventUrl || "",
           deliveryMethod: drop.deliveryMethod || "manual",
           deliveryTarget: drop.deliveryTarget || "email",
+          isRealTime: drop.isRealTime || false,
           emailSubject: drop.emailSubject || "Your POAP for {{eventName}}",
           emailBody: drop.emailBody || formData.emailBody,
           poapEventId: drop.poapEventId,
@@ -332,6 +334,7 @@ The {{eventName}} Team`,
           lumaEventUrl: formData.eventUrl,
           deliveryMethod: formData.deliveryMethod,
           deliveryTarget: formData.deliveryTarget,
+          isRealTime: formData.isRealTime,
           emailSubject: formData.emailSubject,
           emailBody: formData.emailBody,
           poapEventId: formData.poapEventId,
@@ -553,20 +556,21 @@ The {{eventName}} Team`,
                     <input
                       type="radio"
                       value="manual"
-                      checked={formData.deliveryMethod === "manual"}
-                      onChange={(e) => setFormData({ ...formData, deliveryMethod: e.target.value })}
+                      checked={formData.deliveryMethod === "manual" && !formData.isRealTime}
+                      onChange={() => setFormData({ ...formData, deliveryMethod: "manual", isRealTime: false })}
                       className="mr-2 text-pink-600"
                     />
                     <span className="text-white">Automatic - Send POAPs after the event</span>
                   </label>
-                  <label className="flex items-center opacity-50">
+                  <label className="flex items-center">
                     <input
                       type="radio"
-                      value="automatic"
-                      disabled
-                      className="mr-2"
+                      value="real-time"
+                      checked={formData.isRealTime}
+                      onChange={() => setFormData({ ...formData, deliveryMethod: "manual", isRealTime: true })}
+                      className="mr-2 text-pink-600"
                     />
-                    <span className="text-gray-400">In Real Time - Send on check-in (Coming soon)</span>
+                    <span className="text-white">In Real Time - Send on check-in</span>
                   </label>
                 </div>
               </div>
