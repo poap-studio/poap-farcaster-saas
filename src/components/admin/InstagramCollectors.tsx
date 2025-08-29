@@ -172,7 +172,7 @@ export default function InstagramCollectors() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-3">
                       <Image
-                        src="/icons/instagram.svg"
+                        src="/icons/instagram.png"
                         alt="Instagram"
                         width={20}
                         height={20}
