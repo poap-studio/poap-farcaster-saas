@@ -11,6 +11,9 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '12');
+    const skip = (page - 1) * limit;
 
     // Get all unique POAP event IDs with collector counts
     const dropGroups = await prisma.drop.groupBy({
@@ -24,6 +27,11 @@ export async function GET(request: NextRequest) {
           mode: 'insensitive'
         }
       } : undefined,
+      take: limit,
+      skip,
+      orderBy: {
+        poapEventId: 'desc'
+      }
     });
 
     // For each POAP, get collector counts by platform
