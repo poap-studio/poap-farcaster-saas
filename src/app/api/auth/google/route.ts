@@ -40,6 +40,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if user is authorized
+    const authorizedUser = await prisma.authorizedUser.findUnique({
+      where: { email },
+    });
+
+    if (!authorizedUser || !authorizedUser.isActive) {
+      return NextResponse.json(
+        { error: "Unauthorized: User not authorized to access this platform" },
+        { status: 403 }
+      );
+    }
+
     // Create or update user
     const user = await prisma.user.upsert({
       where: { googleId },

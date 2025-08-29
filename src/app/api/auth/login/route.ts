@@ -32,6 +32,32 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Check if user is authorized
+    if (user.email) {
+      const authorizedUser = await prisma.authorizedUser.findUnique({
+        where: { email: user.email },
+      });
+
+      if (!authorizedUser || !authorizedUser.isActive) {
+        return NextResponse.json(
+          { error: "Unauthorized: User not authorized to access this platform" },
+          { status: 403 }
+        );
+      }
+    } else {
+      // If user doesn't have email, check by username
+      const authorizedUser = await prisma.authorizedUser.findFirst({
+        where: { username: user.username },
+      });
+
+      if (!authorizedUser || !authorizedUser.isActive) {
+        return NextResponse.json(
+          { error: "Unauthorized: User not authorized to access this platform" },
+          { status: 403 }
+        );
+      }
+    }
+
     // Create session
     await createSession({
       userId: user.id,
