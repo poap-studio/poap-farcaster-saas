@@ -115,22 +115,6 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleToggleActive = async (userId: string, isActive: boolean) => {
-    try {
-      const response = await fetch(`/api/admin/users/${userId}/toggle`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive: !isActive }),
-      });
-
-      if (response.ok) {
-        toast.success(`User ${isActive ? 'deactivated' : 'activated'} successfully`);
-        fetchUsers();
-      }
-    } catch (error) {
-      toast.error('Failed to update user status');
-    }
-  };
 
   const handleToggleAdmin = async (userId: string, isAdmin: boolean) => {
     try {
@@ -262,12 +246,6 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => handleToggleActive(user.id, user.isActive)}
-                        className="text-blue-400 hover:text-blue-300"
-                      >
-                        {user.isActive ? 'Deactivate' : 'Activate'}
-                      </button>
                       <button
                         onClick={() => handleToggleAdmin(user.id, user.isAdmin)}
                         className="text-purple-400 hover:text-purple-300"
