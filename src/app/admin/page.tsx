@@ -29,10 +29,10 @@ export default function AdminLoginPage() {
         <div className="bg-slate-800 rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
             <Image
-              src="/logo.png"
+              src="/poap-studio-logo.png"
               alt="POAP Studio"
-              width={80}
-              height={80}
+              width={120}
+              height={120}
               className="mx-auto mb-4"
             />
             <h1 className="text-3xl font-bold text-white mb-2">Admin Panel</h1>

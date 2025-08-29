@@ -27,7 +27,7 @@ export default function AdminDashboardLayout({
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <Image
-                src="/logo.png"
+                src="/poap-studio-logo.png"
                 alt="POAP Studio"
                 width={40}
                 height={40}
