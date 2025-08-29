@@ -116,22 +116,6 @@ export default function AdminUsersPage() {
   };
 
 
-  const handleToggleAdmin = async (userId: string, isAdmin: boolean) => {
-    try {
-      const response = await fetch(`/api/admin/users/${userId}/admin`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isAdmin: !isAdmin }),
-      });
-
-      if (response.ok) {
-        toast.success('Admin status updated successfully');
-        fetchUsers();
-      }
-    } catch (error) {
-      toast.error('Failed to update admin status');
-    }
-  };
 
   return (
     <div>
@@ -245,20 +229,12 @@ export default function AdminUsersPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleToggleAdmin(user.id, user.isAdmin)}
-                        className="text-purple-400 hover:text-purple-300"
-                      >
-                        {user.isAdmin ? 'Remove Admin' : 'Make Admin'}
-                      </button>
-                      <button
-                        onClick={() => handleDeleteUser(user.id)}
-                        className="text-red-400 hover:text-red-300"
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => handleDeleteUser(user.id)}
+                      className="text-red-400 hover:text-red-300"
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
