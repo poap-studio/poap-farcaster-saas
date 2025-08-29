@@ -15,13 +15,11 @@ export default function AdminLoginPage() {
         const response = await fetch('/api/auth/session');
         if (response.ok) {
           const data = await response.json();
-          console.log('Admin session data:', data);
           
           if (data.authenticated && data.user) {
             // Check if user email ends with @poap.fr and redirect to dashboard
             if (data.user.email && data.user.email.endsWith('@poap.fr')) {
-              console.log('Admin email detected, redirecting to dashboard...');
-              window.location.href = '/admin/dashboard';
+              router.replace('/admin/dashboard');
               return;
             }
             setUser(data.user);
@@ -34,7 +32,7 @@ export default function AdminLoginPage() {
     };
 
     checkSession();
-  }, []);
+  }, [router]);
 
   if (isLoading) {
     return (
