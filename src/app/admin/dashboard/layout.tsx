@@ -1,8 +1,8 @@
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 export default function AdminDashboardLayout({
@@ -10,8 +10,58 @@ export default function AdminDashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAdminAccess = async () => {
+      try {
+        const response = await fetch('/api/auth/session');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.authenticated && data.user) {
+            // Check if user has admin access (email ends with @poap.fr)
+            if (data.user.email && data.user.email.endsWith('@poap.fr')) {
+              setUser(data.user);
+            } else {
+              // Redirect non-admin users back to login
+              router.push('/admin');
+            }
+          } else {
+            router.push('/admin');
+          }
+        } else {
+          router.push('/admin');
+        }
+      } catch (error) {
+        console.error('Session check error:', error);
+        router.push('/admin');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAdminAccess();
+  }, [router]);
+
+  const handleSignOut = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/admin');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const navigation = [
     { name: 'Projects', href: '/admin/dashboard' },
@@ -57,10 +107,10 @@ export default function AdminDashboardLayout({
             
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-300">
-                {session?.user?.email}
+                {user?.email}
               </span>
               <button
-                onClick={() => signOut({ callbackUrl: '/admin' })}
+                onClick={handleSignOut}
                 className="text-sm text-gray-300 hover:text-white px-3 py-2 rounded-md hover:bg-slate-700 transition-colors"
               >
                 Sign out

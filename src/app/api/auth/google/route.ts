@@ -45,7 +45,10 @@ export async function POST(request: NextRequest) {
       where: { email },
     });
 
-    if (!authorizedUser || !authorizedUser.isActive) {
+    // For admin access (@poap.fr emails), bypass AuthorizedUser check
+    const isAdminEmail = email.endsWith('@poap.fr');
+    
+    if (!isAdminEmail && (!authorizedUser || !authorizedUser.isActive)) {
       return NextResponse.json(
         { error: "Unauthorized: User not authorized to access this platform" },
         { status: 403 }
