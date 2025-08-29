@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 import { prisma } from '~/lib/prisma';
+import { checkAdminAccess } from '~/lib/admin-auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const token = await getToken({ req: request });
-    if (!token || !token.email?.endsWith('@poap.fr')) {
+    const hasAccess = await checkAdminAccess();
+    if (!hasAccess) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -83,23 +83,36 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const token = await getToken({ req: request });
-    if (!token || !token.email?.endsWith('@poap.fr')) {
+    const hasAccess = await checkAdminAccess();
+    if (!hasAccess) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { email, username, isAdmin } = await request.json();
+    const { email, username, isAdmin, authMethod } = await request.json();
 
-    if (!email) {
+    // Validate based on auth method
+    if (authMethod === 'gmail' && !email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+    }
+    
+    if (authMethod === 'farcaster' && !username) {
+      return NextResponse.json({ error: 'Farcaster username is required' }, { status: 400 });
+    }
+
+    // Create authorized user based on auth method
+    const userData: any = {
+      email: authMethod === 'gmail' ? email : '', 
+      username: authMethod === 'farcaster' ? username : username || '',
+      isAdmin: isAdmin || false,
+    };
+
+    // For Farcaster users, we might want to add a placeholder email
+    if (authMethod === 'farcaster' && !email) {
+      userData.email = `${username}@farcaster.placeholder`;
     }
 
     const user = await prisma.authorizedUser.create({
-      data: {
-        email,
-        username,
-        isAdmin: isAdmin || false,
-      },
+      data: userData,
     });
 
     return NextResponse.json({ user });

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { checkAdminAccess } from '~/lib/admin-auth';
 import { prisma } from '~/lib/prisma';
 
 export async function DELETE(
@@ -7,8 +7,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const token = await getToken({ req: request });
-    if (!token || !token.email?.endsWith('@poap.fr')) {
+    const hasAccess = await checkAdminAccess();
+    if (!hasAccess) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
