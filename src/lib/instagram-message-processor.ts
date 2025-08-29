@@ -49,6 +49,13 @@ async function getInstagramUsername(accessToken: string, userId: string): Promis
 
 async function sendInstagramMessage(accessToken: string, recipientId: string, messageText: string): Promise<boolean> {
   try {
+    console.log('[Instagram API] Attempting to send message:', {
+      recipientId,
+      messageLength: messageText.length,
+      messagePreview: messageText.substring(0, 100) + (messageText.length > 100 ? '...' : ''),
+      hasRecipientPlaceholder: messageText.includes('{{recipient}}')
+    });
+    
     // Note: Instagram Basic Display API doesn't support messaging
     // This requires Instagram Messaging API which needs business verification
     // For now, we'll attempt to use the Graph API endpoint
@@ -277,7 +284,7 @@ export async function processInstagramMessage(
     if (!drop.acceptedFormats.includes(recipientInfo.type)) {
       console.log('[Message Processor] Format not accepted:', recipientInfo.type);
       let invalidMessage = drop.instagramMessages.invalidFormatMessage;
-      invalidMessage = invalidMessage.replace('{{recipient}}', recipientInfo.value);
+      invalidMessage = invalidMessage.replace(/\{\{recipient\}\}/g, recipientInfo.value);
       await sendInstagramMessage(
         drop.instagramAccount.accessToken,
         message.senderId,
@@ -291,7 +298,7 @@ export async function processInstagramMessage(
     if (ownershipCheck.hasPoap) {
       console.log('[Message Processor] Recipient already owns this POAP');
       let alreadyClaimedMessage = drop.instagramMessages.alreadyClaimedMessage;
-      alreadyClaimedMessage = alreadyClaimedMessage.replace('{{recipient}}', recipientInfo.value);
+      alreadyClaimedMessage = alreadyClaimedMessage.replace(/\{\{recipient\}\}/g, recipientInfo.value);
       await sendInstagramMessage(
         drop.instagramAccount.accessToken,
         message.senderId,
@@ -314,7 +321,7 @@ export async function processInstagramMessage(
     if (existingDelivery) {
       console.log('[Message Processor] Already claimed by recipient');
       let alreadyClaimedMessage = drop.instagramMessages.alreadyClaimedMessage;
-      alreadyClaimedMessage = alreadyClaimedMessage.replace('{{recipient}}', recipientInfo.value);
+      alreadyClaimedMessage = alreadyClaimedMessage.replace(/\{\{recipient\}\}/g, recipientInfo.value);
       await sendInstagramMessage(
         drop.instagramAccount.accessToken,
         message.senderId,
@@ -342,7 +349,7 @@ export async function processInstagramMessage(
       console.log('[Message Processor] User already claimed with:', existingUserDelivery.recipientValue);
       let alreadyClaimedMessage = drop.instagramMessages.alreadyClaimedMessage;
       // Replace with the ORIGINAL address/email/ENS that was used
-      alreadyClaimedMessage = alreadyClaimedMessage.replace('{{recipient}}', existingUserDelivery.recipientValue);
+      alreadyClaimedMessage = alreadyClaimedMessage.replace(/\{\{recipient\}\}/g, existingUserDelivery.recipientValue);
       await sendInstagramMessage(
         drop.instagramAccount.accessToken,
         message.senderId,
@@ -413,17 +420,24 @@ export async function processInstagramMessage(
     // Send response message
     if (deliveryStatus === 'delivered') {
       let successMessage = drop.instagramMessages.successMessage;
-      successMessage = successMessage.replace('{{recipient}}', recipientInfo.value);
+      console.log('[Message Processor] Original success message:', successMessage);
+      console.log('[Message Processor] Recipient value to replace:', recipientInfo.value);
+      
+      // Replace {{recipient}} with the actual recipient value
+      successMessage = successMessage.replace(/\{\{recipient\}\}/g, recipientInfo.value);
+      console.log('[Message Processor] Success message after replacement:', successMessage);
       
       if (recipientInfo.type !== 'email' && poapLink) {
         successMessage += `\n\nClaim your POAP here: ${poapLink}`;
       }
       
-      await sendInstagramMessage(
+      const messageSent = await sendInstagramMessage(
         drop.instagramAccount.accessToken,
         message.senderId,
         successMessage
       );
+      
+      console.log('[Message Processor] Message sent status:', messageSent);
     } else {
       // Send error message
       await sendInstagramMessage(
