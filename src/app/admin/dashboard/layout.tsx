@@ -22,29 +22,37 @@ export default function AdminDashboardLayout({
         if (response.ok) {
           const data = await response.json();
           if (data.authenticated && data.user) {
+            console.log('Admin dashboard - checking user:', data.user);
             // Check if user has admin access (email ends with @poap.fr)
             if (data.user.email && data.user.email.endsWith('@poap.fr')) {
               setUser(data.user);
             } else {
-              // Redirect non-admin users back to login
-              router.push('/admin');
+              // Redirect non-admin users to login page
+              console.log('Non-admin user detected, redirecting to login');
+              window.location.href = '/login';
+              return;
             }
           } else {
-            router.push('/admin');
+            // Not authenticated, redirect to admin login
+            console.log('Not authenticated, redirecting to admin login');
+            window.location.href = '/admin';
+            return;
           }
         } else {
-          router.push('/admin');
+          console.log('Session fetch failed, redirecting to admin login');
+          window.location.href = '/admin';
+          return;
         }
       } catch (error) {
         console.error('Session check error:', error);
-        router.push('/admin');
-      } finally {
-        setIsLoading(false);
+        window.location.href = '/admin';
+        return;
       }
+      setIsLoading(false);
     };
 
     checkAdminAccess();
-  }, [router]);
+  }, []);
 
   const handleSignOut = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
