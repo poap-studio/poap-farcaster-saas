@@ -1,7 +1,6 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
 
 export default function AdminLoginPage() {
@@ -42,12 +41,12 @@ export default function AdminLoginPage() {
             </div>
             
             <div className="mt-6 pt-6 border-t border-gray-700">
-              <Link
-                href="/admin/dashboard"
-                className="block w-full text-center text-sm text-gray-400 hover:text-white transition-colors py-2"
+              <button
+                onClick={() => router.push('/admin/dashboard')}
+                className="w-full text-center text-sm text-gray-400 hover:text-white transition-colors py-2"
               >
                 Go to Admin Dashboard →
-              </Link>
+              </button>
             </div>
           </div>
         </div>
