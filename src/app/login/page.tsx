@@ -10,6 +10,7 @@ export default function LoginPage() {
   const { isAuthenticated, profile } = useProfile();
   const router = useRouter();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   
   // Check if Google OAuth is configured
   const isGoogleOAuthConfigured = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -41,6 +42,12 @@ export default function LoginPage() {
             // Redirect to dashboard after session is created
             router.push('/dashboard');
           } else {
+            const data = await response.json();
+            if (response.status === 403) {
+              setErrorMessage("Access denied. Your account is not authorized to use this platform. Please contact an administrator.");
+            } else {
+              setErrorMessage(data.error || 'Failed to create session');
+            }
             console.error('Failed to create session');
             setIsLoggingIn(false);
           }
@@ -87,6 +94,12 @@ export default function LoginPage() {
       if (response.ok) {
         router.push('/dashboard');
       } else {
+        const data = await response.json();
+        if (response.status === 403) {
+          setErrorMessage("Access denied. Your account is not authorized to use this platform. Please contact an administrator.");
+        } else {
+          setErrorMessage(data.error || 'Failed to create Google session');
+        }
         console.error('Failed to create Google session');
         setIsLoggingIn(false);
       }
@@ -105,6 +118,11 @@ export default function LoginPage() {
         <p className="text-gray-300 mb-8 text-center">
           Choose your preferred method to sign in
         </p>
+        {errorMessage && (
+          <div className="mb-6 p-4 bg-red-900/20 border border-red-500/50 rounded-lg">
+            <p className="text-red-400 text-sm text-center">{errorMessage}</p>
+          </div>
+        )}
         <div className="space-y-4">
           {isGoogleOAuthConfigured ? (
             <>
