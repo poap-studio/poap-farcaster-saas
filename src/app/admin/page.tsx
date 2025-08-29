@@ -8,6 +8,7 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -16,12 +17,13 @@ export default function AdminLoginPage() {
         if (response.ok) {
           const data = await response.json();
           if (data.authenticated && data.user) {
-            setUser(data.user);
             // Check if user email ends with @poap.fr and redirect to dashboard
             if (data.user.email && data.user.email.endsWith('@poap.fr')) {
-              router.push('/admin/dashboard');
-              return; // Exit early to keep loading state
+              setIsRedirecting(true);
+              router.replace('/admin/dashboard');
+              return;
             }
+            setUser(data.user);
           }
         }
       } catch (error) {
@@ -33,7 +35,7 @@ export default function AdminLoginPage() {
     checkSession();
   }, [router]);
 
-  if (isLoading) {
+  if (isLoading || isRedirecting) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
