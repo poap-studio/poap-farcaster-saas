@@ -96,22 +96,6 @@ export default function AdminProjectsPage() {
     }
   };
 
-  const handleToggleActive = async (dropId: string, isActive: boolean) => {
-    try {
-      const response = await fetch(`/api/admin/drops/${dropId}/toggle`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive: !isActive }),
-      });
-
-      if (response.ok) {
-        toast.success(`Drop ${isActive ? 'deactivated' : 'activated'} successfully`);
-        fetchDrops();
-      }
-    } catch (error) {
-      toast.error('Failed to update drop status');
-    }
-  };
 
   const getCollectorCount = (drop: Drop) => {
     if (drop.platform === 'farcaster') return drop._count?.claims || 0;
@@ -121,9 +105,9 @@ export default function AdminProjectsPage() {
   };
 
   const getPlatformIcon = (platform: string) => {
-    if (platform === 'farcaster') return '/icons/farcaster.svg';
+    if (platform === 'farcaster') return '/icons/farcaster.png';
     if (platform === 'luma') return '/icons/luma.svg';
-    if (platform === 'instagram') return '/icons/instagram.svg';
+    if (platform === 'instagram') return '/icons/instagram.png';
     return '/logo.png';
   };
 
@@ -266,14 +250,8 @@ export default function AdminProjectsPage() {
                       Edit
                     </Link>
                     <button
-                      onClick={() => handleToggleActive(drop.id, drop.isActive)}
-                      className="flex-1 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors"
-                    >
-                      {drop.isActive ? 'Deactivate' : 'Activate'}
-                    </button>
-                    <button
                       onClick={() => handleDelete(drop.id)}
-                      className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors"
+                      className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors"
                     >
                       Delete
                     </button>
