@@ -19,6 +19,7 @@ export async function GET() {
         username: true,
         displayName: true,
         profileImage: true,
+        email: true,
       }
     });
 
@@ -36,6 +37,7 @@ export async function GET() {
         username: user.username,
         displayName: user.displayName,
         profileImage: user.profileImage,
+        email: user.email,
       }
     });
   } catch (error) {

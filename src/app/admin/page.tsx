@@ -17,17 +17,17 @@ export default function AdminLoginPage() {
           const data = await response.json();
           if (data.authenticated && data.user) {
             setUser(data.user);
-            // Check if user email ends with @poap.fr
+            // Check if user email ends with @poap.fr and redirect to dashboard
             if (data.user.email && data.user.email.endsWith('@poap.fr')) {
               router.push('/admin/dashboard');
+              return; // Exit early to keep loading state
             }
           }
         }
       } catch (error) {
         console.error('Session check error:', error);
-      } finally {
-        setIsLoading(false);
       }
+      setIsLoading(false);
     };
 
     checkSession();
