@@ -65,7 +65,7 @@ The {{eventName}} Team`,
   });
 
   const extractEventId = async (url: string): Promise<string | null> => {
-    // Handle format: https://lu.ma/event/manage/evt-XXX
+    // Handle format: https://lu.ma/event/manage/evt-XXX or https://luma.com/event/manage/evt-XXX
     const manageMatch = url.match(/\/event\/manage\/(evt-[a-zA-Z0-9]+)/);
     if (manageMatch) return manageMatch[1];
     
@@ -80,8 +80,8 @@ The {{eventName}} Team`,
       // Not a valid URL, continue with other patterns
     }
     
-    // Handle format: https://lu.ma/XXX (short URL - needs scraping)
-    const shortMatch = url.match(/lu\.ma\/([a-zA-Z0-9]+)$/);
+    // Handle format: https://lu.ma/XXX or https://luma.com/XXX (short URL - needs scraping)
+    const shortMatch = url.match(/(?:lu\.ma|luma\.com)\/([a-zA-Z0-9]+)$/);
     if (shortMatch) {
       // This is a short URL, we need to scrape it
       const eventId = await fetchEventIdFromShortUrl(url);
@@ -104,7 +104,7 @@ The {{eventName}} Team`,
     }
 
     // Check if it's a Luma URL
-    if (!url.includes("lu.ma")) {
+    if (!url.includes("lu.ma") && !url.includes("luma.com")) {
       setEventData(null);
       toast.error("Please enter a Luma event URL");
       return;

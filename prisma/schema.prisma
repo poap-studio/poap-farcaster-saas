@@ -22,59 +22,59 @@ model User {
 }
 
 model AuthorizedUser {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  username     String?
-  isAdmin      Boolean  @default(false)
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String?
+  isAdmin   Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([email])
   @@index([isActive])
 }
 
 model Drop {
-  id                String   @id @default(cuid())
-  slug              String   @unique @default(cuid())
-  userId            String
-  poapEventId       String
-  poapSecretCode    String
-  buttonColor       String   @default("#0a5580")
-  backgroundColor   String   @default("#073d5c")
-  logoUrl           String?
-  mintMessage       String   @default("This POAP celebrates the Farcaster community and our journey together.")
-  requireFollow     Boolean  @default(true)
-  followUsername    String?
-  requireRecast     Boolean  @default(true)
-  isActive          Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  disclaimerMessage String   @default("By minting this POAP you accept these terms: https://poap.xyz/terms")
-  requireQuote      Boolean  @default(false)
-  platform          String   @default("farcaster")
-  lumaEventId       String?
-  deliveryMethod    String?
-  lumaEventUrl      String?
-  emailSubject      String?
-  emailBody         String?
-  deliveryTarget    String   @default("email")
-  isRealTime        Boolean  @default(false)
-  poapsDelivered    Boolean  @default(false)
-  deliveredAt       DateTime?
-  // Instagram fields
-  instagramAccountId String?
-  instagramStoryId   String?
-  instagramStoryUrl  String?  @db.Text
-  instagramMessages  InstagramDropMessages?
-  acceptedFormats    String[] @default(["email"]) // ["email", "ens", "address"]
-  sendPoapEmail      Boolean  @default(true) // Whether POAP should send email when minting
-  claims            Claim[]
-  lumaDeliveries    LumaDelivery[]
-  lumaGuests        LumaGuest[]
+  id                  String                 @id @default(cuid())
+  slug                String                 @unique @default(cuid())
+  userId              String
+  poapEventId         String
+  poapSecretCode      String
+  buttonColor         String                 @default("#0a5580")
+  backgroundColor     String                 @default("#073d5c")
+  logoUrl             String?
+  mintMessage         String                 @default("This POAP celebrates the Farcaster community and our journey together.")
+  requireFollow       Boolean                @default(true)
+  followUsername      String?
+  requireRecast       Boolean                @default(true)
+  isActive            Boolean                @default(true)
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  disclaimerMessage   String                 @default("By minting this POAP you accept these terms: https://poap.xyz/terms")
+  requireQuote        Boolean                @default(false)
+  deliveryMethod      String?
+  emailBody           String?
+  emailSubject        String?
+  lumaEventId         String?
+  lumaEventUrl        String?
+  platform            String                 @default("farcaster")
+  deliveryTarget      String                 @default("email")
+  deliveredAt         DateTime?
+  poapsDelivered      Boolean                @default(false)
+  instagramAccountId  String?
+  instagramStoryId    String?
+  instagramStoryUrl   String?
+  acceptedFormats     String[]               @default(["email"])
+  sendPoapEmail       Boolean?               @default(true)
+  isRealTime          Boolean                @default(false)
+  claims              Claim[]
+  instagramAccount    InstagramAccount?      @relation(fields: [instagramAccountId], references: [id])
+  user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   instagramDeliveries InstagramDelivery[]
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  instagramAccount  InstagramAccount? @relation(fields: [instagramAccountId], references: [id], onDelete: SetNull)
+  instagramMessages   InstagramDropMessages?
+  InstagramMessage    InstagramMessage[]
+  lumaDeliveries      LumaDelivery[]
+  lumaGuests          LumaGuest[]
 
   @@index([userId])
   @@index([slug])
@@ -100,15 +100,15 @@ model Claim {
 }
 
 model LumaDelivery {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   dropId      String
   guestId     String
   email       String
   name        String
   poapLink    String
-  sentAt      DateTime @default(now())
+  sentAt      DateTime  @default(now())
   checkedInAt DateTime?
-  drop        Drop     @relation(fields: [dropId], references: [id], onDelete: Cascade)
+  drop        Drop      @relation(fields: [dropId], references: [id], onDelete: Cascade)
 
   @@unique([dropId, guestId])
   @@index([dropId])
@@ -116,30 +116,30 @@ model LumaDelivery {
 }
 
 model LumaGuest {
-  id               String   @id @default(cuid())
-  dropId           String
-  guestId          String
-  email            String
-  name             String
-  firstName        String?
-  lastName         String?
-  registeredAt     DateTime
-  checkedInAt      DateTime?
-  ethAddress       String?
-  solanaAddress    String?
-  phoneNumber      String?
-  geoCity          String?
-  geoCountry       String?
-  avatarUrl        String?
-  twitterHandle    String?
-  instagramHandle  String?
-  linkedinHandle   String?
-  website          String?
-  approvalStatus   String?
-  lastSyncedAt     DateTime @default(now())
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  drop             Drop     @relation(fields: [dropId], references: [id], onDelete: Cascade)
+  id              String    @id @default(cuid())
+  dropId          String
+  guestId         String
+  email           String
+  name            String
+  firstName       String?
+  lastName        String?
+  registeredAt    DateTime
+  checkedInAt     DateTime?
+  ethAddress      String?
+  solanaAddress   String?
+  phoneNumber     String?
+  geoCity         String?
+  geoCountry      String?
+  avatarUrl       String?
+  twitterHandle   String?
+  instagramHandle String?
+  linkedinHandle  String?
+  website         String?
+  approvalStatus  String?
+  lastSyncedAt    DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  drop            Drop      @relation(fields: [dropId], references: [id], onDelete: Cascade)
 
   @@unique([dropId, guestId])
   @@index([dropId])
@@ -148,33 +148,34 @@ model LumaGuest {
 }
 
 model LumaCookie {
-  id        String   @id @default(cuid())
-  cookie    String   @db.Text
+  id        String    @id @default(cuid())
+  cookie    String
   expiresAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isValid   Boolean  @default(true)
-  
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  isValid   Boolean   @default(true)
+
   @@index([createdAt])
 }
 
 model InstagramMessage {
-  id          String   @id @default(cuid())
-  messageId   String   @unique
-  text        String
-  senderId    String
+  id             String             @id @default(cuid())
+  messageId      String             @unique
+  text           String
+  senderId       String
+  recipientId    String
+  timestamp      BigInt
+  storyId        String?
+  storyUrl       String?
+  receivedAt     DateTime           @default(now())
+  createdAt      DateTime           @default(now())
+  processed      Boolean?           @default(false)
+  processedAt    DateTime?
+  dropId         String?
   senderUsername String?
-  recipientId String
-  timestamp   BigInt
-  storyId     String?
-  storyUrl    String?  @db.Text
-  receivedAt  DateTime @default(now())
-  createdAt   DateTime @default(now())
-  processed   Boolean  @default(false)
-  processedAt DateTime?
-  dropId      String?
-  delivery    InstagramDelivery?
-  
+  delivery       InstagramDelivery?
+  Drop           Drop?              @relation(fields: [dropId], references: [id])
+
   @@index([senderId])
   @@index([recipientId])
   @@index([timestamp])
@@ -185,44 +186,45 @@ model InstagramMessage {
 }
 
 model InstagramAccount {
-  id           String   @id @default(cuid())
-  instagramId  String   @unique
-  username     String?
-  accessToken  String   @db.Text
-  tokenType    String   @default("bearer")
-  expiresAt    DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  drops        Drop[]
-  
+  id          String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  instagramId String    @unique
+  username    String?
+  accessToken String
+  tokenType   String    @default("bearer")
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+  drops       Drop[]
+
   @@index([instagramId])
 }
 
 model InstagramDropMessages {
-  id                String   @id @default(cuid())
-  dropId            String   @unique
-  successMessage    String   @db.Text // Message when POAP is delivered (contains {{recipient}} variable)
-  alreadyClaimedMessage String @db.Text // Message when user already claimed
-  invalidFormatMessage String @db.Text // Message when no valid email/ENS/address found
-  drop              Drop     @relation(fields: [dropId], references: [id], onDelete: Cascade)
-  
+  id                    String @id @default(dbgenerated("(gen_random_uuid())::text"))
+  dropId                String @unique
+  successMessage        String
+  alreadyClaimedMessage String
+  invalidFormatMessage  String
+  drop                  Drop   @relation(fields: [dropId], references: [id], onDelete: Cascade)
+
   @@index([dropId])
 }
 
 model InstagramDelivery {
-  id             String   @id @default(cuid())
-  dropId         String
-  messageId      String   @unique
-  recipientType  String   // "email", "ens", or "address"
-  recipientValue String   // The actual email, ENS, or address
-  poapLink       String?
-  deliveryStatus String   @default("pending") // "pending", "delivered", "failed"
-  errorMessage   String?
-  deliveredAt    DateTime?
-  createdAt      DateTime @default(now())
-  drop           Drop     @relation(fields: [dropId], references: [id], onDelete: Cascade)
-  message        InstagramMessage @relation(fields: [messageId], references: [messageId], onDelete: Cascade)
-  
+  id                String           @id @default(dbgenerated("(gen_random_uuid())::text"))
+  dropId            String
+  messageId         String           @unique
+  recipientType     String
+  recipientValue    String
+  poapLink          String?
+  deliveryStatus    String           @default("pending")
+  errorMessage      String?
+  deliveredAt       DateTime?
+  createdAt         DateTime         @default(now())
+  instagramUsername String?
+  drop              Drop             @relation(fields: [dropId], references: [id], onDelete: Cascade)
+  message           InstagramMessage @relation(fields: [messageId], references: [messageId], onDelete: Cascade)
+
   @@unique([dropId, recipientValue, recipientType])
   @@index([dropId])
   @@index([messageId])
