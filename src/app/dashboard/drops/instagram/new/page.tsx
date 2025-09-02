@@ -14,6 +14,8 @@ interface InstagramStory {
   permalink: string;
   isHighlight?: boolean;
   highlightTitle?: string;
+  fromDB?: boolean;
+  fromAPI?: boolean;
 }
 
 export default function NewInstagramDropPage() {
@@ -350,7 +352,7 @@ export default function NewInstagramDropPage() {
               {instagramConnected && (
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-white">Select Story</h3>
-                  <p className="text-sm text-gray-400">Select the story that users will reply to (includes active stories and highlights)</p>
+                  <p className="text-sm text-gray-400">Select the story that users will reply to (includes active stories, archived stories, and highlights)</p>
                   
                   {loadingStories ? (
                     <div className="flex items-center justify-center p-8">
@@ -396,10 +398,12 @@ export default function NewInstagramDropPage() {
                             </div>
                           )}
                           
-                          {/* Active story indicator */}
+                          {/* Active/Archived story indicator */}
                           {!story.isHighlight && (
-                            <div className="absolute bottom-2 left-2 bg-green-500 bg-opacity-80 rounded-full px-2 py-0.5">
-                              <p className="text-xs text-white font-medium">Active</p>
+                            <div className={`absolute bottom-2 left-2 ${story.fromDB && !story.fromAPI ? 'bg-gray-500' : 'bg-green-500'} bg-opacity-80 rounded-full px-2 py-0.5`}>
+                              <p className="text-xs text-white font-medium">
+                                {story.fromDB && !story.fromAPI ? 'Archived' : 'Active'}
+                              </p>
                             </div>
                           )}
                           

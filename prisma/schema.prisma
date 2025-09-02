@@ -195,6 +195,7 @@ model InstagramAccount {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @default(now()) @updatedAt
   drops       Drop[]
+  stories     InstagramStory[]
 
   @@index([instagramId])
 }
@@ -229,4 +230,26 @@ model InstagramDelivery {
   @@index([dropId])
   @@index([messageId])
   @@index([deliveryStatus])
+}
+
+model InstagramStory {
+  id                String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  accountId         String
+  storyId           String   @unique
+  mediaUrl          String
+  mediaType         String
+  timestamp         DateTime
+  permalink         String
+  imageData         String?  // Base64 encoded image data
+  isHighlight       Boolean  @default(false)
+  highlightTitle    String?
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  instagramAccount  InstagramAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([timestamp])
+  @@index([isActive])
+  @@index([storyId])
 }

@@ -2,6 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '~/lib/session';
 import { prisma } from '~/lib/prisma';
 
+async function downloadImageAsBase64(imageUrl: string): Promise<string | null> {
+  try {
+    const response = await fetch(imageUrl);
+    if (!response.ok) return null;
+    
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64 = buffer.toString('base64');
+    const mimeType = response.headers.get('content-type') || 'image/jpeg';
+    
+    return `data:${mimeType};base64,${base64}`;
+  } catch (error) {
+    console.error('[Image Download] Error downloading image:', error);
+    return null;
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession();
@@ -26,8 +43,34 @@ export async function GET(request: NextRequest) {
     }
 
     let allStories: any[] = [];
+    const storiesMap = new Map<string, any>();
 
-    // 1. Get active stories (last 24 hours)
+    // 1. First, get all stored stories from database
+    const storedStories = await prisma.instagramStory.findMany({
+      where: {
+        accountId: account.id,
+        isActive: true
+      },
+      orderBy: {
+        timestamp: 'desc'
+      }
+    });
+
+    // Add stored stories to map
+    storedStories.forEach(story => {
+      storiesMap.set(story.storyId, {
+        id: story.storyId,
+        media_url: story.imageData || story.mediaUrl,
+        media_type: story.mediaType,
+        timestamp: story.timestamp.toISOString(),
+        permalink: story.permalink,
+        isHighlight: story.isHighlight,
+        highlightTitle: story.highlightTitle,
+        fromDB: true
+      });
+    });
+
+    // 2. Get active stories (last 24 hours) from Instagram API
     try {
       const storiesResponse = await fetch(
         `https://graph.instagram.com/${account.instagramId}/stories?fields=id,media_type,media_url,timestamp,permalink&access_token=${account.accessToken}`
@@ -35,18 +78,50 @@ export async function GET(request: NextRequest) {
       
       if (storiesResponse.ok) {
         const storiesData = await storiesResponse.json();
-        const activeStories = (storiesData.data || []).map((story: any) => ({
-          ...story,
-          isHighlight: false
-        }));
-        allStories = [...allStories, ...activeStories];
+        const activeStories = storiesData.data || [];
+        
+        // Process and save new stories
+        for (const story of activeStories) {
+          // Check if story already exists
+          const existingStory = await prisma.instagramStory.findUnique({
+            where: { storyId: story.id }
+          });
+
+          if (!existingStory) {
+            // Download image as base64
+            const imageData = await downloadImageAsBase64(story.media_url);
+            
+            // Save to database
+            await prisma.instagramStory.create({
+              data: {
+                accountId: account.id,
+                storyId: story.id,
+                mediaUrl: story.media_url,
+                mediaType: story.media_type,
+                timestamp: new Date(story.timestamp),
+                permalink: story.permalink,
+                imageData,
+                isHighlight: false,
+                isActive: true
+              }
+            });
+          }
+
+          // Add to map (this will update if exists)
+          storiesMap.set(story.id, {
+            ...story,
+            isHighlight: false,
+            fromAPI: true
+          });
+        }
+
         console.log('[Instagram Stories] Found', activeStories.length, 'active stories');
       }
     } catch (error) {
       console.error('[Instagram Stories] Error getting active stories:', error);
     }
 
-    // 2. Get highlights
+    // 3. Get highlights
     try {
       const highlightsResponse = await fetch(
         `https://graph.instagram.com/${account.instagramId}/available_story_highlights?fields=id,title,cover_media{id,media_type,media_url,timestamp}&access_token=${account.accessToken}`
@@ -65,12 +140,45 @@ export async function GET(request: NextRequest) {
             
             if (highlightMediaResponse.ok) {
               const highlightMediaData = await highlightMediaResponse.json();
-              const highlightStories = (highlightMediaData.media?.data || []).map((media: any) => ({
-                ...media,
-                isHighlight: true,
-                highlightTitle: highlight.title || 'Highlight'
-              }));
-              allStories = [...allStories, ...highlightStories];
+              const highlightStories = highlightMediaData.media?.data || [];
+              
+              // Process and save highlight stories
+              for (const media of highlightStories) {
+                // Check if story already exists
+                const existingStory = await prisma.instagramStory.findUnique({
+                  where: { storyId: media.id }
+                });
+
+                if (!existingStory) {
+                  // Download image as base64
+                  const imageData = await downloadImageAsBase64(media.media_url);
+                  
+                  // Save to database
+                  await prisma.instagramStory.create({
+                    data: {
+                      accountId: account.id,
+                      storyId: media.id,
+                      mediaUrl: media.media_url,
+                      mediaType: media.media_type,
+                      timestamp: new Date(media.timestamp),
+                      permalink: media.permalink,
+                      imageData,
+                      isHighlight: true,
+                      highlightTitle: highlight.title || 'Highlight',
+                      isActive: true
+                    }
+                  });
+                }
+
+                // Add to map
+                storiesMap.set(media.id, {
+                  ...media,
+                  isHighlight: true,
+                  highlightTitle: highlight.title || 'Highlight',
+                  fromAPI: true
+                });
+              }
+              
               console.log('[Instagram Stories] Added', highlightStories.length, 'stories from highlight:', highlight.title);
             }
           } catch (error) {
@@ -82,40 +190,15 @@ export async function GET(request: NextRequest) {
       console.error('[Instagram Stories] Error getting highlights:', error);
     }
 
-    // If no stories found, try media endpoint as fallback
-    if (allStories.length === 0) {
-      console.log('[Instagram Stories] No stories or highlights found, trying media endpoint');
-      
-      const mediaResponse = await fetch(
-        `https://graph.instagram.com/me/media?fields=id,media_type,media_url,timestamp,permalink&access_token=${account.accessToken}`
-      );
-      
-      if (!mediaResponse.ok) {
-        const mediaError = await mediaResponse.json();
-        console.error('[Instagram Stories] Error getting media:', mediaError);
-        return NextResponse.json({ error: 'Failed to get Instagram content' }, { status: 400 });
-      }
-      
-      const mediaData = await mediaResponse.json();
-      // Return recent media as fallback
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      const recentMedia = (mediaData.data || []).filter((media: { timestamp: string; media_type: string }) => {
-        const mediaDate = new Date(media.timestamp);
-        return mediaDate > sevenDaysAgo && (media.media_type === 'IMAGE' || media.media_type === 'VIDEO');
-      });
-      
-      allStories = recentMedia.map((media: any) => ({
-        ...media,
-        isHighlight: false
-      }));
-    }
-
-    // Sort by timestamp (newest first) and add source info
+    // Convert map to array and sort by timestamp (newest first)
+    allStories = Array.from(storiesMap.values());
     allStories.sort((a, b) => {
       const timeA = new Date(a.timestamp).getTime();
       const timeB = new Date(b.timestamp).getTime();
       return timeB - timeA;
     });
+
+    console.log('[Instagram Stories] Total stories available:', allStories.length);
 
     return NextResponse.json({
       stories: allStories
