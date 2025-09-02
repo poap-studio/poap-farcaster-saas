@@ -379,7 +379,7 @@ export async function processInstagramMessage(
         drop.poapEventId,
         drop.poapSecretCode,
         recipientInfo as { type: 'email' | 'ens' | 'address'; value: string },
-        drop.sendPoapEmail
+        drop.sendPoapEmail ?? true
       );
       
       if (deliveryResult.success) {
